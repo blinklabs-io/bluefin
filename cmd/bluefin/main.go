@@ -15,6 +15,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -22,6 +23,7 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/indexer"
 	"github.com/blinklabs-io/bluefin/internal/logging"
+	"github.com/blinklabs-io/bursa"
 )
 
 var cmdlineFlags struct {
@@ -50,6 +52,47 @@ func main() {
 			return
 		}
 	}()
+
+	// Setup wallet
+	mnemonic := cfg.Wallet.Mnemonic
+	if mnemonic == "" {
+		// Read seed.txt if it exists
+		if data, err := os.ReadFile("seed.txt"); err == nil {
+			logger.Infof("read mnemonic from seed.txt")
+			mnemonic = string(data)
+		} else if errors.Is(err, os.ErrNotExist) {
+			mnemonic, err = bursa.NewMnemonic()
+			if err != nil {
+				panic(err)
+			}
+			// Write seed.txt
+			// WARNING: this will clobber existing files
+			f, err := os.Create("seed.txt")
+			if err != nil {
+				panic(err)
+			}
+			l, err := f.WriteString(mnemonic)
+			logger.Debugf("wrote %d bytes to seed.txt", l)
+			if err != nil {
+				f.Close()
+				panic(err)
+			}
+			err = f.Close()
+			if err != nil {
+				panic(err)
+			}
+			logger.Infof("wrote generated mnemonic to seed.txt")
+		} else {
+			panic(err)
+		}
+	}
+	rootKey, err := bursa.GetRootKeyFromMnemonic(mnemonic)
+	if err != nil {
+		panic(err)
+	}
+	accountKey := bursa.GetAccountKey(rootKey, 0)
+	addr := bursa.GetAddress(accountKey, cfg.Indexer.Network, 0)
+	logger.Infof("loaded mnemonic for address: %s", addr.String())
 
 	// Start indexer
 	logger.Infof("starting indexer on %s", cfg.Indexer.Network)

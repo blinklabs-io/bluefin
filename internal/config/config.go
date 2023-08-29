@@ -23,25 +23,11 @@ import (
 )
 
 type Config struct {
+	Indexer IndexerConfig `yaml:"indexer"`
+	Wallet  WalletConfig  `yaml:"wallet"`
 	Logging LoggingConfig `yaml:"logging"`
 	Metrics MetricsConfig `yaml:"metrics"`
 	Debug   DebugConfig   `yaml:"debug"`
-	Indexer IndexerConfig `yaml:"indexer"`
-}
-
-type LoggingConfig struct {
-	Healthchecks bool   `yaml:"healthchecks" envconfig:"LOGGING_HEALTHCHECKS"`
-	Level        string `yaml:"level" envconfig:"LOGGING_LEVEL"`
-}
-
-type DebugConfig struct {
-	ListenAddress string `yaml:"address" envconfig:"DEBUG_ADDRESS"`
-	ListenPort    uint   `yaml:"port" envconfig:"DEBUG_PORT"`
-}
-
-type MetricsConfig struct {
-	ListenAddress string `yaml:"address" envconfig:"METRICS_LISTEN_ADDRESS"`
-	ListenPort    uint   `yaml:"port" envconfig:"METRICS_LISTEN_PORT"`
 }
 
 type IndexerConfig struct {
@@ -52,6 +38,25 @@ type IndexerConfig struct {
 	ScriptAddress string `yaml:"scriptAddress" envconfig:"INDEXER_SCRIPT_ADDRESS"`
 	InterceptHash string `yaml:"interceptHash" envconfig:"INDEXER_INTERCEPT_HASH"`
 	InterceptSlot uint64 `yaml:"interceptSlot" envconfig:"INDEXER_INTERCEPT_SLOT"`
+}
+
+type WalletConfig struct {
+	Mnemonic string `yaml:"mnemonic" envconfig:"MNEMONIC"`
+}
+
+type LoggingConfig struct {
+	Healthchecks bool   `yaml:"healthchecks" envconfig:"LOGGING_HEALTHCHECKS"`
+	Level        string `yaml:"level" envconfig:"LOGGING_LEVEL"`
+}
+
+type MetricsConfig struct {
+	ListenAddress string `yaml:"address" envconfig:"METRICS_LISTEN_ADDRESS"`
+	ListenPort    uint   `yaml:"port" envconfig:"METRICS_LISTEN_PORT"`
+}
+
+type DebugConfig struct {
+	ListenAddress string `yaml:"address" envconfig:"DEBUG_ADDRESS"`
+	ListenPort    uint   `yaml:"port" envconfig:"DEBUG_PORT"`
 }
 
 // Singleton config instance with default values

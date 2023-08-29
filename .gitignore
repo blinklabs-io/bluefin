@@ -21,3 +21,6 @@
 go.work
 
 bluefin
+
+# seed phrase... DO NOT REMOVE
+seed.txt

@@ -27,7 +27,7 @@ type Config struct {
 	Wallet  WalletConfig  `yaml:"wallet"`
 	Logging LoggingConfig `yaml:"logging"`
 	Metrics MetricsConfig `yaml:"metrics"`
-	Genisis GenesisConfig `yaml:"genesis"`
+	Genesis GenesisConfig `yaml:"genesis"`
 	Debug   DebugConfig   `yaml:"debug"`
 }
 
@@ -55,7 +55,7 @@ type MetricsConfig struct {
 	ListenPort    uint   `yaml:"port" envconfig:"METRICS_LISTEN_PORT"`
 }
 
-type Genesis struct {
+type GenesisConfig struct {
 	Validator        string `json:"validator"`
 	ValidatorHash    string `json:"validatorHash"`
 	ValidatorAddress string `json:"validatorAddress"`

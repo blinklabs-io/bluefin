@@ -23,6 +23,7 @@ import (
 )
 
 type Config struct {
+	Storage StorageConfig `yaml:"storage"`
 	Indexer IndexerConfig `yaml:"indexer"`
 	Wallet  WalletConfig  `yaml:"wallet"`
 	Logging LoggingConfig `yaml:"logging"`
@@ -39,6 +40,10 @@ type IndexerConfig struct {
 	ScriptAddress string `yaml:"scriptAddress" envconfig:"INDEXER_SCRIPT_ADDRESS"`
 	InterceptHash string `yaml:"interceptHash" envconfig:"INDEXER_INTERCEPT_HASH"`
 	InterceptSlot uint64 `yaml:"interceptSlot" envconfig:"INDEXER_INTERCEPT_SLOT"`
+}
+
+type StorageConfig struct {
+	Directory string `yaml:"dir" envconfig:"STORAGE_DIR"`
 }
 
 type WalletConfig struct {
@@ -93,6 +98,10 @@ var globalConfig = &Config{
 		ScriptAddress: "addr1wynelppvx0hdjp2tnc78pnt28veznqjecf9h3wy4edqajxsg7hwsc",
 		InterceptHash: "94476abbe95c1505bfb8d56b697c348ebae63ac58f9d9f976e8c8a331588d01a",
 		InterceptSlot: 101511708,
+	},
+	Storage: StorageConfig{
+		// TODO: pick a better location
+		Directory: "./.bluefin",
 	},
 }
 

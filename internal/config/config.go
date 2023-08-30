@@ -74,7 +74,7 @@ var globalConfig = &Config{
 		ListenPort:    8081,
 	},
 	Indexer: IndexerConfig{
-		Network: "mainnet",
+		Network:       "mainnet",
 		ScriptAddress: "addr1wynelppvx0hdjp2tnc78pnt28veznqjecf9h3wy4edqajxsg7hwsc",
 		InterceptHash: "94476abbe95c1505bfb8d56b697c348ebae63ac58f9d9f976e8c8a331588d01a",
 		InterceptSlot: 101511708,

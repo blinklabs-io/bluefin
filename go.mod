@@ -3,13 +3,19 @@ module github.com/blinklabs-io/bluefin
 go 1.19
 
 require (
-	github.com/blinklabs-io/bursa v0.1.0
+	github.com/blinklabs-io/bursa v0.2.0
 	github.com/blinklabs-io/gouroboros v0.52.0
 	github.com/blinklabs-io/snek v0.7.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	go.uber.org/zap v1.25.0
 	gopkg.in/yaml.v2 v2.4.0
 )
+
+// XXX: uncomment when testing local changes to bursa
+// replace github.com/blinklabs-io/bursa v0.2.0 => ../bursa
+
+// XXX: uncomment when testing local changes to gouroboros
+// replace github.com/blinklabs-io/gouroboros v0.52.0 => ../gouroboros
 
 require (
 	github.com/btcsuite/btcutil v1.0.2 // indirect

@@ -24,7 +24,7 @@ type Indexer struct {
 }
 
 type Datum struct {
-	nonce []byte
+	nonce uint64
 	state State
 }
 
@@ -147,11 +147,13 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 				return err
 			}
 			datumFields := datum.Value().(cbor.Constructor).Fields()
-			nonce := datumFields[0]
-			state := datumFields[1]
+			var data = Datum{
+				nonce: datumFields[0].(uint64),
+			}
+			state := datumFields[1].(cbor.ByteString).String()
 			// TODO: do the thing
 
-			logger.Infof("found updated datum: nonce: %d, state: %#v", nonce, state)
+			logger.Infof("found updated datum: nonce: %d, state: %s", data.nonce, state)
 		}
 	}
 	return nil

@@ -2,10 +2,10 @@ github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBA
 github.com/benbjohnson/clock v1.3.0 h1:ip6w0uFQkncKQ979AypyG0ER7mqUSBdKLOgAle/AT8A=
 github.com/blinklabs-io/bursa v0.1.0 h1:Rkh3axQMs2GMwJh4poegzb/almrB8Q+eMSEHXhoPk3g=
 github.com/blinklabs-io/bursa v0.1.0/go.mod h1:z/8vIRXG0dDgWJjRxxkldyoUthUsa1UvZ+vz7hjoVPY=
-github.com/blinklabs-io/gouroboros v0.50.0 h1:TcNgmWgenAE9mVoiZkTw68tk4r+n6oF4iPW0oeX6jjs=
-github.com/blinklabs-io/gouroboros v0.50.0/go.mod h1:cQt3XVVG2b+cpIJh+DhID7ivsyBQmTsXqbTDZ+7esXI=
-github.com/blinklabs-io/snek v0.5.0 h1://vQo5dp3aRUHrBaywyBZRDgS+Skh3ZgNusMhBNgwo0=
-github.com/blinklabs-io/snek v0.5.0/go.mod h1:MScjJA0cu7pbqkfsIbK5i2ucF+4pgk7ybqFdiRlzIsU=
+github.com/blinklabs-io/gouroboros v0.52.0 h1:5abdw2PXHKHxve26BITukfAzz7OJoTPKWylbyth9Sxk=
+github.com/blinklabs-io/gouroboros v0.52.0/go.mod h1:2wCCNNsHNYMT4gQB+bXS0Y99Oeu8+EM96hi7hW22C2w=
+github.com/blinklabs-io/snek v0.7.0 h1:vt7z22pU8EYiNvz93bB1L5VG8KuJKr/GQQnaonoEAGk=
+github.com/blinklabs-io/snek v0.7.0/go.mod h1:HPeDsmg867w5DmGU4bpKVekoiproECSaK4JgHaVtkcg=
 github.com/btcsuite/btcd v0.20.1-beta/go.mod h1:wVuoA8VJLEcwgqHBwHmzLRazpKxTv13Px/pDuV7OomQ=
 github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f/go.mod h1:TdznJufoqS23FtqVCzL0ZqgP5MqXbb4fg/WgDys70nA=
 github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d/go.mod h1:+5NJ2+qvTyV9exUAL/rxXi3DcLg2Ts+ymUAY5y4NvMg=
@@ -26,8 +26,8 @@ github.com/fxamacker/cbor/v2 v2.4.0/go.mod h1:TA1xS00nchWmaBnEIxPSE5oHLuJBAVvqrt
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/jessevdk/go-flags v0.0.0-20141203071132-1679536dcc89/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
-github.com/jinzhu/copier v0.3.5 h1:GlvfUwHk62RokgqVNvYsku0TATCF7bAHVwEXoBh3iJg=
-github.com/jinzhu/copier v0.3.5/go.mod h1:DfbEm0FYsaqBcKcFuvmOZb218JkPGtvSHsKg8S8hyyg=
+github.com/jinzhu/copier v0.4.0 h1:w3ciUoD19shMCRargcpm0cm91ytaBhDvuRpz1ODO/U8=
+github.com/jinzhu/copier v0.4.0/go.mod h1:DfbEm0FYsaqBcKcFuvmOZb218JkPGtvSHsKg8S8hyyg=
 github.com/jrick/logrotate v1.0.0/go.mod h1:LNinyqDIJnpAur+b8yyulnQw/wDuN1+BYKlTRt3OuAQ=
 github.com/kelseyhightower/envconfig v1.4.0 h1:Im6hONhd3pLkfDFsbRgu68RDNkGF1r3dvMUtDTo2cv8=
 github.com/kelseyhightower/envconfig v1.4.0/go.mod h1:cccZRl6mQpaq41TPp5QxidR+Sa3axMbJDNb//FQX6Gg=

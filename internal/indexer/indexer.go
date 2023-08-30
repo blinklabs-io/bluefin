@@ -81,12 +81,12 @@ func (i *Indexer) Start() error {
 	// Configure pipeline filters
 	// We only care about transaction events
 	filterEvent := filter_event.New(
-		filter_event.WithType("chainsync.transaction"),
+		filter_event.WithTypes([]string{"chainsync.transaction"}),
 	)
 	i.pipeline.AddFilter(filterEvent)
 	// We only care about transactions on a certain address
 	filterChainsync := filter_chainsync.New(
-		filter_chainsync.WithAddress(cfg.Indexer.ScriptAddress),
+		filter_chainsync.WithAddresses([]string{cfg.Indexer.ScriptAddress}),
 	)
 	i.pipeline.AddFilter(filterChainsync)
 	// Configure pipeline output

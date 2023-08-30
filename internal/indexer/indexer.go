@@ -20,12 +20,11 @@ import (
 
 type Indexer struct {
 	pipeline *pipeline.Pipeline
-	datum    []byte
 }
 
 type Datum struct {
 	nonce uint64
-	state State
+	state State //nolint:unused
 }
 
 type State struct {

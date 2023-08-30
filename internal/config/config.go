@@ -27,6 +27,7 @@ type Config struct {
 	Wallet  WalletConfig  `yaml:"wallet"`
 	Logging LoggingConfig `yaml:"logging"`
 	Metrics MetricsConfig `yaml:"metrics"`
+	Genisis GenesisConfig `yaml:"genesis"`
 	Debug   DebugConfig   `yaml:"debug"`
 }
 
@@ -54,6 +55,20 @@ type MetricsConfig struct {
 	ListenPort    uint   `yaml:"port" envconfig:"METRICS_LISTEN_PORT"`
 }
 
+type Genesis struct {
+	Validator        string `json:"validator"`
+	ValidatorHash    string `json:"validatorHash"`
+	ValidatorAddress string `json:"validatorAddress"`
+	BootstrapHash    string `json:"boostrapHash"`
+	Datum            string `json:"datum"`
+	OutRef           OutRef `json:"outRef"`
+}
+
+type OutRef struct {
+	TxHash string `json:"txHash"`
+	Index  int    `json:"index"`
+}
+
 type DebugConfig struct {
 	ListenAddress string `yaml:"address" envconfig:"DEBUG_ADDRESS"`
 	ListenPort    uint   `yaml:"port" envconfig:"DEBUG_PORT"`
@@ -74,7 +89,7 @@ var globalConfig = &Config{
 		ListenPort:    8081,
 	},
 	Indexer: IndexerConfig{
-		Network: "mainnet",
+		Network:       "mainnet",
 		ScriptAddress: "addr1wynelppvx0hdjp2tnc78pnt28veznqjecf9h3wy4edqajxsg7hwsc",
 		InterceptHash: "94476abbe95c1505bfb8d56b697c348ebae63ac58f9d9f976e8c8a331588d01a",
 		InterceptSlot: 101511708,

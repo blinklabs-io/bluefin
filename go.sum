@@ -1,7 +1,7 @@
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
 github.com/benbjohnson/clock v1.3.0 h1:ip6w0uFQkncKQ979AypyG0ER7mqUSBdKLOgAle/AT8A=
-github.com/blinklabs-io/bursa v0.1.0 h1:Rkh3axQMs2GMwJh4poegzb/almrB8Q+eMSEHXhoPk3g=
-github.com/blinklabs-io/bursa v0.1.0/go.mod h1:z/8vIRXG0dDgWJjRxxkldyoUthUsa1UvZ+vz7hjoVPY=
+github.com/blinklabs-io/bursa v0.2.0 h1:C14bkl+bB7jamH4E5LqNpGxvXjSBl1YMaU+E9Z3rx2c=
+github.com/blinklabs-io/bursa v0.2.0/go.mod h1:G12xXYf7oKCqm22z6pYftEPEW6v7Lbytid0DdWG00TE=
 github.com/blinklabs-io/gouroboros v0.52.0 h1:5abdw2PXHKHxve26BITukfAzz7OJoTPKWylbyth9Sxk=
 github.com/blinklabs-io/gouroboros v0.52.0/go.mod h1:2wCCNNsHNYMT4gQB+bXS0Y99Oeu8+EM96hi7hW22C2w=
 github.com/blinklabs-io/snek v0.7.0 h1:vt7z22pU8EYiNvz93bB1L5VG8KuJKr/GQQnaonoEAGk=

@@ -5,6 +5,7 @@ import (
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
+	"github.com/blinklabs-io/bluefin/internal/wallet"
 
 	"github.com/blinklabs-io/gouroboros/cbor"
 	ocommon "github.com/blinklabs-io/gouroboros/protocol/common"
@@ -22,8 +23,8 @@ type Indexer struct {
 }
 
 type Datum struct {
-	nonce    []byte
-	state    State
+	nonce []byte
+	state State
 }
 
 type State struct {
@@ -40,6 +41,7 @@ var globalIndexer = &Indexer{}
 func (i *Indexer) Start() error {
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()
+	bursa := wallet.GetWallet()
 	// Create pipeline
 	i.pipeline = pipeline.New()
 	// Configure pipeline input
@@ -86,7 +88,7 @@ func (i *Indexer) Start() error {
 	i.pipeline.AddFilter(filterEvent)
 	// We only care about transactions on a certain address
 	filterChainsync := filter_chainsync.New(
-		filter_chainsync.WithAddresses([]string{cfg.Indexer.ScriptAddress}),
+		filter_chainsync.WithAddresses([]string{cfg.Indexer.ScriptAddress, bursa.PaymentAddress}),
 	)
 	i.pipeline.AddFilter(filterChainsync)
 	// Configure pipeline output
@@ -123,7 +125,7 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 			state := datumFields[1]
 			// TODO: do the thing
 
-			logger.Infof("found updated datum: nonce: %#v, state: %#v", nonce, state)
+			logger.Infof("found updated datum: nonce: %d, state: %#v", nonce, state)
 		}
 	}
 	return nil

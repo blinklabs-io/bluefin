@@ -30,6 +30,7 @@ func Setup() {
 	// Setup wallet
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()
+	// TODO: check storage for mnemonic
 	mnemonic := cfg.Wallet.Mnemonic
 	if mnemonic == "" {
 		// Read seed.txt if it exists
@@ -58,6 +59,7 @@ func Setup() {
 				panic(err)
 			}
 			logger.Infof("wrote generated mnemonic to seed.txt")
+			// TODO: write mnemonic to storage
 		} else {
 			panic(err)
 		}

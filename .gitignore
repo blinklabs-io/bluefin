@@ -20,7 +20,10 @@
 # Go workspace file
 go.work
 
-bluefin
+/bluefin
 
 # seed phrase... DO NOT REMOVE
 seed.txt
+
+# Storage dir for local testing
+/.bluefin

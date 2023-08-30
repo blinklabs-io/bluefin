@@ -5,6 +5,7 @@ import (
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
+	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 
 	"github.com/blinklabs-io/gouroboros/cbor"
@@ -46,7 +47,11 @@ func (i *Indexer) Start() error {
 	i.pipeline = pipeline.New()
 	// Configure pipeline input
 	inputOpts := []input_chainsync.ChainSyncOptionFunc{
-		//input_chainsync.WithIntersectTip(true),
+		input_chainsync.WithStatusUpdateFunc(func(status input_chainsync.ChainSyncStatus) {
+			if err := storage.GetStorage().UpdateCursor(status.SlotNumber, status.BlockHash); err != nil {
+				logger.Errorf("failed to update cursor: %s", err)
+			}
+		}),
 	}
 	if cfg.Indexer.NetworkMagic > 0 {
 		inputOpts = append(
@@ -59,7 +64,28 @@ func (i *Indexer) Start() error {
 			input_chainsync.WithNetwork(cfg.Indexer.Network),
 		)
 	}
-	if cfg.Indexer.InterceptHash != "" && cfg.Indexer.InterceptSlot > 0 {
+	cursorSlotNumber, cursorBlockHash, err := storage.GetStorage().GetCursor()
+	if err != nil {
+		return err
+	}
+	if cursorSlotNumber > 0 {
+		logger.Infof("found previous chainsync cursor: %d, %s", cursorSlotNumber, cursorBlockHash)
+		hashBytes, err := hex.DecodeString(cursorBlockHash)
+		if err != nil {
+			return err
+		}
+		inputOpts = append(
+			inputOpts,
+			input_chainsync.WithIntersectPoints(
+				[]ocommon.Point{
+					{
+						Hash: hashBytes,
+						Slot: cursorSlotNumber,
+					},
+				},
+			),
+		)
+	} else if cfg.Indexer.InterceptHash != "" && cfg.Indexer.InterceptSlot > 0 {
 		hashBytes, err := hex.DecodeString(cfg.Indexer.InterceptHash)
 		if err != nil {
 			return err

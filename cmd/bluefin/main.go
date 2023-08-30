@@ -22,6 +22,7 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/indexer"
 	"github.com/blinklabs-io/bluefin/internal/logging"
+	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 )
 
@@ -51,6 +52,11 @@ func main() {
 			return
 		}
 	}()
+
+	// Load storage
+	if err := storage.GetStorage().Load(); err != nil {
+		logger.Fatalf("failed to load storage: %s", err)
+	}
 
 	// Setup wallet
 	wallet.Setup()

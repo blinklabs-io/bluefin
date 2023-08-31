@@ -102,8 +102,8 @@ var globalConfig = &Config{
 	Indexer: IndexerConfig{
 		Network:       "mainnet",
 		ScriptAddress: "addr1wynelppvx0hdjp2tnc78pnt28veznqjecf9h3wy4edqajxsg7hwsc",
-		InterceptHash: "94476abbe95c1505bfb8d56b697c348ebae63ac58f9d9f976e8c8a331588d01a",
-		InterceptSlot: 101511708,
+		InterceptHash: "b019548e41b55ae702fee37d8b9ae716c978712c02bc4862ba13db6602e5af72",
+		InterceptSlot: 101511155,
 	},
 	Storage: StorageConfig{
 		// TODO: pick a better location

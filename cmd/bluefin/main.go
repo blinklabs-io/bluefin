@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"os"
 
+	_ "go.uber.org/automaxprocs"
+
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/indexer"
 	"github.com/blinklabs-io/bluefin/internal/logging"

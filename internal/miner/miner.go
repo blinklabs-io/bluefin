@@ -17,6 +17,8 @@ package miner
 import (
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
+	"github.com/blinklabs-io/gouroboros/ledger"
+	"github.com/blinklabs-io/snek/input/chainsync"
 )
 
 type Miner struct {
@@ -32,5 +34,22 @@ func New() *Miner {
 }
 
 func (m *Miner) Start() {
-	// TODO
+	// validatorAddress := m.Config.Genesis.ValidatorAddress
+	// validatorUTXOs = GetUTXOsForAddress(events, validatorAddress)
+
+}
+
+// GetUTXOsForAddress filters the TransactionEvent outputs for a given address
+func GetUTXOsForAddress(events []chainsync.TransactionEvent, address string) []ledger.TransactionOutput {
+	var utxos []ledger.TransactionOutput
+
+	for _, event := range events {
+		for _, output := range event.Outputs {
+			if output.Address().String() == address {
+				utxos = append(utxos, output)
+			}
+		}
+	}
+
+	return utxos
 }

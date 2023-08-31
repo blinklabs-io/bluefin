@@ -17,6 +17,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v2"
@@ -26,6 +27,7 @@ type Config struct {
 	Storage StorageConfig `yaml:"storage"`
 	Indexer IndexerConfig `yaml:"indexer"`
 	Wallet  WalletConfig  `yaml:"wallet"`
+	Worker  WorkerConfig  `yaml:"worker"`
 	Logging LoggingConfig `yaml:"logging"`
 	Metrics MetricsConfig `yaml:"metrics"`
 	Genesis GenesisConfig `yaml:"genesis"`
@@ -48,6 +50,10 @@ type StorageConfig struct {
 
 type WalletConfig struct {
 	Mnemonic string `yaml:"mnemonic" envconfig:"MNEMONIC"`
+}
+
+type WorkerConfig struct {
+	Count int `yaml:"count" envconfig:"WORKER_COUNT"`
 }
 
 type LoggingConfig struct {
@@ -102,6 +108,11 @@ var globalConfig = &Config{
 	Storage: StorageConfig{
 		// TODO: pick a better location
 		Directory: "./.bluefin",
+	},
+	// The default worker config is somewhat conservative: worker count is set
+	// to half of the available logical CPUs
+	Worker: WorkerConfig{
+		Count: runtime.NumCPU() / 2,
 	},
 }
 

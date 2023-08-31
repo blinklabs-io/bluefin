@@ -24,6 +24,7 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
+	"github.com/blinklabs-io/bluefin/internal/worker"
 )
 
 var cmdlineFlags struct {
@@ -68,6 +69,10 @@ func main() {
 	if err := indexer.GetIndexer().Start(); err != nil {
 		logger.Fatalf("failed to start indexer: %s", err)
 	}
+
+	// TODO: remove me
+	// This should be started by the indexer reaching chain tip
+	worker.GetManager().Start(worker.WorkerParams{})
 
 	// Wait forever
 	select {}

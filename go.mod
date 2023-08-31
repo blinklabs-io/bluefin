@@ -8,6 +8,7 @@ require (
 	github.com/blinklabs-io/snek v0.7.0
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/kelseyhightower/envconfig v1.4.0
+	go.uber.org/automaxprocs v1.5.3
 	go.uber.org/zap v1.25.0
 	gopkg.in/yaml.v2 v2.4.0
 )

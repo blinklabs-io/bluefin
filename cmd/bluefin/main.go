@@ -24,6 +24,7 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/indexer"
 	"github.com/blinklabs-io/bluefin/internal/logging"
+	"github.com/blinklabs-io/bluefin/internal/miner"
 	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 	"github.com/blinklabs-io/bluefin/internal/worker"
@@ -75,6 +76,12 @@ func main() {
 	// TODO: remove me
 	// This should be started by the indexer reaching chain tip
 	worker.GetManager().Start(worker.WorkerParams{})
+
+	// Start miner
+	logger.Infof("starting miner on %s", cfg.Indexer.Network)
+	if err := miner.New().Start(); err != nil {
+		logger.Fatalf("failed to start miner: %s", err)
+	}
 
 	// Wait forever
 	select {}

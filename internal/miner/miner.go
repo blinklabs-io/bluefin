@@ -15,14 +15,27 @@
 package miner
 
 import (
+	"bytes"
+	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"strings"
+	"time"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/minio/sha256-simd"
 )
+
+type BlockData struct {
+	BlockNumber      int64
+	TargetHash       string
+	LeadingZeros     int64
+	DifficultyNumber int64
+	EpochTime        int64
+	RealTimeNow      int64
+	Message          string
+	Interlink        []byte
+}
 
 type Miner struct {
 	Config *config.Config
@@ -30,12 +43,17 @@ type Miner struct {
 }
 
 type State struct {
-	Nonce            int
-	BlockNumber      int
-	CurrentHash      int
-	LeadingZeros     string
-	DifficultyNumber int
-	EpochTime        int
+	Nonce            int64
+	BlockNumber      int64
+	CurrentHash      int64
+	LeadingZeros     int64
+	DifficultyNumber int64
+	EpochTime        int64
+}
+
+type DifficultyMetrics struct {
+	LeadingZeros     int64
+	DifficultyNumber int64
 }
 
 func New() *Miner {
@@ -51,7 +69,7 @@ func (m *Miner) Start() error {
 		Nonce:            0,
 		BlockNumber:      1,
 		CurrentHash:      1234567890,
-		LeadingZeros:     "0xabcdef",
+		LeadingZeros:     3,
 		DifficultyNumber: 1,
 		EpochTime:        1627890123,
 	}
@@ -59,37 +77,89 @@ func (m *Miner) Start() error {
 	hash, nonce := calculateHash(state)
 	fmt.Printf("Hash with leading zeros: %s\n", hash)
 	fmt.Printf("Nonce: %d\n", nonce)
+
+	realTimeNow := time.Now().Unix()*1000 - 60000
+
+	// TODO prepare things for a new block and clean up
+	// Sample values for the new block
+	targetHash := hash
+	leadingZeros := state.LeadingZeros
+	difficultyNumber := state.DifficultyNumber
+	epochTime := state.DifficultyNumber + 90000 + realTimeNow - state.EpochTime
+	// TODO: calculate interlink
+	interlink := []byte("sampleInterlink")
+
+	// Construct the new block data
+	postDatum := BlockData{
+		BlockNumber:      state.BlockNumber + 1,
+		TargetHash:       targetHash,
+		LeadingZeros:     leadingZeros,
+		DifficultyNumber: difficultyNumber,
+		EpochTime:        epochTime,
+		RealTimeNow:      90000 + realTimeNow,
+		Message:          "AlL HaIl tUnA",
+		Interlink:        interlink,
+	}
+	// Fund next datum
+	fmt.Printf("Fund next datum %+v\n", postDatum)
 	return nil
 }
 
-func calculateHash(state State) (string, int) {
+func calculateHash(state State) (string, int64) {
 	nonce := state.Nonce
-	difficulty := state.DifficultyNumber
 
 	for {
-		// Construct the input using the state fields and nonce
-		input := fmt.Sprintf("%x%d%d%x%d%d",
-			nonce,
-			state.BlockNumber,
-			state.CurrentHash,
-			state.LeadingZeros,
-			state.DifficultyNumber,
-			state.EpochTime,
-		)
+		stateBytes, err := stateToBytes(state)
+		if err != nil {
+			logging.GetLogger().Error(err)
+			return "", nonce
+		}
 
 		// Calculate the hash
 		hasher := sha256.New()
-		hasher.Write([]byte(input))
+		hasher.Write(stateBytes)
 		hash := hasher.Sum(nil)
 
-		// Convert the hash to a hexadecimal string
-		hashStr := hex.EncodeToString(hash)
+		// Get the difficulty metrics for the hash
+		metrics := getDifficulty(hash)
 
-		// Check if the hash has the required number of leading zeros
-		if strings.HasPrefix(hashStr, strings.Repeat("00", difficulty)) {
-			return hashStr, nonce
+		// Check the condition
+		if metrics.LeadingZeros > state.LeadingZeros || (metrics.LeadingZeros == state.LeadingZeros && metrics.DifficultyNumber < 2) {
+			return hex.EncodeToString(hash), nonce
 		}
 
 		nonce++
+		state.Nonce = nonce
 	}
+}
+
+func stateToBytes(state State) ([]byte, error) {
+	buf := new(bytes.Buffer)
+	if err := binary.Write(buf, binary.LittleEndian, state); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func getDifficulty(hash []byte) DifficultyMetrics {
+	var metrics DifficultyMetrics
+	for indx, chr := range hash {
+		if chr != 0 {
+			if (chr & 0x0F) == chr {
+				metrics.LeadingZeros += 1
+				metrics.DifficultyNumber += int64(chr) * 4096
+				metrics.DifficultyNumber += int64(hash[indx+1]) * 16
+				metrics.DifficultyNumber += int64(hash[indx+2]) / 16
+				return metrics
+			} else {
+				metrics.DifficultyNumber += int64(chr) * 256
+				metrics.DifficultyNumber += int64(hash[indx+1])
+				return metrics
+			}
+		} else {
+			metrics.LeadingZeros += 2
+		}
+	}
+	metrics.LeadingZeros = 32
+	return metrics
 }

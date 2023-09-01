@@ -101,9 +101,6 @@ var globalConfig = &Config{
 	},
 	Indexer: IndexerConfig{
 		Network:       "mainnet",
-		ScriptAddress: "addr1wynelppvx0hdjp2tnc78pnt28veznqjecf9h3wy4edqajxsg7hwsc",
-		InterceptHash: "b019548e41b55ae702fee37d8b9ae716c978712c02bc4862ba13db6602e5af72",
-		InterceptSlot: 101511155,
 	},
 	Storage: StorageConfig{
 		// TODO: pick a better location
@@ -135,10 +132,29 @@ func Load(configFile string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error processing environment: %s", err)
 	}
+	// Populate our Indexer startup
+	if err := globalConfig.populateIndexer(); err != nil {
+		return nil, err
+	}
 	return globalConfig, nil
 }
 
 // GetConfig returns the global config instance
 func GetConfig() *Config {
 	return globalConfig
+}
+
+func (c *Config) populateIndexer() error {
+	if c.Indexer.Network == "mainnet" {
+		c.Indexer.InterceptHash = "b019548e41b55ae702fee37d8b9ae716c978712c02bc4862ba13db6602e5af72"
+		c.Indexer.InterceptSlot = 101511155
+		c.Indexer.ScriptAddress = "addr1wynelppvx0hdjp2tnc78pnt28veznqjecf9h3wy4edqajxsg7hwsc"
+	} else if c.Indexer.Network == "preview" {
+		c.Indexer.InterceptHash = "b652abee9cf82145c3b220b614451e3c8ff5c504072a8c418c8c1ae1b70eb86f"
+		c.Indexer.InterceptSlot = 26352021
+		c.Indexer.ScriptAddress = "addr_test1wpgzl0aa4lramtdfcv6m69zq0q09g3ws3wk6wlwzqv5xdfsdcf2qa"
+	} else {
+		return fmt.Errorf("unable to configure network: %s", c.Indexer.Network)
+	}
+	return nil
 }

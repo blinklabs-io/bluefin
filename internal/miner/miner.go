@@ -19,11 +19,23 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"time"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/minio/sha256-simd"
 )
+
+type BlockData struct {
+	BlockNumber      int64
+	TargetHash       string
+	LeadingZeros     int64
+	DifficultyNumber int64
+	EpochTime        int64
+	RealTimeNow      int64
+	Message          string
+	Interlink        []byte
+}
 
 type Miner struct {
 	Config *config.Config
@@ -65,6 +77,31 @@ func (m *Miner) Start() error {
 	hash, nonce := calculateHash(state)
 	fmt.Printf("Hash with leading zeros: %s\n", hash)
 	fmt.Printf("Nonce: %d\n", nonce)
+
+	realTimeNow := time.Now().Unix()*1000 - 60000
+
+	// TODO prepare things for a new block and clean up
+	// Sample values for the new block
+	targetHash := hash
+	leadingZeros := state.LeadingZeros
+	difficultyNumber := state.DifficultyNumber
+	epochTime := state.DifficultyNumber + 90000 + realTimeNow - state.EpochTime
+	// TODO: calculate interlink
+	interlink := []byte("sampleInterlink")
+
+	// Construct the new block data
+	postDatum := BlockData{
+		BlockNumber:      state.BlockNumber + 1,
+		TargetHash:       targetHash,
+		LeadingZeros:     leadingZeros,
+		DifficultyNumber: difficultyNumber,
+		EpochTime:        epochTime,
+		RealTimeNow:      90000 + realTimeNow,
+		Message:          "AlL HaIl tUnA",
+		Interlink:        interlink,
+	}
+	// Fund next datum
+	fmt.Printf("Fund next datum %+v\n", postDatum)
 	return nil
 }
 

@@ -26,6 +26,7 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/miner"
 	"github.com/blinklabs-io/bluefin/internal/storage"
+	"github.com/blinklabs-io/bluefin/internal/version"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 	"github.com/blinklabs-io/bluefin/internal/worker"
 )
@@ -57,6 +58,7 @@ func main() {
 		}
 	}()
 
+	logger.Infof("bluefin %s started", version.GetVersionString())
 	// Load storage
 	if err := storage.GetStorage().Load(); err != nil {
 		logger.Fatalf("failed to load storage: %s", err)

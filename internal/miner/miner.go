@@ -23,6 +23,7 @@ import (
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
+	"github.com/blinklabs-io/bluefin/internal/version"
 	"github.com/minio/sha256-simd"
 )
 
@@ -97,7 +98,7 @@ func (m *Miner) Start() error {
 		DifficultyNumber: difficultyNumber,
 		EpochTime:        epochTime,
 		RealTimeNow:      90000 + realTimeNow,
-		Message:          "AlL HaIl tUnA",
+		Message:          fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString()),
 		Interlink:        interlink,
 	}
 	// Fund next datum

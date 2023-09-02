@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/blinklabs-io/bursa v0.2.0
 	github.com/blinklabs-io/gouroboros v0.52.0
-	github.com/blinklabs-io/snek v0.7.0
+	github.com/blinklabs-io/snek v0.9.0
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/minio/sha256-simd v1.0.1
@@ -15,10 +15,13 @@ require (
 )
 
 // XXX: uncomment when testing local changes to bursa
-// replace github.com/blinklabs-io/bursa v0.2.0 => ../bursa
+// replace github.com/blinklabs-io/bursa => ../bursa
 
 // XXX: uncomment when testing local changes to gouroboros
-// replace github.com/blinklabs-io/gouroboros v0.52.0 => ../gouroboros
+// replace github.com/blinklabs-io/gouroboros => ../gouroboros
+
+// XXX: uncomment when testing local changes to snek
+// replace github.com/blinklabs-io/snek => ../snek
 
 require (
 	github.com/btcsuite/btcutil v1.0.2 // indirect

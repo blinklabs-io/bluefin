@@ -8,6 +8,7 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/miner"
 	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
+	"github.com/blinklabs-io/bluefin/internal/worker"
 
 	"github.com/blinklabs-io/gouroboros/cbor"
 	ocommon "github.com/blinklabs-io/gouroboros/protocol/common"
@@ -20,7 +21,13 @@ import (
 )
 
 type Indexer struct {
-	pipeline *pipeline.Pipeline
+	pipeline      *pipeline.Pipeline
+	cursorSlot    uint64
+	cursorHash    string
+	tipSlot       uint64
+	tipHash       string
+	tipReached    bool
+	lastBlockData miner.BlockData
 }
 
 // Singleton indexer instance
@@ -34,11 +41,8 @@ func (i *Indexer) Start() error {
 	i.pipeline = pipeline.New()
 	// Configure pipeline input
 	inputOpts := []input_chainsync.ChainSyncOptionFunc{
-		input_chainsync.WithStatusUpdateFunc(func(status input_chainsync.ChainSyncStatus) {
-			if err := storage.GetStorage().UpdateCursor(status.SlotNumber, status.BlockHash); err != nil {
-				logger.Errorf("failed to update cursor: %s", err)
-			}
-		}),
+		input_chainsync.WithBulkMode(true),
+		input_chainsync.WithStatusUpdateFunc(i.updateStatus),
 	}
 	if cfg.Indexer.NetworkMagic > 0 {
 		inputOpts = append(
@@ -146,12 +150,36 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 			case cbor.ByteString:
 				blockData.Message = v.String()
 			}
+			i.lastBlockData = blockData
 			// TODO: do the thing
 
 			logger.Infof("found updated datum: %#v", blockData)
+
+			// Restart workers for new datum
+			if i.tipReached {
+				// TODO: create worker params
+				worker.GetManager().Start(worker.WorkerParams{})
+			}
 		}
 	}
 	return nil
+}
+
+func (i *Indexer) updateStatus(status input_chainsync.ChainSyncStatus) {
+	logger := logging.GetLogger()
+	// Check if we've hit chain tip
+	if !i.tipReached && status.TipReached {
+		i.tipReached = true
+		// TODO: create worker params
+		worker.GetManager().Start(worker.WorkerParams{})
+	}
+	i.cursorSlot = status.SlotNumber
+	i.cursorHash = status.BlockHash
+	i.tipSlot = status.TipSlotNumber
+	i.tipHash = status.TipBlockHash
+	if err := storage.GetStorage().UpdateCursor(status.SlotNumber, status.BlockHash); err != nil {
+		logger.Errorf("failed to update cursor: %s", err)
+	}
 }
 
 // GetIndexer returns the global indexer instance

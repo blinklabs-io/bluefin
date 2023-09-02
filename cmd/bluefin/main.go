@@ -26,6 +26,7 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/miner"
 	"github.com/blinklabs-io/bluefin/internal/storage"
+	"github.com/blinklabs-io/bluefin/internal/tx"
 	"github.com/blinklabs-io/bluefin/internal/version"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 )
@@ -67,6 +68,9 @@ func main() {
 	wallet.Setup()
 	bursa := wallet.GetWallet()
 	logger.Infof("loaded mnemonic for address: %s", bursa.PaymentAddress)
+
+	// Fake Tx
+	tx.SendTx()
 
 	// Start indexer
 	logger.Infof("starting indexer on %s", cfg.Indexer.Network)

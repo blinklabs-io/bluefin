@@ -53,7 +53,7 @@ func (m *Manager) Start(params WorkerParams) {
 				default:
 					break
 				}
-				// TODO
+				// TODO: miner here
 				randVal := rand.Intn(100)
 				if randVal == 42 {
 					logger.Infof("worker %d found result", workerIdx)
@@ -70,7 +70,7 @@ func (m *Manager) Start(params WorkerParams) {
 		case <-m.doneChan:
 			return
 		case result := <-m.resultChan:
-			// TODO: do something useful with result
+			// TODO: send to tx worker
 			// TODO: let the indexer receiving an update to the script's UTxOs restart the workers
 			logger.Infof("result = %#v", result)
 			// Restart workers as a simple test

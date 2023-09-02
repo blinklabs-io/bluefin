@@ -153,7 +153,22 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 			i.lastBlockData = blockData
 			// TODO: do the thing
 
-			logger.Infof("found updated datum: %#v", blockData)
+			messageBytes, err := hex.DecodeString(blockData.Message)
+			if err != nil {
+				panic(err)
+			}
+			message := string(messageBytes)
+
+			logger.Infof("found updated datum: block number: %d, hash: %s, leading zeros: %d, difficulty number: %d, epoch time: %d, real time now: %d, message: %s",
+				blockData.BlockNumber,
+				blockData.TargetHash,
+				blockData.LeadingZeros,
+				blockData.DifficultyNumber,
+				blockData.EpochTime,
+				blockData.RealTimeNow,
+				message,
+			)
+
 
 			// Restart workers for new datum
 			if i.tipReached {

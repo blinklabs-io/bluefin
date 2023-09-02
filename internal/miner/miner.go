@@ -109,8 +109,8 @@ func (m *Miner) Start() error {
 		Message:          fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString()),
 		Interlink:        currentInterlink,
 	}
-	// Fund next datum
-	fmt.Printf("Fund next datum %+v\n", postDatum)
+	// Found next datum
+	fmt.Printf("Found next datum %+v\n", postDatum)
 	return nil
 }
 

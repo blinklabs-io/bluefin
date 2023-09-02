@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package worker
+package miner
 
 import (
-	"math/rand"
 	"sync"
-	"time"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
@@ -26,11 +24,10 @@ import (
 type Manager struct {
 	workerWaitGroup sync.WaitGroup
 	doneChan        chan any
-	resultChan      chan any
-	// TODO
-}
-
-type WorkerParams struct {
+	resultChan      chan BlockData
+	started         bool
+	startMutex      sync.Mutex
+	stopMutex       sync.Mutex
 	// TODO
 }
 
@@ -41,42 +38,37 @@ var globalManager = &Manager{
 func (m *Manager) Reset() {
 	m.workerWaitGroup = sync.WaitGroup{}
 	m.doneChan = make(chan any)
-	m.resultChan = make(chan any)
+	m.resultChan = make(chan BlockData, config.GetConfig().Worker.Count)
 }
 
 func (m *Manager) Stop() {
+	m.stopMutex.Lock()
+	defer m.stopMutex.Unlock()
+	if !m.started {
+		return
+	}
 	close(m.doneChan)
 	m.workerWaitGroup.Wait()
+	close(m.resultChan)
+	m.started = false
 	logging.GetLogger().Infof("stopped workers")
 }
 
-func (m *Manager) Start(params WorkerParams) {
+func (m *Manager) Start(blockData BlockData) {
+	m.startMutex.Lock()
+	defer m.startMutex.Unlock()
+	if m.started {
+		return
+	}
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()
 	// Start workers
 	m.Reset()
 	logger.Infof("starting %d workers", cfg.Worker.Count)
 	for i := 0; i < cfg.Worker.Count; i++ {
-		go func(workerIdx int) {
-			defer m.workerWaitGroup.Done()
-			for {
-				// Check for worker shutdown
-				select {
-				case <-m.doneChan:
-					return
-				default:
-					break
-				}
-				// TODO: miner here
-				randVal := rand.Intn(100)
-				if randVal == 42 {
-					logger.Infof("worker %d found result", workerIdx)
-					m.resultChan <- randVal
-				}
-				time.Sleep(1 * time.Second)
-			}
-		}(i)
+		miner := New(&(m.workerWaitGroup), m.resultChan, m.doneChan, blockData)
 		m.workerWaitGroup.Add(1)
+		go miner.Start()
 	}
 	// Wait for result
 	go func() {
@@ -87,11 +79,11 @@ func (m *Manager) Start(params WorkerParams) {
 			// TODO: send to tx worker
 			// TODO: let the indexer receiving an update to the script's UTxOs restart the workers
 			logger.Infof("result = %#v", result)
-			// Restart workers as a simple test
+			// Stop workers until our result makes it on-chain
 			m.Stop()
-			m.Start(WorkerParams{})
 		}
 	}()
+	m.started = true
 }
 
 func GetManager() *Manager {

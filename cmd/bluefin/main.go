@@ -24,9 +24,9 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/indexer"
 	"github.com/blinklabs-io/bluefin/internal/logging"
-	"github.com/blinklabs-io/bluefin/internal/miner"
 	"github.com/blinklabs-io/bluefin/internal/storage"
-	"github.com/blinklabs-io/bluefin/internal/tx"
+
+	//"github.com/blinklabs-io/bluefin/internal/tx"
 	"github.com/blinklabs-io/bluefin/internal/version"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 )
@@ -70,18 +70,12 @@ func main() {
 	logger.Infof("loaded mnemonic for address: %s", bursa.PaymentAddress)
 
 	// Fake Tx
-	tx.SendTx()
+	//tx.SendTx()
 
 	// Start indexer
 	logger.Infof("starting indexer on %s", cfg.Indexer.Network)
 	if err := indexer.GetIndexer().Start(); err != nil {
 		logger.Fatalf("failed to start indexer: %s", err)
-	}
-
-	// Start miner
-	logger.Infof("starting miner on %s", cfg.Indexer.Network)
-	if err := miner.New().Start(); err != nil {
-		logger.Fatalf("failed to start miner: %s", err)
 	}
 
 	// Wait forever

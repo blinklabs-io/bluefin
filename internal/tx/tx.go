@@ -55,10 +55,6 @@ func createTx(utxosBytes [][]byte) {
 			PlutusDataType: PlutusData.PlutusBytes,
 			Value:          val})
 	}
-	targetHash, err := hex.DecodeString(blockData.TargetHash)
-	if err != nil {
-		panic(err)
-	}
 	utxoBytes := []byte("foo")
 
 	pd := PlutusData.PlutusData{
@@ -70,7 +66,7 @@ func createTx(utxosBytes [][]byte) {
 				Value:          blockData.BlockNumber + 1},
 			PlutusData.PlutusData{
 				PlutusDataType: PlutusData.PlutusBytes,
-				Value:          targetHash},
+				Value:          blockData.TargetHash},
 			PlutusData.PlutusData{
 				PlutusDataType: PlutusData.PlutusInt,
 				Value:          blockData.LeadingZeros},
@@ -126,16 +122,16 @@ func createTx(utxosBytes [][]byte) {
 		SetTtl(int64(currentTipSlotNumber+180000)).
 		PayToAddress(myAddress, 2000000, apollo.NewUnit(validatorHash, "TUNA", 5000000000)).
 		SetValidityStart(int64(currentTipSlotNumber)).MintAssetsWithRedeemer(
-			apollo.NewUnit(validatorHash, "TUNA", 5000000000),
-			Redeemer.Redeemer{
-				Tag:   Redeemer.MINT,
-				Index: 0,
-				Data: PlutusData.PlutusData{
-					PlutusDataType: PlutusData.PlutusArray,
-					TagNr:          121,
-					Value:          PlutusData.PlutusIndefArray{},
-				},
-			}).
+		apollo.NewUnit(validatorHash, "TUNA", 5000000000),
+		Redeemer.Redeemer{
+			Tag:   Redeemer.MINT,
+			Index: 0,
+			Data: PlutusData.PlutusData{
+				PlutusDataType: PlutusData.PlutusArray,
+				TagNr:          121,
+				Value:          PlutusData.PlutusIndefArray{},
+			},
+		}).
 		AddReferenceInput(refInputHash, refInputId).
 		CollectFrom(
 			ValidatorOutRef,

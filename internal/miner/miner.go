@@ -84,22 +84,30 @@ func (m *Miner) Start() error {
 	// TODO prepare things for a new block and clean up
 	// Sample values for the new block
 	targetHash := hash
-	leadingZeros := state.LeadingZeros
-	difficultyNumber := state.DifficultyNumber
+
 	epochTime := state.DifficultyNumber + 90000 + realTimeNow - state.EpochTime
 	// TODO: calculate interlink
-	interlink := [][]byte{[]byte("sampleInterlink")}
+
+	// TODO: Find where does it come from in the original code
+	// state.fields[7] as string[]
+	stateInterlink := [][]byte{
+		[]byte("BlinkLabs"),
+		[]byte("BlueFin"),
+	}
+
+	difficulty := getDifficulty([]byte(hash))
+	currentInterlink := calculateInterlink(hash, difficulty, DifficultyMetrics{LeadingZeros: state.LeadingZeros, DifficultyNumber: state.DifficultyNumber}, stateInterlink)
 
 	// Construct the new block data
 	postDatum := BlockData{
 		BlockNumber:      state.BlockNumber + 1,
 		TargetHash:       targetHash,
-		LeadingZeros:     leadingZeros,
-		DifficultyNumber: difficultyNumber,
+		LeadingZeros:     1,
+		DifficultyNumber: 2,
 		EpochTime:        epochTime,
 		RealTimeNow:      90000 + realTimeNow,
 		Message:          fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString()),
-		Interlink:        interlink,
+		Interlink:        currentInterlink,
 	}
 	// Fund next datum
 	fmt.Printf("Fund next datum %+v\n", postDatum)
@@ -146,6 +154,7 @@ func getDifficulty(hash []byte) DifficultyMetrics {
 	var metrics DifficultyMetrics
 	for indx, chr := range hash {
 		if chr != 0 {
+			//
 			if (chr & 0x0F) == chr {
 				metrics.LeadingZeros += 1
 				metrics.DifficultyNumber += int64(chr) * 4096
@@ -163,4 +172,42 @@ func getDifficulty(hash []byte) DifficultyMetrics {
 	}
 	metrics.LeadingZeros = 32
 	return metrics
+}
+
+func calculateInterlink(currentHash string, a DifficultyMetrics, b DifficultyMetrics, currentInterlink [][]byte) [][]byte {
+	hashBytes := []byte(currentHash)
+
+	interlink := make([][]byte, len(currentInterlink))
+	copy(interlink, currentInterlink)
+
+	bHalf := halfDifficultyNumber(b)
+	currentIndex := 0
+
+	for bHalf.LeadingZeros < a.LeadingZeros || (bHalf.LeadingZeros == a.LeadingZeros && bHalf.DifficultyNumber > a.DifficultyNumber) {
+		if currentIndex < len(interlink) {
+			interlink[currentIndex] = hashBytes
+		} else {
+			interlink = append(interlink, hashBytes)
+		}
+
+		bHalf = halfDifficultyNumber(bHalf)
+		currentIndex++
+	}
+
+	return interlink
+}
+
+func halfDifficultyNumber(metrics DifficultyMetrics) DifficultyMetrics {
+	newA := metrics.DifficultyNumber / 2
+	if newA < 4096 {
+		return DifficultyMetrics{
+			LeadingZeros:     metrics.LeadingZeros + 1,
+			DifficultyNumber: newA * 16,
+		}
+	} else {
+		return DifficultyMetrics{
+			LeadingZeros:     metrics.LeadingZeros,
+			DifficultyNumber: newA,
+		}
+	}
 }

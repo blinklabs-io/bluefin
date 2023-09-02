@@ -100,7 +100,7 @@ var globalConfig = &Config{
 		ListenPort:    8081,
 	},
 	Indexer: IndexerConfig{
-		Network:       "mainnet",
+		Network: "mainnet",
 	},
 	Storage: StorageConfig{
 		// TODO: pick a better location

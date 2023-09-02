@@ -1,5 +1,9 @@
 # bluefin
 
+<div align="center">
+    <img src="./assets/bluefin-logo.png" alt="bluefin Logo" width="640">
+</div>
+
 A $TUNA miner, written in Go
 
 __NOTE__: This miner is still a work in progress and may not be functional

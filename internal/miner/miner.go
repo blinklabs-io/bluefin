@@ -34,7 +34,7 @@ type BlockData struct {
 	EpochTime        int64
 	RealTimeNow      int64
 	Message          string
-	Interlink        []byte
+	Interlink        [][]byte
 }
 
 type Miner struct {
@@ -87,7 +87,7 @@ func (m *Miner) Start() error {
 	difficultyNumber := state.DifficultyNumber
 	epochTime := state.DifficultyNumber + 90000 + realTimeNow - state.EpochTime
 	// TODO: calculate interlink
-	interlink := []byte("sampleInterlink")
+	interlink := [][]byte{[]byte("sampleInterlink")}
 
 	// Construct the new block data
 	postDatum := BlockData{

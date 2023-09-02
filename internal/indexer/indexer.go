@@ -5,6 +5,7 @@ import (
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
+	"github.com/blinklabs-io/bluefin/internal/miner"
 	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 
@@ -20,19 +21,6 @@ import (
 
 type Indexer struct {
 	pipeline *pipeline.Pipeline
-}
-
-type Datum struct {
-	nonce uint64
-	state State //nolint:unused
-}
-
-type State struct {
-	BlockNumber      uint64
-	CurrentHash      []byte
-	LeadingZeros     uint64
-	DifficultyNumber uint64
-	EpochTime        uint64
 }
 
 // Singleton indexer instance
@@ -146,13 +134,21 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 				return err
 			}
 			datumFields := datum.Value().(cbor.Constructor).Fields()
-			var data = Datum{
-				nonce: datumFields[0].(uint64),
+			blockData := miner.BlockData{
+				BlockNumber:      int64(datumFields[0].(uint64)),
+				TargetHash:       datumFields[1].(cbor.ByteString).String(),
+				LeadingZeros:     int64(datumFields[2].(uint64)),
+				DifficultyNumber: int64(datumFields[3].(uint64)),
+				EpochTime:        int64(datumFields[4].(uint64)),
+				RealTimeNow:      int64(datumFields[5].(uint64)),
 			}
-			state := datumFields[1].(cbor.ByteString).String()
+			switch v := datumFields[6].(type) {
+			case cbor.ByteString:
+				blockData.Message = v.String()
+			}
 			// TODO: do the thing
 
-			logger.Infof("found updated datum: nonce: %d, state: %s", data.nonce, state)
+			logger.Infof("found updated datum: %#v", blockData)
 		}
 	}
 	return nil

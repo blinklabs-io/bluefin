@@ -17,8 +17,8 @@ package miner
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
@@ -29,24 +29,28 @@ import (
 
 type BlockData struct {
 	BlockNumber      int64
-	TargetHash       string
+	TargetHash       []byte
 	LeadingZeros     int64
 	DifficultyNumber int64
 	EpochTime        int64
 	RealTimeNow      int64
-	Message          string
+	Message          []byte
 	Interlink        [][]byte
 }
 
 type Miner struct {
-	Config *config.Config
-	Logger *logging.Logger
+	Config     *config.Config
+	Logger     *logging.Logger
+	waitGroup  *sync.WaitGroup
+	resultChan chan BlockData
+	doneChan   chan any
+	blockData  BlockData
 }
 
 type State struct {
 	Nonce            int64
 	BlockNumber      int64
-	CurrentHash      int64
+	CurrentHash      []byte
 	LeadingZeros     int64
 	DifficultyNumber int64
 	EpochTime        int64
@@ -57,22 +61,30 @@ type DifficultyMetrics struct {
 	DifficultyNumber int64
 }
 
-func New() *Miner {
+func New(waitGroup *sync.WaitGroup, resultChan chan BlockData, doneChan chan any, blockData BlockData) *Miner {
 	return &Miner{
-		Config: config.GetConfig(),
-		Logger: logging.GetLogger(),
+		Config:     config.GetConfig(),
+		Logger:     logging.GetLogger(),
+		waitGroup:  waitGroup,
+		resultChan: resultChan,
+		doneChan:   doneChan,
+		blockData:  blockData,
 	}
 }
 
-func (m *Miner) Start() error {
-	// TODO add real state
+func (m *Miner) Start() {
+	defer m.waitGroup.Done()
+
+	// TODO: check on m.doneChan and exit
+
+	// Create initial state from block data
 	state := State{
 		Nonce:            0,
-		BlockNumber:      1,
-		CurrentHash:      1234567890,
-		LeadingZeros:     3,
-		DifficultyNumber: 1,
-		EpochTime:        1627890123,
+		BlockNumber:      m.blockData.BlockNumber,
+		CurrentHash:      m.blockData.TargetHash,
+		LeadingZeros:     m.blockData.LeadingZeros,
+		DifficultyNumber: m.blockData.DifficultyNumber,
+		EpochTime:        m.blockData.EpochTime,
 	}
 
 	hash, nonce := calculateHash(state)
@@ -106,22 +118,22 @@ func (m *Miner) Start() error {
 		DifficultyNumber: 2,
 		EpochTime:        epochTime,
 		RealTimeNow:      90000 + realTimeNow,
-		Message:          fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString()),
+		Message:          []byte(fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString())),
 		Interlink:        currentInterlink,
 	}
 	// Found next datum
 	fmt.Printf("Found next datum %+v\n", postDatum)
-	return nil
+	m.resultChan <- postDatum
 }
 
-func calculateHash(state State) (string, int64) {
+func calculateHash(state State) ([]byte, int64) {
 	nonce := state.Nonce
 
 	for {
 		stateBytes, err := stateToBytes(state)
 		if err != nil {
 			logging.GetLogger().Error(err)
-			return "", nonce
+			return nil, nonce
 		}
 
 		// Calculate the hash
@@ -134,7 +146,7 @@ func calculateHash(state State) (string, int64) {
 
 		// Check the condition
 		if metrics.LeadingZeros > state.LeadingZeros || (metrics.LeadingZeros == state.LeadingZeros && metrics.DifficultyNumber < 2) {
-			return hex.EncodeToString(hash), nonce
+			return hash, nonce
 		}
 
 		nonce++
@@ -174,9 +186,7 @@ func getDifficulty(hash []byte) DifficultyMetrics {
 	return metrics
 }
 
-func calculateInterlink(currentHash string, a DifficultyMetrics, b DifficultyMetrics, currentInterlink [][]byte) [][]byte {
-	hashBytes := []byte(currentHash)
-
+func calculateInterlink(currentHash []byte, a DifficultyMetrics, b DifficultyMetrics, currentInterlink [][]byte) [][]byte {
 	interlink := make([][]byte, len(currentInterlink))
 	copy(interlink, currentInterlink)
 
@@ -185,9 +195,9 @@ func calculateInterlink(currentHash string, a DifficultyMetrics, b DifficultyMet
 
 	for bHalf.LeadingZeros < a.LeadingZeros || (bHalf.LeadingZeros == a.LeadingZeros && bHalf.DifficultyNumber > a.DifficultyNumber) {
 		if currentIndex < len(interlink) {
-			interlink[currentIndex] = hashBytes
+			interlink[currentIndex] = currentHash
 		} else {
-			interlink = append(interlink, hashBytes)
+			interlink = append(interlink, currentHash)
 		}
 
 		bHalf = halfDifficultyNumber(bHalf)

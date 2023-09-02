@@ -22,7 +22,6 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/miner"
 	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
-	"github.com/blinklabs-io/bluefin/internal/worker"
 
 	"github.com/blinklabs-io/gouroboros/cbor"
 	ocommon "github.com/blinklabs-io/gouroboros/protocol/common"
@@ -154,40 +153,43 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 			datumFields := datum.Value().(cbor.Constructor).Fields()
 			blockData := miner.BlockData{
 				BlockNumber:      int64(datumFields[0].(uint64)),
-				TargetHash:       datumFields[1].(cbor.ByteString).String(),
+				TargetHash:       datumFields[1].(cbor.ByteString).Bytes(),
 				LeadingZeros:     int64(datumFields[2].(uint64)),
 				DifficultyNumber: int64(datumFields[3].(uint64)),
 				EpochTime:        int64(datumFields[4].(uint64)),
 				RealTimeNow:      int64(datumFields[5].(uint64)),
 			}
+			// Some blocks have the int 0 in this field, so we protect against it
 			switch v := datumFields[6].(type) {
 			case cbor.ByteString:
-				blockData.Message = v.String()
+				blockData.Message = v.Bytes()
 			}
+			// Copy interlink
+			interlink := [][]byte{}
+			for _, data := range datumFields[7].([]any) {
+				interlink = append(
+					interlink,
+					data.(cbor.ByteString).Bytes(),
+				)
+			}
+			blockData.Interlink = interlink[:]
 			i.lastBlockData = blockData
 			// TODO: do the thing
 
-			messageBytes, err := hex.DecodeString(blockData.Message)
-			if err != nil {
-				panic(err)
-			}
-			message := string(messageBytes)
-
-			logger.Infof("found updated datum: block number: %d, hash: %s, leading zeros: %d, difficulty number: %d, epoch time: %d, real time now: %d, message: %s",
+			logger.Infof("found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, real time now: %d, message: %s",
 				blockData.BlockNumber,
 				blockData.TargetHash,
 				blockData.LeadingZeros,
 				blockData.DifficultyNumber,
 				blockData.EpochTime,
 				blockData.RealTimeNow,
-				message,
+				string(blockData.Message),
 			)
 
-
-			// Restart workers for new datum
+			// Restart miners for new datum
 			if i.tipReached {
-				// TODO: create worker params
-				worker.GetManager().Start(worker.WorkerParams{})
+				miner.GetManager().Stop()
+				miner.GetManager().Start(i.lastBlockData)
 			}
 		}
 	}
@@ -199,8 +201,7 @@ func (i *Indexer) updateStatus(status input_chainsync.ChainSyncStatus) {
 	// Check if we've hit chain tip
 	if !i.tipReached && status.TipReached {
 		i.tipReached = true
-		// TODO: create worker params
-		worker.GetManager().Start(worker.WorkerParams{})
+		miner.GetManager().Start(i.lastBlockData)
 	}
 	i.cursorSlot = status.SlotNumber
 	i.cursorHash = status.BlockHash

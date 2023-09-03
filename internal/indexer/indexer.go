@@ -50,6 +50,10 @@ func (i *Indexer) Start() error {
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()
 	bursa := wallet.GetWallet()
+	// Load saved block data
+	if err := storage.GetStorage().GetBlockData(&(i.lastBlockData)); err != nil {
+		return err
+	}
 	// Create pipeline
 	i.pipeline = pipeline.New()
 	// Configure pipeline input
@@ -141,55 +145,73 @@ func (i *Indexer) Start() error {
 }
 
 func (i *Indexer) handleEvent(evt event.Event) error {
+	cfg := config.GetConfig()
 	logger := logging.GetLogger()
 	eventTx := evt.Payload.(input_chainsync.TransactionEvent)
 	for _, txOutput := range eventTx.Outputs {
-		datum := txOutput.Datum()
-		if datum != nil {
-			if _, err := datum.Decode(); err != nil {
-				logger.Warnf("error decoding TX (%s) output datum: %s", eventTx.TransactionHash, err)
+		/*
+			// Write UTXO to storage
+			if err := storage.GetStorage().AddUtxo(
+				txOutput.Address().String(),
+				eventTx.TransactionHash,
+				idx,
+				txOutput.Cbor(),
+			); err != nil {
 				return err
 			}
-			datumFields := datum.Value().(cbor.Constructor).Fields()
-			blockData := miner.BlockData{
-				BlockNumber:      int64(datumFields[0].(uint64)),
-				TargetHash:       datumFields[1].(cbor.ByteString).Bytes(),
-				LeadingZeros:     int64(datumFields[2].(uint64)),
-				DifficultyNumber: int64(datumFields[3].(uint64)),
-				EpochTime:        int64(datumFields[4].(uint64)),
-				RealTimeNow:      int64(datumFields[5].(uint64)),
-			}
-			// Some blocks have the int 0 in this field, so we protect against it
-			switch v := datumFields[6].(type) {
-			case cbor.ByteString:
-				blockData.Message = v.Bytes()
-			}
-			// Copy interlink
-			interlink := [][]byte{}
-			for _, data := range datumFields[7].([]any) {
-				interlink = append(
-					interlink,
-					data.(cbor.ByteString).Bytes(),
+			// TODO: delete used UTXOs
+		*/
+		// Handle datum for script address
+		if txOutput.Address().String() == cfg.Indexer.ScriptAddress {
+			datum := txOutput.Datum()
+			if datum != nil {
+				if _, err := datum.Decode(); err != nil {
+					logger.Warnf("error decoding TX (%s) output datum: %s", eventTx.TransactionHash, err)
+					return err
+				}
+				datumFields := datum.Value().(cbor.Constructor).Fields()
+				blockData := miner.BlockData{
+					BlockNumber:      int64(datumFields[0].(uint64)),
+					TargetHash:       datumFields[1].(cbor.ByteString).Bytes(),
+					LeadingZeros:     int64(datumFields[2].(uint64)),
+					DifficultyNumber: int64(datumFields[3].(uint64)),
+					EpochTime:        int64(datumFields[4].(uint64)),
+					RealTimeNow:      int64(datumFields[5].(uint64)),
+				}
+				// Some blocks have the int 0 in this field, so we protect against it
+				switch v := datumFields[6].(type) {
+				case cbor.ByteString:
+					blockData.Message = v.Bytes()
+				}
+				// Copy interlink
+				interlink := [][]byte{}
+				for _, data := range datumFields[7].([]any) {
+					interlink = append(
+						interlink,
+						data.(cbor.ByteString).Bytes(),
+					)
+				}
+				blockData.Interlink = interlink[:]
+				i.lastBlockData = blockData
+				if err := storage.GetStorage().UpdateBlockData(&(i.lastBlockData)); err != nil {
+					return err
+				}
+
+				logger.Infof("found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, real time now: %d, message: %s",
+					blockData.BlockNumber,
+					blockData.TargetHash,
+					blockData.LeadingZeros,
+					blockData.DifficultyNumber,
+					blockData.EpochTime,
+					blockData.RealTimeNow,
+					string(blockData.Message),
 				)
-			}
-			blockData.Interlink = interlink[:]
-			i.lastBlockData = blockData
-			// TODO: do the thing
 
-			logger.Infof("found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, real time now: %d, message: %s",
-				blockData.BlockNumber,
-				blockData.TargetHash,
-				blockData.LeadingZeros,
-				blockData.DifficultyNumber,
-				blockData.EpochTime,
-				blockData.RealTimeNow,
-				string(blockData.Message),
-			)
-
-			// Restart miners for new datum
-			if i.tipReached {
-				miner.GetManager().Stop()
-				miner.GetManager().Start(i.lastBlockData)
+				// Restart miners for new datum
+				if i.tipReached {
+					miner.GetManager().Stop()
+					miner.GetManager().Start(i.lastBlockData)
+				}
 			}
 		}
 	}

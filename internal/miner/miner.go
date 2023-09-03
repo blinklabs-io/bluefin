@@ -15,6 +15,7 @@
 package miner
 
 import (
+	"crypto/rand"
 	"fmt"
 	"sync"
 	"time"
@@ -47,7 +48,7 @@ type Miner struct {
 }
 
 type State struct {
-	Nonce            int64
+	Nonce            [16]byte
 	BlockNumber      int64
 	CurrentHash      []byte
 	LeadingZeros     int64
@@ -78,7 +79,7 @@ func (m *Miner) Start() {
 
 	// Create initial state from block data
 	state := State{
-		Nonce:            0,
+		Nonce:            randomNonce(),
 		BlockNumber:      m.blockData.BlockNumber,
 		CurrentHash:      m.blockData.TargetHash,
 		LeadingZeros:     m.blockData.LeadingZeros,
@@ -86,15 +87,10 @@ func (m *Miner) Start() {
 		EpochTime:        m.blockData.EpochTime,
 	}
 
-	hash, nonce := calculateHash(state)
-	fmt.Printf("Hash with leading zeros: %x\n", hash)
-	fmt.Printf("Nonce: %d\n", nonce)
+	targetHash := calculateHash(&state)
+	fmt.Printf("Nonce: %x, Hash with leading zeros: %x\n", state.Nonce, targetHash)
 
 	realTimeNow := time.Now().Unix()*1000 - 60000
-
-	// TODO prepare things for a new block and clean up
-	// Sample values for the new block
-	targetHash := hash
 
 	epochTime := state.DifficultyNumber + 90000 + realTimeNow - state.EpochTime
 	// TODO: calculate interlink
@@ -106,15 +102,15 @@ func (m *Miner) Start() {
 		[]byte("BlueFin"),
 	}
 
-	difficulty := getDifficulty([]byte(hash))
-	currentInterlink := calculateInterlink(hash, difficulty, DifficultyMetrics{LeadingZeros: state.LeadingZeros, DifficultyNumber: state.DifficultyNumber}, stateInterlink)
+	difficulty := getDifficulty([]byte(targetHash))
+	currentInterlink := calculateInterlink(targetHash, difficulty, DifficultyMetrics{LeadingZeros: state.LeadingZeros, DifficultyNumber: state.DifficultyNumber}, stateInterlink)
 
 	// Construct the new block data
 	postDatum := BlockData{
 		BlockNumber:      state.BlockNumber + 1,
 		TargetHash:       targetHash,
-		LeadingZeros:     1,
-		DifficultyNumber: 2,
+		LeadingZeros:     difficulty.LeadingZeros,
+		DifficultyNumber: difficulty.DifficultyNumber,
 		EpochTime:        epochTime,
 		RealTimeNow:      90000 + realTimeNow,
 		Message:          []byte(fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString())),
@@ -125,35 +121,44 @@ func (m *Miner) Start() {
 	m.resultChan <- postDatum
 }
 
-func calculateHash(state State) ([]byte, int64) {
-	nonce := state.Nonce
+func randomNonce() [16]byte {
+	var ret [16]byte
+	// This will never return an error
+	_, _ = rand.Read(ret[:])
+	return ret
+}
 
+func calculateHash(state *State) []byte {
 	for {
 		stateBytes, err := stateToBytes(state)
 		if err != nil {
 			logging.GetLogger().Error(err)
-			return nil, nonce
+			return nil
 		}
 
-		// Calculate the hash
+		// Hash it once
 		hasher := sha256.New()
 		hasher.Write(stateBytes)
 		hash := hasher.Sum(nil)
 
+		// And hash it again
+		hasher2 := sha256.New()
+		hasher2.Write(hash)
+		hash2 := hasher2.Sum(nil)
+
 		// Get the difficulty metrics for the hash
-		metrics := getDifficulty(hash)
+		metrics := getDifficulty(hash2)
 
 		// Check the condition
 		if metrics.LeadingZeros > state.LeadingZeros || (metrics.LeadingZeros == state.LeadingZeros && metrics.DifficultyNumber < 2) {
-			return hash, nonce
+			return hash2
 		}
 
-		nonce++
-		state.Nonce = nonce
+		state.Nonce = randomNonce()
 	}
 }
 
-func stateToBytes(state State) ([]byte, error) {
+func stateToBytes(state *State) ([]byte, error) {
 	tmp := []byte{
 		// Tag 121 (alternative 0)
 		0xd8,
@@ -162,16 +167,14 @@ func stateToBytes(state State) ([]byte, error) {
 		0x9f,
 	}
 	for _, val := range []any{
-		// TODO: figure out how to properly represent this
 		state.Nonce,
 		state.BlockNumber,
-		// TODO: figure out how to properly represent this
 		state.CurrentHash,
 		state.LeadingZeros,
 		state.DifficultyNumber,
 		state.EpochTime,
 	} {
-		data, err := cbor.Encode(val)
+		data, err := cbor.Encode(&val)
 		if err != nil {
 			return nil, err
 		}

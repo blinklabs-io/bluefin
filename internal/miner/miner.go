@@ -15,8 +15,6 @@
 package miner
 
 import (
-	"bytes"
-	"encoding/binary"
 	"fmt"
 	"sync"
 	"time"
@@ -24,6 +22,7 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/version"
+	"github.com/blinklabs-io/gouroboros/cbor"
 	"github.com/minio/sha256-simd"
 )
 
@@ -88,7 +87,7 @@ func (m *Miner) Start() {
 	}
 
 	hash, nonce := calculateHash(state)
-	fmt.Printf("Hash with leading zeros: %s\n", hash)
+	fmt.Printf("Hash with leading zeros: %x\n", hash)
 	fmt.Printf("Nonce: %d\n", nonce)
 
 	realTimeNow := time.Now().Unix()*1000 - 60000
@@ -155,11 +154,37 @@ func calculateHash(state State) ([]byte, int64) {
 }
 
 func stateToBytes(state State) ([]byte, error) {
-	buf := new(bytes.Buffer)
-	if err := binary.Write(buf, binary.LittleEndian, state); err != nil {
-		return nil, err
+	tmp := []byte{
+		// Tag 121 (alternative 0)
+		0xd8,
+		0x79,
+		// Indefinite length array
+		0x9f,
 	}
-	return buf.Bytes(), nil
+	for _, val := range []any{
+		// TODO: figure out how to properly represent this
+		state.Nonce,
+		state.BlockNumber,
+		// TODO: figure out how to properly represent this
+		state.CurrentHash,
+		state.LeadingZeros,
+		state.DifficultyNumber,
+		state.EpochTime,
+	} {
+		data, err := cbor.Encode(val)
+		if err != nil {
+			return nil, err
+		}
+		tmp = append(tmp, data...)
+	}
+	tmp = append(
+		tmp,
+		[]byte{
+			// End indefinite length array
+			0xff,
+		}...,
+	)
+	return tmp, nil
 }
 
 func getDifficulty(hash []byte) DifficultyMetrics {

@@ -21,11 +21,13 @@ import (
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
+	"github.com/blinklabs-io/gouroboros/cbor"
 	"github.com/dgraph-io/badger/v4"
 )
 
 const (
 	chainsyncCursorKey = "chainsync_cursor"
+	minerBlockDataKey  = "miner_block_data"
 )
 
 type Storage struct {
@@ -88,6 +90,98 @@ func (s *Storage) GetCursor() (uint64, string, error) {
 		return 0, "", nil
 	}
 	return slotNumber, blockHash, err
+}
+
+func (s *Storage) UpdateBlockData(blockData any) error {
+	blockDataCbor, err := cbor.Encode(blockData)
+	if err != nil {
+		return err
+	}
+	err = s.db.Update(func(txn *badger.Txn) error {
+		if err := txn.Set([]byte(minerBlockDataKey), blockDataCbor); err != nil {
+			return err
+		}
+		return nil
+	})
+	return err
+}
+
+func (s *Storage) GetBlockData(dest any) error {
+	err := s.db.View(func(txn *badger.Txn) error {
+		item, err := txn.Get([]byte(minerBlockDataKey))
+		if err != nil {
+			return err
+		}
+		err = item.Value(func(v []byte) error {
+			if _, err := cbor.Decode(v, dest); err != nil {
+				return err
+			}
+			return nil
+		})
+		return err
+	})
+	if err != nil {
+		if err == badger.ErrKeyNotFound {
+			return nil
+		}
+		return err
+	}
+	return nil
+}
+
+func (s *Storage) AddUtxo(address string, txId string, utxoIdx int, utxoBytes []byte) error {
+	key := fmt.Sprintf("utxo_%s_%s.%d", address, txId, utxoIdx)
+	err := s.db.Update(func(txn *badger.Txn) error {
+		if err := txn.Set([]byte(key), utxoBytes); err != nil {
+			return err
+		}
+		return nil
+	})
+	return err
+}
+
+func (s *Storage) RemoveUtxo(address string, txId string, utxoIdx int) error {
+	key := fmt.Sprintf("utxo_%s_%s.%d", address, txId, utxoIdx)
+	err := s.db.Update(func(txn *badger.Txn) error {
+		if err := txn.Delete([]byte(key)); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		if err == badger.ErrKeyNotFound {
+			return nil
+		}
+		return err
+	}
+	return nil
+}
+
+func (s *Storage) GetUtxos(address string) ([][]byte, error) {
+	ret := [][]byte{}
+	keyPrefix := []byte(fmt.Sprintf("utxo_%s_", address))
+	err := s.db.View(func(txn *badger.Txn) error {
+		it := txn.NewIterator(badger.DefaultIteratorOptions)
+		defer it.Close()
+		for it.Seek(keyPrefix); it.ValidForPrefix(keyPrefix); it.Next() {
+			item := it.Item()
+			err := item.Value(func(v []byte) error {
+				ret = append(ret, v)
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(ret) == 0 {
+		return nil, nil
+	}
+	return ret, nil
 }
 
 // TODO: add other helper functions for storage data

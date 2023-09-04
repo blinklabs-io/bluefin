@@ -70,7 +70,7 @@ func main() {
 	logger.Infof("loaded mnemonic for address: %s", bursa.PaymentAddress)
 
 	// Fake Tx
-	//tx.SendTx()
+	//tx.SendTx([]byte("foo"))
 
 	// Start indexer
 	logger.Infof("starting indexer on %s", cfg.Indexer.Network)

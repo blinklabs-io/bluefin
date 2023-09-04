@@ -129,7 +129,7 @@ func (s *Storage) GetBlockData(dest any) error {
 	return nil
 }
 
-func (s *Storage) AddUtxo(address string, txId string, utxoIdx int, utxoBytes []byte) error {
+func (s *Storage) AddUtxo(address string, txId string, utxoIdx uint32, utxoBytes []byte) error {
 	key := fmt.Sprintf("utxo_%s_%s.%d", address, txId, utxoIdx)
 	err := s.db.Update(func(txn *badger.Txn) error {
 		if err := txn.Set([]byte(key), utxoBytes); err != nil {
@@ -140,7 +140,7 @@ func (s *Storage) AddUtxo(address string, txId string, utxoIdx int, utxoBytes []
 	return err
 }
 
-func (s *Storage) RemoveUtxo(address string, txId string, utxoIdx int) error {
+func (s *Storage) RemoveUtxo(address string, txId string, utxoIdx uint32) error {
 	key := fmt.Sprintf("utxo_%s_%s.%d", address, txId, utxoIdx)
 	err := s.db.Update(func(txn *badger.Txn) error {
 		if err := txn.Delete([]byte(key)); err != nil {

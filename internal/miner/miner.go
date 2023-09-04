@@ -93,7 +93,6 @@ func (m *Miner) Start() {
 	realTimeNow := time.Now().Unix()*1000 - 60000
 
 	epochTime := state.DifficultyNumber + 90000 + realTimeNow - state.EpochTime
-	// TODO: calculate interlink
 
 	// TODO: Find where does it come from in the original code
 	// state.fields[7] as string[]
@@ -128,6 +127,17 @@ func randomNonce() [16]byte {
 	return ret
 }
 
+//nolint:unused
+func incrementNonce(nonce []byte) {
+	for i := len(nonce) - 1; i >= 0; i-- {
+		if nonce[i] < 255 {
+			nonce[i]++
+			break
+		}
+		nonce[i] = 0
+	}
+}
+
 func calculateHash(state *State) []byte {
 	for {
 		stateBytes, err := stateToBytes(state)
@@ -153,6 +163,10 @@ func calculateHash(state *State) []byte {
 		if metrics.LeadingZeros > state.LeadingZeros || (metrics.LeadingZeros == state.LeadingZeros && metrics.DifficultyNumber < 2) {
 			return hash2
 		}
+
+		// Currently we create a new random nonce
+		// Uncomment if we decide to increment the nonce
+		// incrementNonce(state.Nonce[:])
 
 		state.Nonce = randomNonce()
 	}

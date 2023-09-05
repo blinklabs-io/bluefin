@@ -17,6 +17,7 @@ package indexer
 import (
 	"encoding/hex"
 
+	"github.com/blinklabs-io/bluefin/internal/common"
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/miner"
@@ -40,7 +41,7 @@ type Indexer struct {
 	tipSlot       uint64
 	tipHash       string
 	tipReached    bool
-	lastBlockData miner.BlockData
+	lastBlockData common.BlockData
 }
 
 // Singleton indexer instance
@@ -176,7 +177,7 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 					return err
 				}
 				datumFields := datum.Value().(cbor.Constructor).Fields()
-				blockData := miner.BlockData{
+				blockData := common.BlockData{
 					BlockNumber:      int64(datumFields[0].(uint64)),
 					TargetHash:       datumFields[1].(cbor.ByteString).Bytes(),
 					LeadingZeros:     int64(datumFields[2].(uint64)),

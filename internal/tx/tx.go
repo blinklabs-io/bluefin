@@ -16,6 +16,9 @@ package tx
 
 import (
 	"encoding/hex"
+	"fmt"
+	"net"
+	"time"
 
 	"github.com/Salvionied/apollo"
 	serAddress "github.com/Salvionied/apollo/serialization/Address"
@@ -24,6 +27,9 @@ import (
 	"github.com/Salvionied/apollo/serialization/Redeemer"
 	"github.com/Salvionied/apollo/serialization/UTxO"
 	"github.com/Salvionied/cbor/v2"
+	ouroboros "github.com/blinklabs-io/gouroboros"
+	"github.com/blinklabs-io/gouroboros/protocol/txsubmission"
+	"golang.org/x/crypto/blake2b"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
@@ -31,11 +37,16 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 )
 
+var txBytes []byte
+var txHash [32]byte
+var sentTx bool
+var doneChan chan any
+
 func SendTx() {
-	createTx([][]byte{})
+	createTx([][]byte{[]byte("foo")})
 }
 
-func createTx(utxosBytes [][]byte) {
+func createTx(utxoBytes [][]byte) {
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()
 	bursa := wallet.GetWallet()
@@ -55,7 +66,6 @@ func createTx(utxosBytes [][]byte) {
 			PlutusDataType: PlutusData.PlutusBytes,
 			Value:          val})
 	}
-	utxoBytes := []byte("foo")
 
 	pd := PlutusData.PlutusData{
 		TagNr:          121,
@@ -101,7 +111,6 @@ func createTx(utxosBytes [][]byte) {
 				Value:          marshaled,
 			}}}
 
-	// TODO: apollo
 	contractAddress, _ := serAddress.DecodeAddress(cfg.Indexer.ScriptAddress)
 	myAddress, _ := serAddress.DecodeAddress(bursa.PaymentAddress)
 	cc := apollo.NewEmptyBackend()
@@ -116,6 +125,7 @@ func createTx(utxosBytes [][]byte) {
 		_ = cbor.Unmarshal(str, &utxo)
 		utxos = append(utxos, utxo)
 	}
+
 	apollob = apollob.AddLoadedUTxOs(utxos...)
 	apollob = apollob.
 		PayToContract(contractAddress, &postDatum, int(ValidatorOutRef.Output.Lovelace()), true, apollo.NewUnit(validatorHash, "lord tuna", 1)).
@@ -166,7 +176,7 @@ func createTx(utxosBytes [][]byte) {
 	skey := Key.SigningKey{Payload: sKeyBytes}
 	tx = tx.SignWithSkey(vkey, skey)
 	logger.Infof("submitting block...")
-	txId, err := SendToSubmitAPI(tx.GetTx().Bytes())
+	txId, err := submitTx(tx.GetTx().Bytes())
 	if err != nil {
 		panic(err)
 	}
@@ -174,8 +184,115 @@ func createTx(utxosBytes [][]byte) {
 	logger.Infof("fake tx id %s from %s to %s", txId, myAddress.String(), contractAddress.String())
 }
 
-func SendToSubmitAPI(cborBytes []byte) (string, error) {
+func submitTx(txRawBytes []byte) (string, error) {
+	cfg := config.GetConfig()
 	logger := logging.GetLogger()
-	logger.Infof("debug: %s", cborBytes)
-	return "", nil
+	logger.Infof("debug: %s", txBytes)
+
+	// Generate TX hash
+	// Unwrap raw transaction bytes into a CBOR array
+	var txUnwrap []cbor.RawMessage
+	if err := cbor.Unmarshal(txRawBytes, &txUnwrap); err != nil {
+		logger.Errorf("failed to unwrap transaction CBOR: %s", err)
+		return "", fmt.Errorf("failed to unwrap transaction CBOR: %s", err)
+	}
+	// index 0 is the transaction body
+	// Store index 0 (transaction body) as byte array
+	txBody := txUnwrap[0]
+	// Convert the body into a blake2b256 hash string
+	txHash = blake2b.Sum256(txBody)
+
+	// Create connection
+	var networkMagic uint32
+	// Lookup network by name
+	network := ouroboros.NetworkByName(cfg.Indexer.Network)
+	if network == ouroboros.NetworkInvalid {
+		logger.Errorf("unknown network: %s", cfg.Indexer.Network)
+		panic(fmt.Errorf("unknown network: %s", cfg.Indexer.Network))
+	}
+	networkMagic = network.NetworkMagic
+	nodeAddress := fmt.Sprintf("%s:%d", network.PublicRootAddress, network.PublicRootPort)
+
+	conn := createClientConnection(nodeAddress)
+	errorChan := make(chan error)
+	// Capture errors
+	go func() {
+		for {
+			err := <-errorChan
+			panic(fmt.Errorf("async: %s", err))
+		}
+	}()
+	o, err := ouroboros.New(
+		ouroboros.WithConnection(conn),
+		ouroboros.WithNetworkMagic(uint32(networkMagic)),
+		ouroboros.WithErrorChan(errorChan),
+		ouroboros.WithNodeToNode(true),
+		ouroboros.WithKeepAlive(true),
+		ouroboros.WithTxSubmissionConfig(
+			txsubmission.NewConfig(
+				txsubmission.WithRequestTxIdsFunc(handleRequestTxIds),
+				txsubmission.WithRequestTxsFunc(handleRequestTxs),
+			),
+		),
+	)
+	if err != nil {
+		return "", err
+	}
+
+	// Start txSubmission loop
+	doneChan = make(chan any)
+	o.TxSubmission().Client.Init()
+	<-doneChan
+
+	if err := o.Close(); err != nil {
+		return "", fmt.Errorf("failed to close connection: %s", err)
+	}
+
+	return string(txHash[:]), nil
+}
+
+func createClientConnection(nodeAddress string) net.Conn {
+	logger := logging.GetLogger()
+	var err error
+	var conn net.Conn
+	var dialProto string
+	var dialAddress string
+	dialProto = "tcp"
+	dialAddress = nodeAddress
+
+	conn, err = net.Dial(dialProto, dialAddress)
+	if err != nil {
+		logger.Errorf("connection failed: %s", err)
+		panic(err)
+	}
+	return conn
+}
+
+func handleRequestTxIds(blocking bool, ack uint16, req uint16) ([]txsubmission.TxIdAndSize, error) {
+	if sentTx {
+		// Terrible syncronization hack for shutdown
+		close(doneChan)
+		time.Sleep(5 * time.Second)
+	}
+	ret := []txsubmission.TxIdAndSize{
+		{
+		TxId: txsubmission.TxId{
+			EraId: 5,
+			TxId:  txHash,
+		},
+		Size: uint32(len(txBytes)),
+	},
+	}
+	return ret, nil
+}
+
+func handleRequestTxs(txIds []txsubmission.TxId) ([]txsubmission.TxBody, error) {
+	ret := []txsubmission.TxBody{
+		{
+			EraId:  5,
+			TxBody: txBytes,
+		},
+	}
+	sentTx = true
+	return ret, nil
 }

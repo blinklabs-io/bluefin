@@ -15,6 +15,7 @@
 package storage
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strconv"
 	"strings"
@@ -129,10 +130,30 @@ func (s *Storage) GetBlockData(dest any) error {
 	return nil
 }
 
-func (s *Storage) AddUtxo(address string, txId string, utxoIdx uint32, utxoBytes []byte) error {
-	key := fmt.Sprintf("utxo_%s_%s.%d", address, txId, utxoIdx)
+func (s *Storage) AddUtxo(address string, txId string, txOutIdx uint32, txOutBytes []byte) error {
+	key := fmt.Sprintf("utxo_%s_%s.%d", address, txId, txOutIdx)
 	err := s.db.Update(func(txn *badger.Txn) error {
-		if err := txn.Set([]byte(key), utxoBytes); err != nil {
+		// Wrap TX output in UTxO structure to make it easier to consume later
+		txIdBytes, err := hex.DecodeString(txId)
+		if err != nil {
+			return err
+		}
+		// Create temp UTxO structure
+		utxoTmp := []any{
+			// Transaction output reference
+			[]any{
+				txIdBytes,
+				uint32(txOutIdx),
+			},
+			// Transaction output CBOR
+			cbor.RawMessage(txOutBytes),
+		}
+		// Convert to CBOR
+		cborBytes, err := cbor.Encode(&utxoTmp)
+		if err != nil {
+			return err
+		}
+		if err := txn.Set([]byte(key), cborBytes); err != nil {
 			return err
 		}
 		return nil
@@ -183,8 +204,6 @@ func (s *Storage) GetUtxos(address string) ([][]byte, error) {
 	}
 	return ret, nil
 }
-
-// TODO: add other helper functions for storage data
 
 func GetStorage() *Storage {
 	return globalStorage

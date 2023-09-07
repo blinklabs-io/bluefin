@@ -1,5 +1,4 @@
-# FROM ghcr.io/blinklabs-io/go:1.19.12-1 AS build
-FROM cgr.dev/chainguard/go AS build
+FROM ghcr.io/blinklabs-io/go:1.21.1-1 AS build
 
 WORKDIR /code
 COPY . .

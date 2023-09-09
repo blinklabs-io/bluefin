@@ -15,16 +15,19 @@
 package miner
 
 import (
+	"fmt"
 	"sync"
 
+	"github.com/blinklabs-io/bluefin/internal/common"
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
+	"github.com/blinklabs-io/bluefin/internal/tx"
 )
 
 type Manager struct {
 	workerWaitGroup sync.WaitGroup
 	doneChan        chan any
-	resultChan      chan BlockData
+	resultChan      chan Result
 	started         bool
 	startMutex      sync.Mutex
 	stopMutex       sync.Mutex
@@ -38,7 +41,7 @@ var globalManager = &Manager{
 func (m *Manager) Reset() {
 	m.workerWaitGroup = sync.WaitGroup{}
 	m.doneChan = make(chan any)
-	m.resultChan = make(chan BlockData, config.GetConfig().Worker.Count)
+	m.resultChan = make(chan Result, config.GetConfig().Worker.Count)
 }
 
 func (m *Manager) Stop() {
@@ -54,7 +57,7 @@ func (m *Manager) Stop() {
 	logging.GetLogger().Infof("stopped workers")
 }
 
-func (m *Manager) Start(blockData BlockData) {
+func (m *Manager) Start(blockData common.BlockData) {
 	m.startMutex.Lock()
 	defer m.startMutex.Unlock()
 	if m.started {
@@ -76,11 +79,13 @@ func (m *Manager) Start(blockData BlockData) {
 		case <-m.doneChan:
 			return
 		case result := <-m.resultChan:
-			// TODO: send to tx worker
-			// TODO: let the indexer receiving an update to the script's UTxOs restart the workers
-			logger.Infof("result = %#v", result)
+			fmt.Printf("result = %#v\n", result)
 			// Stop workers until our result makes it on-chain
 			m.Stop()
+			// Build and submit the TX
+			if err := tx.SendTx(result.BlockData, result.Nonce); err != nil {
+				logger.Errorf("failed to submit TX: %s", err)
+			}
 		}
 	}()
 	m.started = true

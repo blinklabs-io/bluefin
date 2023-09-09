@@ -31,9 +31,10 @@ import (
 	"github.com/blinklabs-io/gouroboros/protocol/txsubmission"
 	"golang.org/x/crypto/blake2b"
 
+	"github.com/blinklabs-io/bluefin/internal/common"
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
-	"github.com/blinklabs-io/bluefin/internal/miner"
+	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 )
 
@@ -42,23 +43,33 @@ var txHash [32]byte
 var sentTx bool
 var doneChan chan any
 
-func SendTx() {
-	createTx([][]byte{[]byte("foo")})
+func SendTx(blockData common.BlockData, nonce [16]byte) error {
+	txBytes, err := createTx(blockData, nonce)
+	if err != nil {
+		return err
+	}
+	txId, err := submitTx(txBytes)
+	if err != nil {
+		return err
+	}
+	logging.GetLogger().Infof("successfully submitted TX %x", txId)
+	return nil
 }
 
-func createTx(utxoBytes [][]byte) {
+func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()
 	bursa := wallet.GetWallet()
 
-	// TODO: get these from elsewhere
-	validatorHash := "123456" // from genesis
-	currentTipSlotNumber := 1234
-	refInputHash := "01751095ea408a3ebe6083b4de4de8a24b635085183ab8a2ac76273ef8fff5dd"
-	refInputId := 0
-	ValidatorOutRef := UTxO.UTxO{}
-	Nonce := "12345"
-	blockData := miner.BlockData{}
+	networkCfg := config.NetworkMap[cfg.Indexer.Network]
+
+	validatorHash := networkCfg.ValidatorHash
+
+	// Get current slot
+	currentTipSlotNumber, _, err := storage.GetStorage().GetCursor()
+	if err != nil {
+		return nil, err
+	}
 
 	pdInterlink := PlutusData.PlutusIndefArray{}
 	for _, val := range blockData.Interlink {
@@ -118,17 +129,43 @@ func createTx(utxoBytes [][]byte) {
 	apollob = apollob.
 		SetWalletFromBech32(bursa.PaymentAddress).
 		SetWalletAsChangeAddress()
+
+	// Gather input UTxOs from our wallet
+	utxosBytes, err := storage.GetStorage().GetUtxos(bursa.PaymentAddress)
+	if err != nil {
+		return nil, err
+	}
 	var utxos []UTxO.UTxO
-	for _, u := range utxoBytes {
+	for _, utxoBytes := range utxosBytes {
 		var utxo UTxO.UTxO
-		str, _ := hex.DecodeString(string(u))
-		_ = cbor.Unmarshal(str, &utxo)
+		if err := cbor.Unmarshal(utxoBytes, &utxo); err != nil {
+			return nil, err
+		}
 		utxos = append(utxos, utxo)
 	}
 
+	// Gather UTxO(s) for script
+	scriptUtxosBytes, err := storage.GetStorage().GetUtxos(cfg.Indexer.ScriptAddress)
+	if err != nil {
+		return nil, err
+	}
+	var scriptUtxos []UTxO.UTxO
+	for _, utxoBytes := range scriptUtxosBytes {
+		var utxo UTxO.UTxO
+		if err := cbor.Unmarshal(utxoBytes, &utxo); err != nil {
+			return nil, err
+		}
+		scriptUtxos = append(scriptUtxos, utxo)
+	}
+	// There should only ever be 1 UTxO for the script address
+	if len(scriptUtxos) > 1 {
+		logger.Warnf("found unexpected UTxO(s) at script address (%s), expected 1 and found %d", cfg.Indexer.ScriptAddress, len(scriptUtxos))
+	}
+	validatorOutRef := scriptUtxos[0]
+
 	apollob = apollob.AddLoadedUTxOs(utxos...)
 	apollob = apollob.
-		PayToContract(contractAddress, &postDatum, int(ValidatorOutRef.Output.Lovelace()), true, apollo.NewUnit(validatorHash, "lord tuna", 1)).
+		PayToContract(contractAddress, &postDatum, int(validatorOutRef.Output.Lovelace()), true, apollo.NewUnit(validatorHash, "lord tuna", 1)).
 		SetTtl(int64(currentTipSlotNumber+180000)).
 		PayToAddress(myAddress, 2000000, apollo.NewUnit(validatorHash, "TUNA", 5000000000)).
 		SetValidityStart(int64(currentTipSlotNumber)).MintAssetsWithRedeemer(
@@ -142,9 +179,8 @@ func createTx(utxoBytes [][]byte) {
 				Value:          PlutusData.PlutusIndefArray{},
 			},
 		}).
-		AddReferenceInput(refInputHash, refInputId).
 		CollectFrom(
-			ValidatorOutRef,
+			validatorOutRef,
 			Redeemer.Redeemer{
 				Tag: Redeemer.SPEND,
 				Data: PlutusData.PlutusData{
@@ -153,35 +189,42 @@ func createTx(utxoBytes [][]byte) {
 					Value: PlutusData.PlutusIndefArray{
 						PlutusData.PlutusData{
 							PlutusDataType: PlutusData.PlutusBytes,
-							Value:          Nonce,
+							Value:          nonce,
 						}},
 				},
 			},
 		)
+	if networkCfg.ScriptInputRefTxId != "" {
+		// Use a script input ref
+		apollob = apollob.AddReferenceInput(networkCfg.ScriptInputRefTxId, int(networkCfg.ScriptInputRefOutIndex))
+	} else {
+		// Include the script with the TX
+		validatorScriptBytes, err := hex.DecodeString(networkCfg.ValidatorScript)
+		if err != nil {
+			return nil, err
+		}
+		apollob = apollob.AttachV2Script(PlutusData.PlutusV2Script(validatorScriptBytes))
+	}
 	tx, err := apollob.Complete()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	// TODO: get the proper type from apollo
 	vKeyBytes, err := hex.DecodeString(bursa.PaymentVKey.CborHex)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	sKeyBytes, err := hex.DecodeString(bursa.PaymentSKey.CborHex)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
+	// Strip off leading 2 bytes as shortcut for CBOR decoding to unwrap bytes
+	vKeyBytes = vKeyBytes[2:]
+	sKeyBytes = sKeyBytes[2:]
 	vkey := Key.VerificationKey{Payload: vKeyBytes}
-	skey := Key.SigningKey{Payload: sKeyBytes}
+	skey := Key.SigningKey{Payload: sKeyBytes[:64]}
 	tx = tx.SignWithSkey(vkey, skey)
-	logger.Infof("submitting block...")
-	txId, err := submitTx(tx.GetTx().Bytes())
-	if err != nil {
-		panic(err)
-	}
-
-	logger.Infof("fake tx id %s from %s to %s", txId, myAddress.String(), contractAddress.String())
+	return tx.GetTx().Bytes(), nil
 }
 
 func submitTx(txRawBytes []byte) (string, error) {
@@ -276,12 +319,12 @@ func handleRequestTxIds(blocking bool, ack uint16, req uint16) ([]txsubmission.T
 	}
 	ret := []txsubmission.TxIdAndSize{
 		{
-		TxId: txsubmission.TxId{
-			EraId: 5,
-			TxId:  txHash,
+			TxId: txsubmission.TxId{
+				EraId: 5,
+				TxId:  txHash,
+			},
+			Size: uint32(len(txBytes)),
 		},
-		Size: uint32(len(txBytes)),
-	},
 	}
 	return ret, nil
 }

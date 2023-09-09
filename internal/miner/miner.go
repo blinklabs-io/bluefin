@@ -20,6 +20,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/blinklabs-io/bluefin/internal/common"
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/version"
@@ -27,24 +28,14 @@ import (
 	"github.com/minio/sha256-simd"
 )
 
-type BlockData struct {
-	BlockNumber      int64
-	TargetHash       []byte
-	LeadingZeros     int64
-	DifficultyNumber int64
-	EpochTime        int64
-	RealTimeNow      int64
-	Message          []byte
-	Interlink        [][]byte
-}
-
 type Miner struct {
 	Config     *config.Config
 	Logger     *logging.Logger
 	waitGroup  *sync.WaitGroup
-	resultChan chan BlockData
+	resultChan chan Result
 	doneChan   chan any
-	blockData  BlockData
+	blockData  common.BlockData
+	state      *State
 }
 
 type State struct {
@@ -61,7 +52,12 @@ type DifficultyMetrics struct {
 	DifficultyNumber int64
 }
 
-func New(waitGroup *sync.WaitGroup, resultChan chan BlockData, doneChan chan any, blockData BlockData) *Miner {
+type Result struct {
+	BlockData common.BlockData
+	Nonce     [16]byte
+}
+
+func New(waitGroup *sync.WaitGroup, resultChan chan Result, doneChan chan any, blockData common.BlockData) *Miner {
 	return &Miner{
 		Config:     config.GetConfig(),
 		Logger:     logging.GetLogger(),
@@ -78,7 +74,7 @@ func (m *Miner) Start() {
 	// TODO: check on m.doneChan and exit
 
 	// Create initial state from block data
-	state := State{
+	m.state = &State{
 		Nonce:            randomNonce(),
 		BlockNumber:      m.blockData.BlockNumber,
 		CurrentHash:      m.blockData.TargetHash,
@@ -87,26 +83,35 @@ func (m *Miner) Start() {
 		EpochTime:        m.blockData.EpochTime,
 	}
 
-	targetHash := calculateHash(&state)
-	fmt.Printf("Nonce: %x, Hash with leading zeros: %x\n", state.Nonce, targetHash)
+	targetHash := m.calculateHash()
+
+	// Check for shutdown
+	select {
+	case <-m.doneChan:
+		return
+	default:
+		break
+	}
+
+	fmt.Printf("Nonce: %x, Hash with leading zeros: %x\n", m.state.Nonce, targetHash)
 
 	realTimeNow := time.Now().Unix()*1000 - 60000
 
-	epochTime := state.DifficultyNumber + 90000 + realTimeNow - state.EpochTime
+	epochTime := m.state.DifficultyNumber + 90000 + realTimeNow - m.state.EpochTime
 
 	// TODO: Find where does it come from in the original code
-	// state.fields[7] as string[]
+	// m.state.fields[7] as string[]
 	stateInterlink := [][]byte{
 		[]byte("BlinkLabs"),
 		[]byte("BlueFin"),
 	}
 
 	difficulty := getDifficulty([]byte(targetHash))
-	currentInterlink := calculateInterlink(targetHash, difficulty, DifficultyMetrics{LeadingZeros: state.LeadingZeros, DifficultyNumber: state.DifficultyNumber}, stateInterlink)
+	currentInterlink := calculateInterlink(targetHash, difficulty, DifficultyMetrics{LeadingZeros: m.state.LeadingZeros, DifficultyNumber: m.state.DifficultyNumber}, stateInterlink)
 
 	// Construct the new block data
-	postDatum := BlockData{
-		BlockNumber:      state.BlockNumber + 1,
+	postDatum := common.BlockData{
+		BlockNumber:      m.state.BlockNumber + 1,
 		TargetHash:       targetHash,
 		LeadingZeros:     difficulty.LeadingZeros,
 		DifficultyNumber: difficulty.DifficultyNumber,
@@ -115,9 +120,17 @@ func (m *Miner) Start() {
 		Message:          []byte(fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString())),
 		Interlink:        currentInterlink,
 	}
-	// Found next datum
-	fmt.Printf("Found next datum %+v\n", postDatum)
-	m.resultChan <- postDatum
+
+	// Check for shutdown
+	select {
+	case <-m.doneChan:
+		return
+	default:
+		break
+	}
+
+	// Return the result
+	m.resultChan <- Result{BlockData: postDatum, Nonce: m.state.Nonce}
 }
 
 func randomNonce() [16]byte {
@@ -138,9 +151,16 @@ func incrementNonce(nonce []byte) {
 	}
 }
 
-func calculateHash(state *State) []byte {
+func (m *Miner) calculateHash() []byte {
 	for {
-		stateBytes, err := stateToBytes(state)
+		// Check for shutdown
+		select {
+		case <-m.doneChan:
+			return nil
+		default:
+			break
+		}
+		stateBytes, err := stateToBytes(m.state)
 		if err != nil {
 			logging.GetLogger().Error(err)
 			return nil
@@ -160,15 +180,15 @@ func calculateHash(state *State) []byte {
 		metrics := getDifficulty(hash2)
 
 		// Check the condition
-		if metrics.LeadingZeros > state.LeadingZeros || (metrics.LeadingZeros == state.LeadingZeros && metrics.DifficultyNumber < 2) {
+		if metrics.LeadingZeros > m.state.LeadingZeros || (metrics.LeadingZeros == m.state.LeadingZeros && metrics.DifficultyNumber < 2) {
 			return hash2
 		}
 
 		// Currently we create a new random nonce
 		// Uncomment if we decide to increment the nonce
-		// incrementNonce(state.Nonce[:])
+		// incrementNonce(m.state.Nonce[:])
 
-		state.Nonce = randomNonce()
+		m.state.Nonce = randomNonce()
 	}
 }
 

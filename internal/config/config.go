@@ -26,11 +26,11 @@ import (
 type Config struct {
 	Storage StorageConfig `yaml:"storage"`
 	Indexer IndexerConfig `yaml:"indexer"`
+	Submit  SubmitConfig  `yaml:"submit"`
 	Wallet  WalletConfig  `yaml:"wallet"`
 	Worker  WorkerConfig  `yaml:"worker"`
 	Logging LoggingConfig `yaml:"logging"`
 	Metrics MetricsConfig `yaml:"metrics"`
-	Genesis GenesisConfig `yaml:"genesis"`
 	Debug   DebugConfig   `yaml:"debug"`
 }
 
@@ -42,6 +42,13 @@ type IndexerConfig struct {
 	ScriptAddress string `yaml:"scriptAddress" envconfig:"INDEXER_SCRIPT_ADDRESS"`
 	InterceptHash string `yaml:"interceptHash" envconfig:"INDEXER_INTERCEPT_HASH"`
 	InterceptSlot uint64 `yaml:"interceptSlot" envconfig:"INDEXER_INTERCEPT_SLOT"`
+}
+
+type SubmitConfig struct {
+	NetworkMagic uint32 `yaml:"networkMagic" envconfig:"SUBMIT_NETWORK_MAGIC"`
+	Address      string `yaml:"address" envconfig:"SUBMIT_TCP_ADDRESS"`
+	SocketPath   string `yaml:"socketPath" envconfig:"SUBMIT_SOCKET_PATH"`
+	Url          string `yaml:"url" envconfig:"SUBMIT_URL"`
 }
 
 type StorageConfig struct {
@@ -64,20 +71,6 @@ type LoggingConfig struct {
 type MetricsConfig struct {
 	ListenAddress string `yaml:"address" envconfig:"METRICS_LISTEN_ADDRESS"`
 	ListenPort    uint   `yaml:"port" envconfig:"METRICS_LISTEN_PORT"`
-}
-
-type GenesisConfig struct {
-	Validator        string `json:"validator"`
-	ValidatorHash    string `json:"validatorHash"`
-	ValidatorAddress string `json:"validatorAddress"`
-	BootstrapHash    string `json:"boostrapHash"`
-	Datum            string `json:"datum"`
-	OutRef           OutRef `json:"outRef"`
-}
-
-type OutRef struct {
-	TxHash string `json:"txHash"`
-	Index  int    `json:"index"`
 }
 
 type DebugConfig struct {

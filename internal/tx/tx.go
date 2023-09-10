@@ -15,9 +15,12 @@
 package tx
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"net"
+	"net/http"
 	"time"
 
 	"github.com/Salvionied/apollo"
@@ -230,7 +233,35 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 func submitTx(txRawBytes []byte) (string, error) {
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()
-	logger.Infof("debug: %s", txBytes)
+	if cfg.Submit.NetworkMagic == 0 {
+		// Populate network magic from indexer network
+		network := ouroboros.NetworkByName(cfg.Indexer.Network)
+		if network == ouroboros.NetworkInvalid {
+			logger.Fatalf("unknown network: %s", cfg.Indexer.Network)
+		}
+		cfg.Submit.NetworkMagic = network.NetworkMagic
+	}
+	if cfg.Submit.Address != "" {
+		return submitTxNtN(txRawBytes)
+	} else if cfg.Submit.SocketPath != "" {
+		return submitTxNtC(txRawBytes)
+	} else if cfg.Submit.Url != "" {
+		return submitTxApi(txRawBytes)
+	} else {
+		// Populate address info from indexer network
+		network := ouroboros.NetworkByName(cfg.Indexer.Network)
+		if network == ouroboros.NetworkInvalid {
+			logger.Fatalf("unknown network: %s", cfg.Indexer.Network)
+		}
+		cfg.Submit.Address = fmt.Sprintf("%s:%d", network.PublicRootAddress, network.PublicRootPort)
+		return submitTxNtN(txRawBytes)
+	}
+}
+
+func submitTxNtN(txRawBytes []byte) (string, error) {
+	cfg := config.GetConfig()
+	logger := logging.GetLogger()
+	//logger.Infof("debug: %s", txBytes)
 
 	// Generate TX hash
 	// Unwrap raw transaction bytes into a CBOR array
@@ -246,28 +277,18 @@ func submitTx(txRawBytes []byte) (string, error) {
 	txHash = blake2b.Sum256(txBody)
 
 	// Create connection
-	var networkMagic uint32
-	// Lookup network by name
-	network := ouroboros.NetworkByName(cfg.Indexer.Network)
-	if network == ouroboros.NetworkInvalid {
-		logger.Errorf("unknown network: %s", cfg.Indexer.Network)
-		panic(fmt.Errorf("unknown network: %s", cfg.Indexer.Network))
-	}
-	networkMagic = network.NetworkMagic
-	nodeAddress := fmt.Sprintf("%s:%d", network.PublicRootAddress, network.PublicRootPort)
-
-	conn := createClientConnection(nodeAddress)
+	conn := createClientConnection(cfg.Submit.Address)
 	errorChan := make(chan error)
 	// Capture errors
 	go func() {
-		for {
-			err := <-errorChan
+		err, ok := <-errorChan
+		if ok {
 			panic(fmt.Errorf("async: %s", err))
 		}
 	}()
 	o, err := ouroboros.New(
 		ouroboros.WithConnection(conn),
-		ouroboros.WithNetworkMagic(uint32(networkMagic)),
+		ouroboros.WithNetworkMagic(cfg.Submit.NetworkMagic),
 		ouroboros.WithErrorChan(errorChan),
 		ouroboros.WithNodeToNode(true),
 		ouroboros.WithKeepAlive(true),
@@ -292,6 +313,36 @@ func submitTx(txRawBytes []byte) (string, error) {
 	}
 
 	return string(txHash[:]), nil
+}
+
+func submitTxNtC(txRawBytes []byte) (string, error) {
+	// TODO
+	return "", nil
+}
+
+func submitTxApi(txRawBytes []byte) (string, error) {
+	cfg := config.GetConfig()
+	reqBody := bytes.NewBuffer(txRawBytes)
+	req, err := http.NewRequest(http.MethodPost, cfg.Submit.Url, reqBody)
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %s", err)
+	}
+	req.Header.Add("Content-Type", "application/cbor")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to send request: %s: %s", cfg.Submit.Url, err)
+	}
+	// We have to read the entire response body and close it to prevent a memory leak
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response body: %s", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == 202 {
+		return string(respBody), nil
+	} else {
+		return "", fmt.Errorf("failed to submit TX to API: %s: %d: %s", cfg.Submit.Url, resp.StatusCode, respBody)
+	}
 }
 
 func createClientConnection(nodeAddress string) net.Conn {

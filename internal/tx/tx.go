@@ -224,8 +224,10 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 	// Strip off leading 2 bytes as shortcut for CBOR decoding to unwrap bytes
 	vKeyBytes = vKeyBytes[2:]
 	sKeyBytes = sKeyBytes[2:]
+	// Strip out public key portion of extended private key
+	sKeyBytes = append(sKeyBytes[:64], sKeyBytes[96:]...)
 	vkey := Key.VerificationKey{Payload: vKeyBytes}
-	skey := Key.SigningKey{Payload: sKeyBytes[:64]}
+	skey := Key.SigningKey{Payload: sKeyBytes}
 	tx = tx.SignWithSkey(vkey, skey)
 	return tx.GetTx().Bytes(), nil
 }

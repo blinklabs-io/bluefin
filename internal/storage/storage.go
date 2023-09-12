@@ -179,7 +179,7 @@ func (s *Storage) RemoveUtxo(address string, txId string, utxoIdx uint32) error 
 }
 
 func (s *Storage) GetUtxos(address string) ([][]byte, error) {
-	ret := [][]byte{}
+	var ret [][]byte
 	keyPrefix := []byte(fmt.Sprintf("utxo_%s_", address))
 	err := s.db.View(func(txn *badger.Txn) error {
 		it := txn.NewIterator(badger.DefaultIteratorOptions)
@@ -187,7 +187,9 @@ func (s *Storage) GetUtxos(address string) ([][]byte, error) {
 		for it.Seek(keyPrefix); it.ValidForPrefix(keyPrefix); it.Next() {
 			item := it.Item()
 			err := item.Value(func(v []byte) error {
-				ret = append(ret, v)
+				// Create copy of value for use outside of transaction
+				valCopy := append([]byte{}, v...)
+				ret = append(ret, valCopy)
 				return nil
 			})
 			if err != nil {

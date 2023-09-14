@@ -25,8 +25,10 @@ import (
 
 	"github.com/Salvionied/apollo"
 	serAddress "github.com/Salvionied/apollo/serialization/Address"
+	"github.com/Salvionied/apollo/serialization/AssetName"
 	"github.com/Salvionied/apollo/serialization/Key"
 	"github.com/Salvionied/apollo/serialization/PlutusData"
+	"github.com/Salvionied/apollo/serialization/Policy"
 	"github.com/Salvionied/apollo/serialization/Redeemer"
 	"github.com/Salvionied/apollo/serialization/UTxO"
 	"github.com/Salvionied/cbor/v2"
@@ -51,6 +53,14 @@ func SendTx(blockData common.BlockData, nonce [16]byte) error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("txBytes = %x\n", txBytes)
+	/*
+		var txUnwrap []cbor.RawMessage
+		if err := cbor.Unmarshal(txBytes, &txUnwrap); err != nil {
+			return err
+		}
+		fmt.Printf("txBody = %x\n", txUnwrap[0])
+	*/
 	txId, err := submitTx(txBytes)
 	if err != nil {
 		return err
@@ -60,6 +70,7 @@ func SendTx(blockData common.BlockData, nonce [16]byte) error {
 }
 
 func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
+	//fmt.Printf("createTx(): nonce=%x, blockData = %#v\n", nonce, blockData)
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()
 	bursa := wallet.GetWallet()
@@ -68,17 +79,23 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 
 	validatorHash := networkCfg.ValidatorHash
 
-	// Get current slot
-	currentTipSlotNumber, _, err := storage.GetStorage().GetCursor()
-	if err != nil {
-		return nil, err
-	}
+	/*
+		// Get current slot
+		currentTipSlotNumber, _, err := storage.GetStorage().GetCursor()
+		if err != nil {
+			return nil, err
+		}
+	*/
 
 	pdInterlink := PlutusData.PlutusIndefArray{}
 	for _, val := range blockData.Interlink {
-		pdInterlink = append(pdInterlink, PlutusData.PlutusData{
-			PlutusDataType: PlutusData.PlutusBytes,
-			Value:          val})
+		pdInterlink = append(
+			pdInterlink,
+			PlutusData.PlutusData{
+				PlutusDataType: PlutusData.PlutusBytes,
+				Value:          val,
+			},
+		)
 	}
 
 	pd := PlutusData.PlutusData{
@@ -87,29 +104,38 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 		Value: PlutusData.PlutusIndefArray{
 			PlutusData.PlutusData{
 				PlutusDataType: PlutusData.PlutusInt,
-				Value:          blockData.BlockNumber + 1},
+				Value:          blockData.BlockNumber,
+			},
 			PlutusData.PlutusData{
 				PlutusDataType: PlutusData.PlutusBytes,
-				Value:          blockData.TargetHash},
+				Value:          blockData.TargetHash,
+			},
 			PlutusData.PlutusData{
 				PlutusDataType: PlutusData.PlutusInt,
-				Value:          blockData.LeadingZeros},
+				Value:          blockData.LeadingZeros,
+			},
 			PlutusData.PlutusData{
 				PlutusDataType: PlutusData.PlutusInt,
-				Value:          blockData.DifficultyNumber},
+				Value:          blockData.DifficultyNumber,
+			},
 			PlutusData.PlutusData{
 				PlutusDataType: PlutusData.PlutusInt,
-				Value:          blockData.EpochTime}, //NEEDS FIXING
+				Value:          blockData.EpochTime, //NEEDS FIXING (?)
+			},
 			PlutusData.PlutusData{
 				PlutusDataType: PlutusData.PlutusInt,
-				Value:          blockData.RealTimeNow + 90000},
+				Value:          blockData.RealTimeNow,
+			},
 			PlutusData.PlutusData{
 				PlutusDataType: PlutusData.PlutusBytes,
-				Value:          []byte(blockData.Message)},
+				Value:          blockData.Message,
+			},
 			PlutusData.PlutusData{
 				PlutusDataType: PlutusData.PlutusArray,
-				Value:          pdInterlink},
-		}}
+				Value:          pdInterlink,
+			},
+		},
+	}
 
 	marshaled, _ := cbor.Marshal(pd)
 	postDatum := PlutusData.PlutusData{
@@ -123,7 +149,9 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 				PlutusDataType: PlutusData.PlutusBytes,
 				TagNr:          24,
 				Value:          marshaled,
-			}}}
+			},
+		},
+	}
 
 	contractAddress, _ := serAddress.DecodeAddress(cfg.Indexer.ScriptAddress)
 	myAddress, _ := serAddress.DecodeAddress(bursa.PaymentAddress)
@@ -139,11 +167,28 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 		return nil, err
 	}
 	var utxos []UTxO.UTxO
+	tunaPolicyId, _ := Policy.New(validatorHash)
+	var tunaCount int64
 	for _, utxoBytes := range utxosBytes {
 		var utxo UTxO.UTxO
 		if err := cbor.Unmarshal(utxoBytes, &utxo); err != nil {
 			return nil, err
 		}
+		/*
+			if hex.EncodeToString(utxo.Input.TransactionId) == "01cd3419f8e224409059bc17a67f995cc0d98e3ab8df70b5d4e98f14f363b582" {
+				if utxo.Input.Index != 0 {
+					continue
+				}
+			} else if hex.EncodeToString(utxo.Input.TransactionId) == "51fc0f925d714add1fb3c1b583fc935b8b83d9fa79c5f6b3f2f5e4c13b1b2ff9" {
+				if utxo.Input.Index != 1 {
+					continue
+				}
+			} else {
+				continue
+			}
+		*/
+		// Record the number of TUNA in inputs to use in outputs
+		tunaCount += utxo.Output.GetValue().GetAssets().GetByPolicyAndId(*tunaPolicyId, AssetName.NewAssetNameFromString("TUNA"))
 		utxos = append(utxos, utxo)
 	}
 
@@ -166,26 +211,45 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 	}
 	validatorOutRef := scriptUtxos[0]
 
+	// Determine validity start/end slot based on datum
+	datumSlot := unixTimeToSlot(blockData.RealTimeNow / 1000)
+
 	apollob = apollob.AddLoadedUTxOs(utxos...)
 	apollob = apollob.
-		PayToContract(contractAddress, &postDatum, int(validatorOutRef.Output.Lovelace()), true, apollo.NewUnit(validatorHash, "lord tuna", 1)).
-		SetTtl(int64(currentTipSlotNumber+180000)).
-		PayToAddress(myAddress, 2000000, apollo.NewUnit(validatorHash, "TUNA", 5000000000)).
-		SetValidityStart(int64(currentTipSlotNumber)).MintAssetsWithRedeemer(
-		apollo.NewUnit(validatorHash, "TUNA", 5000000000),
-		Redeemer.Redeemer{
-			Tag:   Redeemer.MINT,
-			Index: 0,
-			Data: PlutusData.PlutusData{
-				PlutusDataType: PlutusData.PlutusArray,
-				TagNr:          121,
-				Value:          PlutusData.PlutusIndefArray{},
+		PayToContract(
+			contractAddress, &postDatum, int(validatorOutRef.Output.PostAlonzo.Amount.Am.Coin), true, apollo.NewUnit(validatorHash, "lord tuna", 1),
+		).
+		SetValidityStart(int64(datumSlot-90)).
+		SetTtl(int64(datumSlot+90)).
+		PayToAddress(
+			myAddress, 2000000, apollo.NewUnit(validatorHash, "TUNA", int(tunaCount+5000000000)),
+		).
+		MintAssetsWithRedeemer(
+			apollo.NewUnit(validatorHash, "TUNA", 5000000000),
+			Redeemer.Redeemer{
+				Tag:   Redeemer.MINT,
+				Index: 0,
+				// NOTE: these values are estimated
+				ExUnits: Redeemer.ExecutionUnits{
+					Mem:   50_000,
+					Steps: 20_000_000,
+				},
+				Data: PlutusData.PlutusData{
+					PlutusDataType: PlutusData.PlutusArray,
+					TagNr:          121,
+					Value:          PlutusData.PlutusIndefArray{},
+				},
 			},
-		}).
+		).
 		CollectFrom(
 			validatorOutRef,
 			Redeemer.Redeemer{
 				Tag: Redeemer.SPEND,
+				// NOTE: these values are estimated
+				ExUnits: Redeemer.ExecutionUnits{
+					Mem:   450_000,
+					Steps: 200_000_000,
+				},
 				Data: PlutusData.PlutusData{
 					PlutusDataType: PlutusData.PlutusArray,
 					TagNr:          122,
@@ -193,7 +257,8 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 						PlutusData.PlutusData{
 							PlutusDataType: PlutusData.PlutusBytes,
 							Value:          nonce,
-						}},
+						},
+					},
 				},
 			},
 		)
@@ -230,6 +295,12 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 	skey := Key.SigningKey{Payload: sKeyBytes}
 	tx = tx.SignWithSkey(vkey, skey)
 	return tx.GetTx().Bytes(), nil
+}
+
+func unixTimeToSlot(unixTime int64) uint64 {
+	cfg := config.GetConfig()
+	networkCfg := config.NetworkMap[cfg.Indexer.Network]
+	return networkCfg.ShelleyOffsetSlot + uint64(time.Now().Unix()-networkCfg.ShelleyOffsetTime)
 }
 
 func submitTx(txRawBytes []byte) (string, error) {

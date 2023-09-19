@@ -31,12 +31,9 @@ type Manager struct {
 	started         bool
 	startMutex      sync.Mutex
 	stopMutex       sync.Mutex
-	// TODO
 }
 
-var globalManager = &Manager{
-	// TODO
-}
+var globalManager = &Manager{}
 
 func (m *Manager) Reset() {
 	m.workerWaitGroup = sync.WaitGroup{}

@@ -71,8 +71,6 @@ func New(waitGroup *sync.WaitGroup, resultChan chan Result, doneChan chan any, b
 func (m *Miner) Start() {
 	defer m.waitGroup.Done()
 
-	// TODO: check on m.doneChan and exit
-
 	// Create initial state from block data
 	m.state = &State{
 		Nonce:            randomNonce(),
@@ -84,6 +82,11 @@ func (m *Miner) Start() {
 	}
 
 	targetHash := m.calculateHash()
+
+	/*
+		stateBytes, _ := stateToBytes(m.state)
+		fmt.Printf("stateBytes = %x\n", stateBytes)
+	*/
 
 	// Check for shutdown
 	select {
@@ -97,24 +100,21 @@ func (m *Miner) Start() {
 
 	realTimeNow := time.Now().Unix()*1000 - 60000
 
-	epochTime := m.state.DifficultyNumber + 90000 + realTimeNow - m.state.EpochTime
-
-	// TODO: Find where does it come from in the original code
-	// m.state.fields[7] as string[]
-	stateInterlink := [][]byte{
-		[]byte("BlinkLabs"),
-		[]byte("BlueFin"),
-	}
+	epochTime := m.blockData.EpochTime + 90000 + realTimeNow - m.blockData.RealTimeNow
 
 	difficulty := getDifficulty([]byte(targetHash))
-	currentInterlink := calculateInterlink(targetHash, difficulty, DifficultyMetrics{LeadingZeros: m.state.LeadingZeros, DifficultyNumber: m.state.DifficultyNumber}, stateInterlink)
+	currentInterlink := calculateInterlink(targetHash, difficulty, DifficultyMetrics{LeadingZeros: m.blockData.LeadingZeros, DifficultyNumber: m.blockData.DifficultyNumber}, m.blockData.Interlink)
 
 	// Construct the new block data
 	postDatum := common.BlockData{
-		BlockNumber:      m.state.BlockNumber + 1,
-		TargetHash:       targetHash,
-		LeadingZeros:     difficulty.LeadingZeros,
-		DifficultyNumber: difficulty.DifficultyNumber,
+		BlockNumber: m.blockData.BlockNumber + 1,
+		TargetHash:  targetHash,
+		/*
+			LeadingZeros:     difficulty.LeadingZeros,
+			DifficultyNumber: difficulty.DifficultyNumber,
+		*/
+		LeadingZeros:     m.blockData.LeadingZeros,
+		DifficultyNumber: m.blockData.DifficultyNumber,
 		EpochTime:        epochTime,
 		RealTimeNow:      90000 + realTimeNow,
 		Message:          []byte(fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString())),
@@ -180,7 +180,7 @@ func (m *Miner) calculateHash() []byte {
 		metrics := getDifficulty(hash2)
 
 		// Check the condition
-		if metrics.LeadingZeros > m.state.LeadingZeros || (metrics.LeadingZeros == m.state.LeadingZeros && metrics.DifficultyNumber < 2) {
+		if metrics.LeadingZeros > m.blockData.LeadingZeros || (metrics.LeadingZeros == m.blockData.LeadingZeros && metrics.DifficultyNumber < m.blockData.DifficultyNumber) {
 			return hash2
 		}
 
@@ -225,46 +225,74 @@ func stateToBytes(state *State) ([]byte, error) {
 }
 
 func getDifficulty(hash []byte) DifficultyMetrics {
-	var metrics DifficultyMetrics
+	var leadingZeros int64
+	var difficultyNumber int64
 	for indx, chr := range hash {
 		if chr != 0 {
 			//
 			if (chr & 0x0F) == chr {
-				metrics.LeadingZeros += 1
-				metrics.DifficultyNumber += int64(chr) * 4096
-				metrics.DifficultyNumber += int64(hash[indx+1]) * 16
-				metrics.DifficultyNumber += int64(hash[indx+2]) / 16
-				return metrics
+				leadingZeros += 1
+				difficultyNumber += int64(chr) * 4096
+				difficultyNumber += int64(hash[indx+1]) * 16
+				difficultyNumber += int64(hash[indx+2]) / 16
+				return DifficultyMetrics{
+					LeadingZeros:     leadingZeros,
+					DifficultyNumber: difficultyNumber,
+				}
 			} else {
-				metrics.DifficultyNumber += int64(chr) * 256
-				metrics.DifficultyNumber += int64(hash[indx+1])
-				return metrics
+				difficultyNumber += int64(chr) * 256
+				difficultyNumber += int64(hash[indx+1])
+				return DifficultyMetrics{
+					LeadingZeros:     leadingZeros,
+					DifficultyNumber: difficultyNumber,
+				}
 			}
 		} else {
-			metrics.LeadingZeros += 2
+			leadingZeros += 2
 		}
 	}
-	metrics.LeadingZeros = 32
-	return metrics
+	return DifficultyMetrics{
+		LeadingZeros:     32,
+		DifficultyNumber: 0,
+	}
 }
 
-func calculateInterlink(currentHash []byte, a DifficultyMetrics, b DifficultyMetrics, currentInterlink [][]byte) [][]byte {
+func calculateInterlink(currentHash []byte, newDifficulty DifficultyMetrics, origDifficulty DifficultyMetrics, currentInterlink [][]byte) [][]byte {
+	//fmt.Printf("newDifficulty = %#v, origDifficulty = %#v\n", newDifficulty, origDifficulty)
 	interlink := make([][]byte, len(currentInterlink))
 	copy(interlink, currentInterlink)
 
-	bHalf := halfDifficultyNumber(b)
+	origHalf := halfDifficultyNumber(origDifficulty)
+	//fmt.Printf("origHalf = %#v\n", origHalf)
 	currentIndex := 0
 
-	for bHalf.LeadingZeros < a.LeadingZeros || (bHalf.LeadingZeros == a.LeadingZeros && bHalf.DifficultyNumber > a.DifficultyNumber) {
+	for origHalf.LeadingZeros < newDifficulty.LeadingZeros || (origHalf.LeadingZeros == newDifficulty.LeadingZeros && origHalf.DifficultyNumber > newDifficulty.DifficultyNumber) {
+		//fmt.Printf("currentIndex = %d\n", currentIndex)
+		//fmt.Printf("origHalf = %#v\n", origHalf)
 		if currentIndex < len(interlink) {
 			interlink[currentIndex] = currentHash
+			//fmt.Printf("interlink[%d] = %x\n", currentIndex, currentHash)
 		} else {
 			interlink = append(interlink, currentHash)
+			//fmt.Printf("interlink = append(interlink, %x)\n", currentHash)
 		}
 
-		bHalf = halfDifficultyNumber(bHalf)
+		origHalf = halfDifficultyNumber(origHalf)
 		currentIndex++
 	}
+
+	/*
+		fmt.Printf("currentInterlink = [\n")
+		for _, foo := range currentInterlink {
+			fmt.Printf("  %x\n", foo)
+		}
+		fmt.Printf("]\n")
+		fmt.Printf("\ninterlink = [\n")
+		for _, foo := range interlink {
+			fmt.Printf("  %x\n", foo)
+		}
+		fmt.Printf("]\n")
+	*/
 
 	return interlink
 }

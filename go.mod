@@ -3,7 +3,7 @@ module github.com/blinklabs-io/bluefin
 go 1.20
 
 require (
-	github.com/Salvionied/apollo v1.0.3
+	github.com/Salvionied/apollo v1.0.4
 	github.com/Salvionied/cbor/v2 v2.6.0
 	github.com/blinklabs-io/bursa v0.3.0
 	github.com/blinklabs-io/gouroboros v0.53.0

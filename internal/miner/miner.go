@@ -83,11 +83,6 @@ func (m *Miner) Start() {
 
 	targetHash := m.calculateHash()
 
-	/*
-		stateBytes, _ := stateToBytes(m.state)
-		fmt.Printf("stateBytes = %x\n", stateBytes)
-	*/
-
 	// Check for shutdown
 	select {
 	case <-m.doneChan:
@@ -95,8 +90,6 @@ func (m *Miner) Start() {
 	default:
 		break
 	}
-
-	fmt.Printf("Nonce: %x, Hash with leading zeros: %x\n", m.state.Nonce, targetHash)
 
 	realTimeNow := time.Now().Unix()*1000 - 60000
 
@@ -107,12 +100,8 @@ func (m *Miner) Start() {
 
 	// Construct the new block data
 	postDatum := common.BlockData{
-		BlockNumber: m.blockData.BlockNumber + 1,
-		TargetHash:  targetHash,
-		/*
-			LeadingZeros:     difficulty.LeadingZeros,
-			DifficultyNumber: difficulty.DifficultyNumber,
-		*/
+		BlockNumber:      m.blockData.BlockNumber + 1,
+		TargetHash:       targetHash,
 		LeadingZeros:     m.blockData.LeadingZeros,
 		DifficultyNumber: m.blockData.DifficultyNumber,
 		EpochTime:        epochTime,
@@ -258,41 +247,22 @@ func getDifficulty(hash []byte) DifficultyMetrics {
 }
 
 func calculateInterlink(currentHash []byte, newDifficulty DifficultyMetrics, origDifficulty DifficultyMetrics, currentInterlink [][]byte) [][]byte {
-	//fmt.Printf("newDifficulty = %#v, origDifficulty = %#v\n", newDifficulty, origDifficulty)
 	interlink := make([][]byte, len(currentInterlink))
 	copy(interlink, currentInterlink)
 
 	origHalf := halfDifficultyNumber(origDifficulty)
-	//fmt.Printf("origHalf = %#v\n", origHalf)
 	currentIndex := 0
 
 	for origHalf.LeadingZeros < newDifficulty.LeadingZeros || (origHalf.LeadingZeros == newDifficulty.LeadingZeros && origHalf.DifficultyNumber > newDifficulty.DifficultyNumber) {
-		//fmt.Printf("currentIndex = %d\n", currentIndex)
-		//fmt.Printf("origHalf = %#v\n", origHalf)
 		if currentIndex < len(interlink) {
 			interlink[currentIndex] = currentHash
-			//fmt.Printf("interlink[%d] = %x\n", currentIndex, currentHash)
 		} else {
 			interlink = append(interlink, currentHash)
-			//fmt.Printf("interlink = append(interlink, %x)\n", currentHash)
 		}
 
 		origHalf = halfDifficultyNumber(origHalf)
 		currentIndex++
 	}
-
-	/*
-		fmt.Printf("currentInterlink = [\n")
-		for _, foo := range currentInterlink {
-			fmt.Printf("  %x\n", foo)
-		}
-		fmt.Printf("]\n")
-		fmt.Printf("\ninterlink = [\n")
-		for _, foo := range interlink {
-			fmt.Printf("  %x\n", foo)
-		}
-		fmt.Printf("]\n")
-	*/
 
 	return interlink
 }

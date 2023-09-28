@@ -300,7 +300,7 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 func unixTimeToSlot(unixTime int64) uint64 {
 	cfg := config.GetConfig()
 	networkCfg := config.NetworkMap[cfg.Indexer.Network]
-	return networkCfg.ShelleyOffsetSlot + uint64(time.Now().Unix()-networkCfg.ShelleyOffsetTime)
+	return networkCfg.ShelleyOffsetSlot + uint64(unixTime-networkCfg.ShelleyOffsetTime)
 }
 
 func submitTx(txRawBytes []byte) (string, error) {

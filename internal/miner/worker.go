@@ -15,7 +15,6 @@
 package miner
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/blinklabs-io/bluefin/internal/common"
@@ -76,7 +75,6 @@ func (m *Manager) Start(blockData common.BlockData) {
 		case <-m.doneChan:
 			return
 		case result := <-m.resultChan:
-			fmt.Printf("result = %#v\n", result)
 			// Stop workers until our result makes it on-chain
 			m.Stop()
 			// Build and submit the TX

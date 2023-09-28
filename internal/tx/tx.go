@@ -53,24 +53,15 @@ func SendTx(blockData common.BlockData, nonce [16]byte) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("txBytes = %x\n", txBytes)
-	/*
-		var txUnwrap []cbor.RawMessage
-		if err := cbor.Unmarshal(txBytes, &txUnwrap); err != nil {
-			return err
-		}
-		fmt.Printf("txBody = %x\n", txUnwrap[0])
-	*/
 	txId, err := submitTx(txBytes)
 	if err != nil {
 		return err
 	}
-	logging.GetLogger().Infof("successfully submitted TX %x", txId)
+	logging.GetLogger().Infof("successfully submitted TX %s", txId)
 	return nil
 }
 
 func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
-	//fmt.Printf("createTx(): nonce=%x, blockData = %#v\n", nonce, blockData)
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()
 	bursa := wallet.GetWallet()

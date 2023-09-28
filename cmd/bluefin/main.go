@@ -25,8 +25,6 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/indexer"
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/storage"
-
-	//"github.com/blinklabs-io/bluefin/internal/tx"
 	"github.com/blinklabs-io/bluefin/internal/version"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 )

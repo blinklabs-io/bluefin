@@ -293,8 +293,15 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 	sKeyBytes = append(sKeyBytes[:64], sKeyBytes[96:]...)
 	vkey := Key.VerificationKey{Payload: vKeyBytes}
 	skey := Key.SigningKey{Payload: sKeyBytes}
-	tx = tx.SignWithSkey(vkey, skey)
-	return tx.GetTx().Bytes(), nil
+	tx, err = tx.SignWithSkey(vkey, skey)
+	if err != nil {
+		return nil, err
+	}
+	txBytes, err := tx.GetTx().Bytes()
+	if err != nil {
+		return nil, err
+	}
+	return txBytes, nil
 }
 
 func unixTimeToSlot(unixTime int64) uint64 {

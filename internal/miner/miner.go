@@ -23,6 +23,7 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/common"
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
+	"github.com/blinklabs-io/bluefin/internal/version"
 	"github.com/blinklabs-io/gouroboros/cbor"
 	"github.com/minio/sha256-simd"
 )
@@ -116,9 +117,8 @@ func (m *Miner) Start() {
 		DifficultyNumber: m.blockData.DifficultyNumber,
 		EpochTime:        epochTime,
 		RealTimeNow:      90000 + realTimeNow,
-		//Message:          []byte(fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString())),
-		Message:   []byte("AlL HaIl tUnA"),
-		Interlink: currentInterlink,
+		Message:          []byte(fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString())),
+		Interlink:        currentInterlink,
 	}
 
 	// Check for shutdown

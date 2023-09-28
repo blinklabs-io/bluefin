@@ -383,7 +383,7 @@ func submitTxNtN(txRawBytes []byte) (string, error) {
 		return "", fmt.Errorf("failed to close connection: %s", err)
 	}
 
-	return string(txHash[:]), nil
+	return hex.EncodeToString(txHash[:]), nil
 }
 
 func submitTxNtC(txRawBytes []byte) (string, error) {

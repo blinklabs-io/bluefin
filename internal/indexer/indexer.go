@@ -73,6 +73,12 @@ func (i *Indexer) Start() error {
 			input_chainsync.WithNetwork(cfg.Indexer.Network),
 		)
 	}
+	if cfg.Indexer.Address != "" {
+		inputOpts = append(
+			inputOpts,
+			input_chainsync.WithAddress(cfg.Indexer.Address),
+		)
+	}
 	cursorSlotNumber, cursorBlockHash, err := storage.GetStorage().GetCursor()
 	if err != nil {
 		return err

@@ -43,9 +43,9 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 )
 
-var txBytes []byte
-var txHash [32]byte
-var sentTx bool
+var ntnTxBytes []byte
+var ntnTxHash [32]byte
+var ntnSentTx bool
 var doneChan chan any
 
 func SendTx(blockData common.BlockData, nonce [16]byte) error {
@@ -69,14 +69,6 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 	networkCfg := config.NetworkMap[cfg.Indexer.Network]
 
 	validatorHash := networkCfg.ValidatorHash
-
-	/*
-		// Get current slot
-		currentTipSlotNumber, _, err := storage.GetStorage().GetCursor()
-		if err != nil {
-			return nil, err
-		}
-	*/
 
 	pdInterlink := PlutusData.PlutusIndefArray{}
 	for _, val := range blockData.Interlink {
@@ -111,7 +103,7 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 			},
 			PlutusData.PlutusData{
 				PlutusDataType: PlutusData.PlutusInt,
-				Value:          blockData.EpochTime, //NEEDS FIXING (?)
+				Value:          blockData.EpochTime,
 			},
 			PlutusData.PlutusData{
 				PlutusDataType: PlutusData.PlutusInt,
@@ -165,19 +157,6 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 		if err := cbor.Unmarshal(utxoBytes, &utxo); err != nil {
 			return nil, err
 		}
-		/*
-			if hex.EncodeToString(utxo.Input.TransactionId) == "01cd3419f8e224409059bc17a67f995cc0d98e3ab8df70b5d4e98f14f363b582" {
-				if utxo.Input.Index != 0 {
-					continue
-				}
-			} else if hex.EncodeToString(utxo.Input.TransactionId) == "51fc0f925d714add1fb3c1b583fc935b8b83d9fa79c5f6b3f2f5e4c13b1b2ff9" {
-				if utxo.Input.Index != 1 {
-					continue
-				}
-			} else {
-				continue
-			}
-		*/
 		// Record the number of TUNA in inputs to use in outputs
 		tunaCount += utxo.Output.GetValue().GetAssets().GetByPolicyAndId(*tunaPolicyId, AssetName.NewAssetNameFromString("TUNA"))
 		utxos = append(utxos, utxo)
@@ -332,7 +311,10 @@ func submitTx(txRawBytes []byte) (string, error) {
 func submitTxNtN(txRawBytes []byte) (string, error) {
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()
-	//logger.Infof("debug: %s", txBytes)
+
+	// Record TX bytes in global for use in handler functions
+	ntnTxBytes = txRawBytes[:]
+	ntnSentTx = false
 
 	// Generate TX hash
 	// Unwrap raw transaction bytes into a CBOR array
@@ -345,7 +327,7 @@ func submitTxNtN(txRawBytes []byte) (string, error) {
 	// Store index 0 (transaction body) as byte array
 	txBody := txUnwrap[0]
 	// Convert the body into a blake2b256 hash string
-	txHash = blake2b.Sum256(txBody)
+	ntnTxHash = blake2b.Sum256(txBody)
 
 	// Create connection
 	conn := createClientConnection(cfg.Submit.Address)
@@ -378,12 +360,14 @@ func submitTxNtN(txRawBytes []byte) (string, error) {
 	doneChan = make(chan any)
 	o.TxSubmission().Client.Init()
 	<-doneChan
+	// Sleep 2s to allow time for TX to enter remote mempool before closing connection
+	time.Sleep(2 * time.Second)
 
 	if err := o.Close(); err != nil {
 		return "", fmt.Errorf("failed to close connection: %s", err)
 	}
 
-	return hex.EncodeToString(txHash[:]), nil
+	return hex.EncodeToString(ntnTxHash[:]), nil
 }
 
 func submitTxNtC(txRawBytes []byte) (string, error) {
@@ -434,18 +418,19 @@ func createClientConnection(nodeAddress string) net.Conn {
 }
 
 func handleRequestTxIds(blocking bool, ack uint16, req uint16) ([]txsubmission.TxIdAndSize, error) {
-	if sentTx {
+	if ntnSentTx {
 		// Terrible syncronization hack for shutdown
 		close(doneChan)
 		time.Sleep(5 * time.Second)
+		return nil, nil
 	}
 	ret := []txsubmission.TxIdAndSize{
 		{
 			TxId: txsubmission.TxId{
 				EraId: 5,
-				TxId:  txHash,
+				TxId:  ntnTxHash,
 			},
-			Size: uint32(len(txBytes)),
+			Size: uint32(len(ntnTxBytes)),
 		},
 	}
 	return ret, nil
@@ -455,9 +440,9 @@ func handleRequestTxs(txIds []txsubmission.TxId) ([]txsubmission.TxBody, error) 
 	ret := []txsubmission.TxBody{
 		{
 			EraId:  5,
-			TxBody: txBytes,
+			TxBody: ntnTxBytes,
 		},
 	}
-	sentTx = true
+	ntnSentTx = true
 	return ret, nil
 }

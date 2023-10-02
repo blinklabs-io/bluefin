@@ -9,8 +9,8 @@ github.com/blinklabs-io/bursa v0.4.0 h1:TpBSI2D7w5fanQ0e+AoWI7ahgcXhH/Swd8aM3c5m
 github.com/blinklabs-io/bursa v0.4.0/go.mod h1:fm0Mp6Il5Wtz/48BstBXewm6wuKdoicGycOSY9bqeq8=
 github.com/blinklabs-io/gouroboros v0.53.0 h1:JRq7FJ2HP5Fv+RBREzHAskT74u3Es8Sra9ynW08sumo=
 github.com/blinklabs-io/gouroboros v0.53.0/go.mod h1:2wCCNNsHNYMT4gQB+bXS0Y99Oeu8+EM96hi7hW22C2w=
-github.com/blinklabs-io/snek v0.11.0 h1:VOwYJgOBeulcceP1tqOrGmtAatalu/NJryJK4nxdhXo=
-github.com/blinklabs-io/snek v0.11.0/go.mod h1:vsGrwRqFONk1sRnsS37hiN3UsElDQUWWxLsbLSP8iaU=
+github.com/blinklabs-io/snek v0.12.1 h1:27CETO4Nadn/xPLDdi/wy+btGEcoixC/k4NLkoQrqRM=
+github.com/blinklabs-io/snek v0.12.1/go.mod h1:nSqKwMno86ToYcetB0evfGJrangMuU4KoEXY7nfjQNA=
 github.com/btcsuite/btcd v0.20.1-beta/go.mod h1:wVuoA8VJLEcwgqHBwHmzLRazpKxTv13Px/pDuV7OomQ=
 github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f/go.mod h1:TdznJufoqS23FtqVCzL0ZqgP5MqXbb4fg/WgDys70nA=
 github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d/go.mod h1:+5NJ2+qvTyV9exUAL/rxXi3DcLg2Ts+ymUAY5y4NvMg=

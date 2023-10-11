@@ -23,6 +23,7 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/common"
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
+	"github.com/blinklabs-io/bluefin/internal/metrics"
 	"github.com/blinklabs-io/bluefin/internal/version"
 	"github.com/blinklabs-io/gouroboros/cbor"
 	"github.com/minio/sha256-simd"
@@ -155,6 +156,10 @@ func (m *Miner) calculateHash() []byte {
 			return nil
 		}
 
+		// get hash counter
+		hashes := metrics.GetHashes()
+		hashes.Inc()
+
 		// Hash it once
 		hasher := sha256.New()
 		hasher.Write(stateBytes)
@@ -166,10 +171,10 @@ func (m *Miner) calculateHash() []byte {
 		hash2 := hasher2.Sum(nil)
 
 		// Get the difficulty metrics for the hash
-		metrics := getDifficulty(hash2)
+		difficulty := getDifficulty(hash2)
 
 		// Check the condition
-		if metrics.LeadingZeros > m.blockData.LeadingZeros || (metrics.LeadingZeros == m.blockData.LeadingZeros && metrics.DifficultyNumber < m.blockData.DifficultyNumber) {
+		if difficulty.LeadingZeros > m.blockData.LeadingZeros || (difficulty.LeadingZeros == m.blockData.LeadingZeros && difficulty.DifficultyNumber < m.blockData.DifficultyNumber) {
 			return hash2
 		}
 
@@ -267,16 +272,16 @@ func calculateInterlink(currentHash []byte, newDifficulty DifficultyMetrics, ori
 	return interlink
 }
 
-func halfDifficultyNumber(metrics DifficultyMetrics) DifficultyMetrics {
-	newA := metrics.DifficultyNumber / 2
+func halfDifficultyNumber(difficulty DifficultyMetrics) DifficultyMetrics {
+	newA := difficulty.DifficultyNumber / 2
 	if newA < 4096 {
 		return DifficultyMetrics{
-			LeadingZeros:     metrics.LeadingZeros + 1,
+			LeadingZeros:     difficulty.LeadingZeros + 1,
 			DifficultyNumber: newA * 16,
 		}
 	} else {
 		return DifficultyMetrics{
-			LeadingZeros:     metrics.LeadingZeros,
+			LeadingZeros:     difficulty.LeadingZeros,
 			DifficultyNumber: newA,
 		}
 	}

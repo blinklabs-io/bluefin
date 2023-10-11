@@ -24,6 +24,7 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/indexer"
 	"github.com/blinklabs-io/bluefin/internal/logging"
+	"github.com/blinklabs-io/bluefin/internal/metrics"
 	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/version"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
@@ -55,6 +56,11 @@ func main() {
 			return
 		}
 	}()
+
+	// Start metrics listener
+	if err := metrics.Start(); err != nil {
+		logger.Errorf("failed to start metrics listener: %s", err)
+	}
 
 	logger.Infof("bluefin %s started", version.GetVersionString())
 	// Load storage

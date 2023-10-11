@@ -69,8 +69,8 @@ type LoggingConfig struct {
 }
 
 type MetricsConfig struct {
-	ListenAddress string `yaml:"address" envconfig:"METRICS_LISTEN_ADDRESS"`
-	ListenPort    uint   `yaml:"port" envconfig:"METRICS_LISTEN_PORT"`
+	Address string `yaml:"address" envconfig:"METRICS_LISTEN_ADDRESS"`
+	Port    uint   `yaml:"port" envconfig:"METRICS_LISTEN_PORT"`
 }
 
 type DebugConfig struct {
@@ -89,8 +89,8 @@ var globalConfig = &Config{
 		ListenPort:    0,
 	},
 	Metrics: MetricsConfig{
-		ListenAddress: "",
-		ListenPort:    8081,
+		Address: "",
+		Port:    8081,
 	},
 	Indexer: IndexerConfig{
 		Network: "mainnet",

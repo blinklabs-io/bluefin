@@ -6,7 +6,7 @@ require (
 	github.com/Salvionied/apollo v1.0.4
 	github.com/Salvionied/cbor/v2 v2.6.0
 	github.com/blinklabs-io/bursa v0.4.1
-	github.com/blinklabs-io/gouroboros v0.55.0
+	github.com/blinklabs-io/gouroboros v0.56.0
 	github.com/blinklabs-io/snek v0.12.1
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/kelseyhightower/envconfig v1.4.0

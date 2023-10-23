@@ -7,8 +7,8 @@ github.com/Salvionied/cbor/v2 v2.6.0/go.mod h1:oFxaUo/mQ5sG1k459nzctGdYa80jy0ZqZ
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
 github.com/blinklabs-io/bursa v0.4.1 h1:hcTPciCQ2pRNFt9S0k2tRSLIsJaBgbuUQiFYsE4KGBk=
 github.com/blinklabs-io/bursa v0.4.1/go.mod h1:fm0Mp6Il5Wtz/48BstBXewm6wuKdoicGycOSY9bqeq8=
-github.com/blinklabs-io/gouroboros v0.56.0 h1:AdWB6SkHD5fn4wKU+/2BFsT9xae3W+nZ189LxZw/mF8=
-github.com/blinklabs-io/gouroboros v0.56.0/go.mod h1:D5YJka8EyVmiXNMbRvjH23H9lNMLA4+qSlNNC/j7R0k=
+github.com/blinklabs-io/gouroboros v0.57.0 h1:k5Y706vvYAGM3bCtEhh6WRHGrvS3S6n1MT9vNLFAe/E=
+github.com/blinklabs-io/gouroboros v0.57.0/go.mod h1:D5YJka8EyVmiXNMbRvjH23H9lNMLA4+qSlNNC/j7R0k=
 github.com/blinklabs-io/snek v0.12.1 h1:27CETO4Nadn/xPLDdi/wy+btGEcoixC/k4NLkoQrqRM=
 github.com/blinklabs-io/snek v0.12.1/go.mod h1:nSqKwMno86ToYcetB0evfGJrangMuU4KoEXY7nfjQNA=
 github.com/btcsuite/btcd v0.20.1-beta/go.mod h1:wVuoA8VJLEcwgqHBwHmzLRazpKxTv13Px/pDuV7OomQ=

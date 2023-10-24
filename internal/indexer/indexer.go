@@ -155,6 +155,7 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()
 	eventTx := evt.Payload.(input_chainsync.TransactionEvent)
+	eventCtx := evt.Context.(input_chainsync.TransactionContext)
 	// Delete used UTXOs
 	for _, txInput := range eventTx.Inputs {
 		// We don't have a ledger DB to know where the TX inputs came from, so we just try deleting them for our known addresses
@@ -168,7 +169,7 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 		// Write UTXO to storage
 		if err := storage.GetStorage().AddUtxo(
 			txOutput.Address().String(),
-			eventTx.TransactionHash,
+			eventCtx.TransactionHash,
 			uint32(idx),
 			txOutput.Cbor(),
 		); err != nil {
@@ -179,7 +180,7 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 			datum := txOutput.Datum()
 			if datum != nil {
 				if _, err := datum.Decode(); err != nil {
-					logger.Warnf("error decoding TX (%s) output datum: %s", eventTx.TransactionHash, err)
+					logger.Warnf("error decoding TX (%s) output datum: %s", eventCtx.TransactionHash, err)
 					return err
 				}
 				datumFields := datum.Value().(cbor.Constructor).Fields()

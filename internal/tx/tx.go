@@ -158,12 +158,15 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 			return nil, err
 		}
 		// Record the number of TUNA in inputs to use in outputs
-		tunaCount += utxo.Output.GetValue().GetAssets().GetByPolicyAndId(*tunaPolicyId, AssetName.NewAssetNameFromString("TUNA"))
+		tunaCount += utxo.Output.GetValue().
+			GetAssets().
+			GetByPolicyAndId(*tunaPolicyId, AssetName.NewAssetNameFromString("TUNA"))
 		utxos = append(utxos, utxo)
 	}
 
 	// Gather UTxO(s) for script
-	scriptUtxosBytes, err := storage.GetStorage().GetUtxos(cfg.Indexer.ScriptAddress)
+	scriptUtxosBytes, err := storage.GetStorage().
+		GetUtxos(cfg.Indexer.ScriptAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +180,11 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 	}
 	// There should only ever be 1 UTxO for the script address
 	if len(scriptUtxos) > 1 {
-		logger.Warnf("found unexpected UTxO(s) at script address (%s), expected 1 and found %d", cfg.Indexer.ScriptAddress, len(scriptUtxos))
+		logger.Warnf(
+			"found unexpected UTxO(s) at script address (%s), expected 1 and found %d",
+			cfg.Indexer.ScriptAddress,
+			len(scriptUtxos),
+		)
 	}
 	validatorOutRef := scriptUtxos[0]
 
@@ -234,7 +241,10 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 		)
 	if networkCfg.ScriptInputRefTxId != "" {
 		// Use a script input ref
-		apollob = apollob.AddReferenceInput(networkCfg.ScriptInputRefTxId, int(networkCfg.ScriptInputRefOutIndex))
+		apollob = apollob.AddReferenceInput(
+			networkCfg.ScriptInputRefTxId,
+			int(networkCfg.ScriptInputRefOutIndex),
+		)
 	} else {
 		// Include the script with the TX
 		validatorScriptBytes, err := hex.DecodeString(networkCfg.ValidatorScript)
@@ -277,7 +287,9 @@ func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
 func unixTimeToSlot(unixTime int64) uint64 {
 	cfg := config.GetConfig()
 	networkCfg := config.NetworkMap[cfg.Indexer.Network]
-	return networkCfg.ShelleyOffsetSlot + uint64(unixTime-networkCfg.ShelleyOffsetTime)
+	return networkCfg.ShelleyOffsetSlot + uint64(
+		unixTime-networkCfg.ShelleyOffsetTime,
+	)
 }
 
 func submitTx(txRawBytes []byte) (string, error) {
@@ -385,7 +397,11 @@ func submitTxApi(txRawBytes []byte) (string, error) {
 	req.Header.Add("Content-Type", "application/cbor")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("failed to send request: %s: %s", cfg.Submit.Url, err)
+		return "", fmt.Errorf(
+			"failed to send request: %s: %s",
+			cfg.Submit.Url,
+			err,
+		)
 	}
 	// We have to read the entire response body and close it to prevent a memory leak
 	respBody, err := io.ReadAll(resp.Body)
@@ -417,7 +433,11 @@ func createClientConnection(nodeAddress string) net.Conn {
 	return conn
 }
 
-func handleRequestTxIds(blocking bool, ack uint16, req uint16) ([]txsubmission.TxIdAndSize, error) {
+func handleRequestTxIds(
+	blocking bool,
+	ack uint16,
+	req uint16,
+) ([]txsubmission.TxIdAndSize, error) {
 	if ntnSentTx {
 		// Terrible syncronization hack for shutdown
 		close(doneChan)
@@ -436,7 +456,9 @@ func handleRequestTxIds(blocking bool, ack uint16, req uint16) ([]txsubmission.T
 	return ret, nil
 }
 
-func handleRequestTxs(txIds []txsubmission.TxId) ([]txsubmission.TxBody, error) {
+func handleRequestTxs(
+	txIds []txsubmission.TxId,
+) ([]txsubmission.TxBody, error) {
 	ret := []txsubmission.TxBody{
 		{
 			EraId:  5,

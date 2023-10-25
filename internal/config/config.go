@@ -35,10 +35,10 @@ type Config struct {
 }
 
 type IndexerConfig struct {
-	Network       string `yaml:"network" envconfig:"INDEXER_NETWORK"`
-	NetworkMagic  uint32 `yaml:"networkMagic" envconfig:"INDEXER_NETWORK_MAGIC"`
-	Address       string `yaml:"address" envconfig:"INDEXER_TCP_ADDRESS"`
-	SocketPath    string `yaml:"socketPath" envconfig:"INDEXER_SOCKET_PATH"`
+	Network       string `yaml:"network"       envconfig:"INDEXER_NETWORK"`
+	NetworkMagic  uint32 `yaml:"networkMagic"  envconfig:"INDEXER_NETWORK_MAGIC"`
+	Address       string `yaml:"address"       envconfig:"INDEXER_TCP_ADDRESS"`
+	SocketPath    string `yaml:"socketPath"    envconfig:"INDEXER_SOCKET_PATH"`
 	ScriptAddress string `yaml:"scriptAddress" envconfig:"INDEXER_SCRIPT_ADDRESS"`
 	InterceptHash string `yaml:"interceptHash" envconfig:"INDEXER_INTERCEPT_HASH"`
 	InterceptSlot uint64 `yaml:"interceptSlot" envconfig:"INDEXER_INTERCEPT_SLOT"`
@@ -46,9 +46,9 @@ type IndexerConfig struct {
 
 type SubmitConfig struct {
 	NetworkMagic uint32 `yaml:"networkMagic" envconfig:"SUBMIT_NETWORK_MAGIC"`
-	Address      string `yaml:"address" envconfig:"SUBMIT_TCP_ADDRESS"`
-	SocketPath   string `yaml:"socketPath" envconfig:"SUBMIT_SOCKET_PATH"`
-	Url          string `yaml:"url" envconfig:"SUBMIT_URL"`
+	Address      string `yaml:"address"      envconfig:"SUBMIT_TCP_ADDRESS"`
+	SocketPath   string `yaml:"socketPath"   envconfig:"SUBMIT_SOCKET_PATH"`
+	Url          string `yaml:"url"          envconfig:"SUBMIT_URL"`
 }
 
 type StorageConfig struct {
@@ -65,17 +65,17 @@ type WorkerConfig struct {
 
 type LoggingConfig struct {
 	Healthchecks bool   `yaml:"healthchecks" envconfig:"LOGGING_HEALTHCHECKS"`
-	Level        string `yaml:"level" envconfig:"LOGGING_LEVEL"`
+	Level        string `yaml:"level"        envconfig:"LOGGING_LEVEL"`
 }
 
 type MetricsConfig struct {
 	ListenAddress string `yaml:"address" envconfig:"METRICS_LISTEN_ADDRESS"`
-	ListenPort    uint   `yaml:"port" envconfig:"METRICS_LISTEN_PORT"`
+	ListenPort    uint   `yaml:"port"    envconfig:"METRICS_LISTEN_PORT"`
 }
 
 type DebugConfig struct {
 	ListenAddress string `yaml:"address" envconfig:"DEBUG_ADDRESS"`
-	ListenPort    uint   `yaml:"port" envconfig:"DEBUG_PORT"`
+	ListenPort    uint   `yaml:"port"    envconfig:"DEBUG_PORT"`
 }
 
 // Singleton config instance with default values

@@ -34,7 +34,12 @@ var cmdlineFlags struct {
 }
 
 func main() {
-	flag.StringVar(&cmdlineFlags.configFile, "config", "", "path to config file to load")
+	flag.StringVar(
+		&cmdlineFlags.configFile,
+		"config",
+		"",
+		"path to config file to load",
+	)
 	flag.Parse()
 
 	// Load config

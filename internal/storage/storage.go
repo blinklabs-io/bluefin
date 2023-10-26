@@ -130,7 +130,12 @@ func (s *Storage) GetBlockData(dest any) error {
 	return nil
 }
 
-func (s *Storage) AddUtxo(address string, txId string, txOutIdx uint32, txOutBytes []byte) error {
+func (s *Storage) AddUtxo(
+	address string,
+	txId string,
+	txOutIdx uint32,
+	txOutBytes []byte,
+) error {
 	key := fmt.Sprintf("utxo_%s_%s.%d", address, txId, txOutIdx)
 	err := s.db.Update(func(txn *badger.Txn) error {
 		// Wrap TX output in UTxO structure to make it easier to consume later
@@ -161,7 +166,11 @@ func (s *Storage) AddUtxo(address string, txId string, txOutIdx uint32, txOutByt
 	return err
 }
 
-func (s *Storage) RemoveUtxo(address string, txId string, utxoIdx uint32) error {
+func (s *Storage) RemoveUtxo(
+	address string,
+	txId string,
+	utxoIdx uint32,
+) error {
 	key := fmt.Sprintf("utxo_%s_%s.%d", address, txId, utxoIdx)
 	err := s.db.Update(func(txn *badger.Txn) error {
 		if err := txn.Delete([]byte(key)); err != nil {

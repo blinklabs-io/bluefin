@@ -57,7 +57,12 @@ type Result struct {
 	Nonce     [16]byte
 }
 
-func New(waitGroup *sync.WaitGroup, resultChan chan Result, doneChan chan any, blockData common.BlockData) *Miner {
+func New(
+	waitGroup *sync.WaitGroup,
+	resultChan chan Result,
+	doneChan chan any,
+	blockData common.BlockData,
+) *Miner {
 	return &Miner{
 		Config:     config.GetConfig(),
 		Logger:     logging.GetLogger(),
@@ -96,7 +101,15 @@ func (m *Miner) Start() {
 	epochTime := m.blockData.EpochTime + 90000 + realTimeNow - m.blockData.RealTimeNow
 
 	difficulty := getDifficulty([]byte(targetHash))
-	currentInterlink := calculateInterlink(targetHash, difficulty, DifficultyMetrics{LeadingZeros: m.blockData.LeadingZeros, DifficultyNumber: m.blockData.DifficultyNumber}, m.blockData.Interlink)
+	currentInterlink := calculateInterlink(
+		targetHash,
+		difficulty,
+		DifficultyMetrics{
+			LeadingZeros:     m.blockData.LeadingZeros,
+			DifficultyNumber: m.blockData.DifficultyNumber,
+		},
+		m.blockData.Interlink,
+	)
 
 	// Construct the new block data
 	postDatum := common.BlockData{
@@ -106,8 +119,10 @@ func (m *Miner) Start() {
 		DifficultyNumber: m.blockData.DifficultyNumber,
 		EpochTime:        epochTime,
 		RealTimeNow:      90000 + realTimeNow,
-		Message:          []byte(fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString())),
-		Interlink:        currentInterlink,
+		Message: []byte(
+			fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString()),
+		),
+		Interlink: currentInterlink,
 	}
 
 	// Check for shutdown
@@ -169,7 +184,8 @@ func (m *Miner) calculateHash() []byte {
 		metrics := getDifficulty(hash2)
 
 		// Check the condition
-		if metrics.LeadingZeros > m.blockData.LeadingZeros || (metrics.LeadingZeros == m.blockData.LeadingZeros && metrics.DifficultyNumber < m.blockData.DifficultyNumber) {
+		if metrics.LeadingZeros > m.blockData.LeadingZeros ||
+			(metrics.LeadingZeros == m.blockData.LeadingZeros && metrics.DifficultyNumber < m.blockData.DifficultyNumber) {
 			return hash2
 		}
 
@@ -246,7 +262,12 @@ func getDifficulty(hash []byte) DifficultyMetrics {
 	}
 }
 
-func calculateInterlink(currentHash []byte, newDifficulty DifficultyMetrics, origDifficulty DifficultyMetrics, currentInterlink [][]byte) [][]byte {
+func calculateInterlink(
+	currentHash []byte,
+	newDifficulty DifficultyMetrics,
+	origDifficulty DifficultyMetrics,
+	currentInterlink [][]byte,
+) [][]byte {
 	interlink := make([][]byte, len(currentInterlink))
 	copy(interlink, currentInterlink)
 

@@ -84,7 +84,11 @@ func (i *Indexer) Start() error {
 		return err
 	}
 	if cursorSlotNumber > 0 {
-		logger.Infof("found previous chainsync cursor: %d, %s", cursorSlotNumber, cursorBlockHash)
+		logger.Infof(
+			"found previous chainsync cursor: %d, %s",
+			cursorSlotNumber,
+			cursorBlockHash,
+		)
 		hashBytes, err := hex.DecodeString(cursorBlockHash)
 		if err != nil {
 			return err
@@ -129,7 +133,9 @@ func (i *Indexer) Start() error {
 	i.pipeline.AddFilter(filterEvent)
 	// We only care about transactions on a certain address
 	filterChainsync := filter_chainsync.New(
-		filter_chainsync.WithAddresses([]string{cfg.Indexer.ScriptAddress, bursa.PaymentAddress}),
+		filter_chainsync.WithAddresses(
+			[]string{cfg.Indexer.ScriptAddress, bursa.PaymentAddress},
+		),
 	)
 	i.pipeline.AddFilter(filterChainsync)
 	// Configure pipeline output
@@ -180,7 +186,11 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 			datum := txOutput.Datum()
 			if datum != nil {
 				if _, err := datum.Decode(); err != nil {
-					logger.Warnf("error decoding TX (%s) output datum: %s", eventCtx.TransactionHash, err)
+					logger.Warnf(
+						"error decoding TX (%s) output datum: %s",
+						eventCtx.TransactionHash,
+						err,
+					)
 					return err
 				}
 				datumFields := datum.Value().(cbor.Constructor).Fields()
@@ -211,7 +221,8 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 					return err
 				}
 
-				logger.Infof("found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, real time now: %d, message: %s",
+				logger.Infof(
+					"found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, real time now: %d, message: %s",
 					blockData.BlockNumber,
 					blockData.TargetHash,
 					blockData.LeadingZeros,

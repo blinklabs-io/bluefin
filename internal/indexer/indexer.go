@@ -60,6 +60,8 @@ func (i *Indexer) Start() error {
 	// Configure pipeline input
 	inputOpts := []input_chainsync.ChainSyncOptionFunc{
 		input_chainsync.WithBulkMode(true),
+		input_chainsync.WithAutoReconnect(true),
+		input_chainsync.WithLogger(logger),
 		input_chainsync.WithStatusUpdateFunc(i.updateStatus),
 	}
 	if cfg.Indexer.NetworkMagic > 0 {

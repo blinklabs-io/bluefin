@@ -17,13 +17,13 @@ package indexer
 import (
 	"encoding/hex"
 
-	"github.com/blinklabs-io/bluefin/internal/common"
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/miner"
 	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 
+	models "github.com/blinklabs-io/cardano-models"
 	"github.com/blinklabs-io/gouroboros/cbor"
 	ocommon "github.com/blinklabs-io/gouroboros/protocol/common"
 	"github.com/blinklabs-io/snek/event"
@@ -41,7 +41,7 @@ type Indexer struct {
 	tipSlot       uint64
 	tipHash       string
 	tipReached    bool
-	lastBlockData common.BlockData
+	lastBlockData models.TunaV1State
 }
 
 // Singleton indexer instance
@@ -196,7 +196,7 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 					return err
 				}
 				datumFields := datum.Value().(cbor.Constructor).Fields()
-				blockData := common.BlockData{
+				blockData := models.TunaV1State{
 					BlockNumber:      int64(datumFields[0].(uint64)),
 					TargetHash:       datumFields[1].(cbor.ByteString).Bytes(),
 					LeadingZeros:     int64(datumFields[2].(uint64)),

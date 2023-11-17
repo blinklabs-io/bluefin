@@ -22,6 +22,7 @@ import (
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
+
 	"github.com/blinklabs-io/gouroboros/cbor"
 	"github.com/dgraph-io/badger/v4"
 )

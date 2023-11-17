@@ -32,11 +32,11 @@ import (
 	"github.com/Salvionied/apollo/serialization/Redeemer"
 	"github.com/Salvionied/apollo/serialization/UTxO"
 	"github.com/Salvionied/cbor/v2"
+	models "github.com/blinklabs-io/cardano-models"
 	ouroboros "github.com/blinklabs-io/gouroboros"
 	"github.com/blinklabs-io/gouroboros/protocol/txsubmission"
 	"golang.org/x/crypto/blake2b"
 
-	"github.com/blinklabs-io/bluefin/internal/common"
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/storage"
@@ -48,7 +48,7 @@ var ntnTxHash [32]byte
 var ntnSentTx bool
 var doneChan chan any
 
-func SendTx(blockData common.BlockData, nonce [16]byte) error {
+func SendTx(blockData models.TunaV1State, nonce [16]byte) error {
 	txBytes, err := createTx(blockData, nonce)
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func SendTx(blockData common.BlockData, nonce [16]byte) error {
 	return nil
 }
 
-func createTx(blockData common.BlockData, nonce [16]byte) ([]byte, error) {
+func createTx(blockData models.TunaV1State, nonce [16]byte) ([]byte, error) {
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()
 	bursa := wallet.GetWallet()

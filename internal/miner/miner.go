@@ -20,10 +20,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/blinklabs-io/bluefin/internal/common"
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/version"
+
+	models "github.com/blinklabs-io/cardano-models"
 	"github.com/blinklabs-io/gouroboros/cbor"
 	"github.com/minio/sha256-simd"
 )
@@ -34,7 +35,7 @@ type Miner struct {
 	waitGroup  *sync.WaitGroup
 	resultChan chan Result
 	doneChan   chan any
-	blockData  common.BlockData
+	blockData  models.TunaV1State
 	state      *State
 }
 
@@ -53,7 +54,7 @@ type DifficultyMetrics struct {
 }
 
 type Result struct {
-	BlockData common.BlockData
+	BlockData models.TunaV1State
 	Nonce     [16]byte
 }
 
@@ -61,7 +62,7 @@ func New(
 	waitGroup *sync.WaitGroup,
 	resultChan chan Result,
 	doneChan chan any,
-	blockData common.BlockData,
+	blockData models.TunaV1State,
 ) *Miner {
 	return &Miner{
 		Config:     config.GetConfig(),
@@ -112,7 +113,7 @@ func (m *Miner) Start() {
 	)
 
 	// Construct the new block data
-	postDatum := common.BlockData{
+	postDatum := models.TunaV1State{
 		BlockNumber:      m.blockData.BlockNumber + 1,
 		TargetHash:       targetHash,
 		LeadingZeros:     m.blockData.LeadingZeros,

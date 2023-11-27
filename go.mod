@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/Salvionied/apollo v1.0.4
 	github.com/Salvionied/cbor/v2 v2.6.0
-	github.com/blinklabs-io/bursa v0.5.0
+	github.com/blinklabs-io/bursa v0.5.1
 	github.com/blinklabs-io/cardano-models v0.1.0
 	github.com/blinklabs-io/gouroboros v0.64.0
 	github.com/blinklabs-io/snek v0.15.0

@@ -16,6 +16,7 @@ package indexer
 
 import (
 	"encoding/hex"
+	"fmt"
 	"time"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
@@ -47,7 +48,7 @@ type Indexer struct {
 	tipHash       string
 	tipReached    bool
 	syncLogTimer  *time.Timer
-	lastBlockData models.TunaV1State
+	lastBlockData any
 }
 
 // Singleton indexer instance
@@ -55,11 +56,24 @@ var globalIndexer = &Indexer{}
 
 func (i *Indexer) Start() error {
 	cfg := config.GetConfig()
+	profileCfg := config.GetProfile()
 	logger := logging.GetLogger()
 	bursa := wallet.GetWallet()
 	// Load saved block data
-	if err := storage.GetStorage().GetBlockData(&(i.lastBlockData)); err != nil {
+	var lastBlockDataBytes cbor.RawMessage
+	if err := storage.GetStorage().GetBlockData(&(lastBlockDataBytes)); err != nil {
 		return err
+	}
+	if profileCfg.UseTunaV1 {
+		var tmpBlockData models.TunaV1State
+		if len(lastBlockDataBytes) > 0 {
+			if _, err := cbor.Decode(lastBlockDataBytes, &tmpBlockData); err != nil {
+				return fmt.Errorf("failed to parse last block data: %s", err)
+			}
+		}
+		i.lastBlockData = tmpBlockData
+	} else {
+		panic("profile doesn't have version configured")
 	}
 	// Create pipeline
 	i.pipeline = pipeline.New()
@@ -69,17 +83,7 @@ func (i *Indexer) Start() error {
 		input_chainsync.WithAutoReconnect(true),
 		input_chainsync.WithLogger(logger),
 		input_chainsync.WithStatusUpdateFunc(i.updateStatus),
-	}
-	if cfg.Indexer.NetworkMagic > 0 {
-		inputOpts = append(
-			inputOpts,
-			input_chainsync.WithNetworkMagic(cfg.Indexer.NetworkMagic),
-		)
-	} else {
-		inputOpts = append(
-			inputOpts,
-			input_chainsync.WithNetwork(cfg.Indexer.Network),
-		)
+		input_chainsync.WithNetwork(cfg.Network),
 	}
 	if cfg.Indexer.Address != "" {
 		inputOpts = append(
@@ -169,6 +173,7 @@ func (i *Indexer) Start() error {
 
 func (i *Indexer) handleEvent(evt event.Event) error {
 	cfg := config.GetConfig()
+	profileCfg := config.GetProfile()
 	logger := logging.GetLogger()
 	eventTx := evt.Payload.(input_chainsync.TransactionEvent)
 	eventCtx := evt.Context.(input_chainsync.TransactionContext)
@@ -203,44 +208,41 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 					)
 					return err
 				}
-				datumFields := datum.Value().(cbor.Constructor).Fields()
-				blockData := models.TunaV1State{
-					BlockNumber:      int64(datumFields[0].(uint64)),
-					TargetHash:       datumFields[1].(cbor.ByteString).Bytes(),
-					LeadingZeros:     int64(datumFields[2].(uint64)),
-					DifficultyNumber: int64(datumFields[3].(uint64)),
-					EpochTime:        int64(datumFields[4].(uint64)),
-					RealTimeNow:      int64(datumFields[5].(uint64)),
-				}
-				// Some blocks have the int 0 in this field, so we protect against it
-				switch v := datumFields[6].(type) {
-				case cbor.ByteString:
-					blockData.Message = v.Bytes()
-				}
-				// Copy interlink
-				interlink := [][]byte{}
-				for _, data := range datumFields[7].([]any) {
-					interlink = append(
-						interlink,
-						data.(cbor.ByteString).Bytes(),
+				if profileCfg.UseTunaV1 {
+					var blockData models.TunaV1State
+					if _, err := cbor.Decode(datum.Cbor(), &blockData); err != nil {
+						logger.Warnf(
+							"error decoding TX (%s) output datum: %s",
+							eventCtx.TransactionHash,
+							err,
+						)
+						return err
+					}
+					i.lastBlockData = blockData
+					var tmpExtra any
+					switch v := blockData.Extra.(type) {
+					case []byte:
+						tmpExtra = string(v)
+					default:
+						tmpExtra = v
+					}
+					logger.Infof(
+						"found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, real time now: %d, extra: %v",
+						blockData.BlockNumber,
+						blockData.CurrentHash,
+						blockData.LeadingZeros,
+						blockData.DifficultyNumber,
+						blockData.EpochTime,
+						blockData.RealTimeNow,
+						tmpExtra,
 					)
+				} else {
+					panic("profile doesn't have version configured")
 				}
-				blockData.Interlink = interlink[:]
-				i.lastBlockData = blockData
+
 				if err := storage.GetStorage().UpdateBlockData(&(i.lastBlockData)); err != nil {
 					return err
 				}
-
-				logger.Infof(
-					"found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, real time now: %d, message: %s",
-					blockData.BlockNumber,
-					blockData.TargetHash,
-					blockData.LeadingZeros,
-					blockData.DifficultyNumber,
-					blockData.EpochTime,
-					blockData.RealTimeNow,
-					string(blockData.Message),
-				)
 
 				// Restart miners for new datum
 				if i.tipReached {

@@ -71,7 +71,7 @@ func Setup() {
 	accountKey := bursa.GetAccountKey(rootKey, 0)
 	paymentKey := bursa.GetPaymentKey(accountKey, 0)
 	stakeKey := bursa.GetStakeKey(accountKey, 0)
-	addr := bursa.GetAddress(accountKey, cfg.Indexer.Network, 0)
+	addr := bursa.GetAddress(accountKey, cfg.Network, 0)
 	wallet := &bursa.Wallet{
 		Mnemonic:       mnemonic,
 		PaymentAddress: addr.String(),

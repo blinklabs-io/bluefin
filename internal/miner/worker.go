@@ -20,8 +20,6 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/tx"
-
-	models "github.com/blinklabs-io/cardano-models"
 )
 
 type Manager struct {
@@ -54,7 +52,7 @@ func (m *Manager) Stop() {
 	logging.GetLogger().Infof("stopped workers")
 }
 
-func (m *Manager) Start(blockData models.TunaV1State) {
+func (m *Manager) Start(blockData any) {
 	m.startMutex.Lock()
 	defer m.startMutex.Unlock()
 	if m.started {

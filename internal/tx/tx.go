@@ -31,9 +31,9 @@ import (
 	"github.com/Salvionied/apollo/serialization/Policy"
 	"github.com/Salvionied/apollo/serialization/Redeemer"
 	"github.com/Salvionied/apollo/serialization/UTxO"
-	"github.com/Salvionied/cbor/v2"
 	models "github.com/blinklabs-io/cardano-models"
 	ouroboros "github.com/blinklabs-io/gouroboros"
+	"github.com/blinklabs-io/gouroboros/cbor"
 	"github.com/blinklabs-io/gouroboros/protocol/txsubmission"
 	"golang.org/x/crypto/blake2b"
 
@@ -48,7 +48,7 @@ var ntnTxHash [32]byte
 var ntnSentTx bool
 var doneChan chan any
 
-func SendTx(blockData models.TunaV1State, nonce [16]byte) error {
+func SendTx(blockData any, nonce [16]byte) error {
 	txBytes, err := createTx(blockData, nonce)
 	if err != nil {
 		return err
@@ -61,66 +61,20 @@ func SendTx(blockData models.TunaV1State, nonce [16]byte) error {
 	return nil
 }
 
-func createTx(blockData models.TunaV1State, nonce [16]byte) ([]byte, error) {
+func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()
 	bursa := wallet.GetWallet()
 
-	networkCfg := config.NetworkMap[cfg.Indexer.Network]
+	profileCfg := config.GetProfile()
 
-	validatorHash := networkCfg.ValidatorHash
+	validatorHash := profileCfg.ValidatorHash
 
-	pdInterlink := PlutusData.PlutusIndefArray{}
-	for _, val := range blockData.Interlink {
-		pdInterlink = append(
-			pdInterlink,
-			PlutusData.PlutusData{
-				PlutusDataType: PlutusData.PlutusBytes,
-				Value:          val,
-			},
-		)
+	datumCbor, err := cbor.Encode(&blockData)
+	if err != nil {
+		return nil, err
 	}
 
-	pd := PlutusData.PlutusData{
-		TagNr:          121,
-		PlutusDataType: PlutusData.PlutusArray,
-		Value: PlutusData.PlutusIndefArray{
-			PlutusData.PlutusData{
-				PlutusDataType: PlutusData.PlutusInt,
-				Value:          blockData.BlockNumber,
-			},
-			PlutusData.PlutusData{
-				PlutusDataType: PlutusData.PlutusBytes,
-				Value:          blockData.TargetHash,
-			},
-			PlutusData.PlutusData{
-				PlutusDataType: PlutusData.PlutusInt,
-				Value:          blockData.LeadingZeros,
-			},
-			PlutusData.PlutusData{
-				PlutusDataType: PlutusData.PlutusInt,
-				Value:          blockData.DifficultyNumber,
-			},
-			PlutusData.PlutusData{
-				PlutusDataType: PlutusData.PlutusInt,
-				Value:          blockData.EpochTime,
-			},
-			PlutusData.PlutusData{
-				PlutusDataType: PlutusData.PlutusInt,
-				Value:          blockData.RealTimeNow,
-			},
-			PlutusData.PlutusData{
-				PlutusDataType: PlutusData.PlutusBytes,
-				Value:          blockData.Message,
-			},
-			PlutusData.PlutusData{
-				PlutusDataType: PlutusData.PlutusArray,
-				Value:          pdInterlink,
-			},
-		},
-	}
-
-	marshaled, _ := cbor.Marshal(pd)
 	postDatum := PlutusData.PlutusData{
 		PlutusDataType: PlutusData.PlutusArray,
 		Value: []PlutusData.PlutusData{
@@ -131,7 +85,7 @@ func createTx(blockData models.TunaV1State, nonce [16]byte) ([]byte, error) {
 			PlutusData.PlutusData{
 				PlutusDataType: PlutusData.PlutusBytes,
 				TagNr:          24,
-				Value:          marshaled,
+				Value:          datumCbor,
 			},
 		},
 	}
@@ -154,7 +108,7 @@ func createTx(blockData models.TunaV1State, nonce [16]byte) ([]byte, error) {
 	var tunaCount int64
 	for _, utxoBytes := range utxosBytes {
 		var utxo UTxO.UTxO
-		if err := cbor.Unmarshal(utxoBytes, &utxo); err != nil {
+		if _, err := cbor.Decode(utxoBytes, &utxo); err != nil {
 			return nil, err
 		}
 		// Record the number of TUNA in inputs to use in outputs
@@ -173,7 +127,7 @@ func createTx(blockData models.TunaV1State, nonce [16]byte) ([]byte, error) {
 	var scriptUtxos []UTxO.UTxO
 	for _, utxoBytes := range scriptUtxosBytes {
 		var utxo UTxO.UTxO
-		if err := cbor.Unmarshal(utxoBytes, &utxo); err != nil {
+		if _, err := cbor.Decode(utxoBytes, &utxo); err != nil {
 			return nil, err
 		}
 		scriptUtxos = append(scriptUtxos, utxo)
@@ -188,8 +142,14 @@ func createTx(blockData models.TunaV1State, nonce [16]byte) ([]byte, error) {
 	}
 	validatorOutRef := scriptUtxos[0]
 
+	var blockDataRealTimeNow int64
+	if profileCfg.UseTunaV1 {
+		tmpBlockData := blockData.(models.TunaV1State)
+		blockDataRealTimeNow = tmpBlockData.RealTimeNow
+	}
+
 	// Determine validity start/end slot based on datum
-	datumSlot := unixTimeToSlot(blockData.RealTimeNow / 1000)
+	datumSlot := unixTimeToSlot(blockDataRealTimeNow / 1000)
 
 	apollob = apollob.AddLoadedUTxOs(utxos...)
 	apollob = apollob.
@@ -239,15 +199,15 @@ func createTx(blockData models.TunaV1State, nonce [16]byte) ([]byte, error) {
 				},
 			},
 		)
-	if networkCfg.ScriptInputRefTxId != "" {
+	if profileCfg.ScriptInputRefTxId != "" {
 		// Use a script input ref
 		apollob = apollob.AddReferenceInput(
-			networkCfg.ScriptInputRefTxId,
-			int(networkCfg.ScriptInputRefOutIndex),
+			profileCfg.ScriptInputRefTxId,
+			int(profileCfg.ScriptInputRefOutIndex),
 		)
 	} else {
 		// Include the script with the TX
-		validatorScriptBytes, err := hex.DecodeString(networkCfg.ValidatorScript)
+		validatorScriptBytes, err := hex.DecodeString(profileCfg.ValidatorScript)
 		if err != nil {
 			return nil, err
 		}
@@ -286,7 +246,7 @@ func createTx(blockData models.TunaV1State, nonce [16]byte) ([]byte, error) {
 
 func unixTimeToSlot(unixTime int64) uint64 {
 	cfg := config.GetConfig()
-	networkCfg := config.NetworkMap[cfg.Indexer.Network]
+	networkCfg := config.Networks[cfg.Network]
 	return networkCfg.ShelleyOffsetSlot + uint64(
 		unixTime-networkCfg.ShelleyOffsetTime,
 	)
@@ -295,14 +255,6 @@ func unixTimeToSlot(unixTime int64) uint64 {
 func submitTx(txRawBytes []byte) (string, error) {
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()
-	if cfg.Submit.NetworkMagic == 0 {
-		// Populate network magic from indexer network
-		network := ouroboros.NetworkByName(cfg.Indexer.Network)
-		if network == ouroboros.NetworkInvalid {
-			logger.Fatalf("unknown network: %s", cfg.Indexer.Network)
-		}
-		cfg.Submit.NetworkMagic = network.NetworkMagic
-	}
 	if cfg.Submit.Address != "" {
 		return submitTxNtN(txRawBytes)
 	} else if cfg.Submit.SocketPath != "" {
@@ -311,9 +263,9 @@ func submitTx(txRawBytes []byte) (string, error) {
 		return submitTxApi(txRawBytes)
 	} else {
 		// Populate address info from indexer network
-		network := ouroboros.NetworkByName(cfg.Indexer.Network)
+		network := ouroboros.NetworkByName(cfg.Network)
 		if network == ouroboros.NetworkInvalid {
-			logger.Fatalf("unknown network: %s", cfg.Indexer.Network)
+			logger.Fatalf("unknown network: %s", cfg.Network)
 		}
 		cfg.Submit.Address = fmt.Sprintf("%s:%d", network.PublicRootAddress, network.PublicRootPort)
 		return submitTxNtN(txRawBytes)
@@ -331,7 +283,7 @@ func submitTxNtN(txRawBytes []byte) (string, error) {
 	// Generate TX hash
 	// Unwrap raw transaction bytes into a CBOR array
 	var txUnwrap []cbor.RawMessage
-	if err := cbor.Unmarshal(txRawBytes, &txUnwrap); err != nil {
+	if _, err := cbor.Decode(txRawBytes, &txUnwrap); err != nil {
 		logger.Errorf("failed to unwrap transaction CBOR: %s", err)
 		return "", fmt.Errorf("failed to unwrap transaction CBOR: %s", err)
 	}
@@ -353,7 +305,7 @@ func submitTxNtN(txRawBytes []byte) (string, error) {
 	}()
 	o, err := ouroboros.New(
 		ouroboros.WithConnection(conn),
-		ouroboros.WithNetworkMagic(cfg.Submit.NetworkMagic),
+		ouroboros.WithNetworkMagic(cfg.NetworkMagic),
 		ouroboros.WithErrorChan(errorChan),
 		ouroboros.WithNodeToNode(true),
 		ouroboros.WithKeepAlive(true),

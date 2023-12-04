@@ -6,8 +6,8 @@ require (
 	github.com/Salvionied/apollo v1.0.4
 	github.com/Salvionied/cbor/v2 v2.6.0
 	github.com/blinklabs-io/bursa v0.5.1
-	github.com/blinklabs-io/cardano-models v0.1.0
-	github.com/blinklabs-io/gouroboros v0.64.0
+	github.com/blinklabs-io/cardano-models v0.2.0
+	github.com/blinklabs-io/gouroboros v0.66.0
 	github.com/blinklabs-io/snek v0.15.0
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/kelseyhightower/envconfig v1.4.0

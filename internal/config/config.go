@@ -19,24 +19,26 @@ import (
 	"os"
 	"runtime"
 
+	ouroboros "github.com/blinklabs-io/gouroboros"
 	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
-	Storage StorageConfig `yaml:"storage"`
-	Indexer IndexerConfig `yaml:"indexer"`
-	Submit  SubmitConfig  `yaml:"submit"`
-	Wallet  WalletConfig  `yaml:"wallet"`
-	Worker  WorkerConfig  `yaml:"worker"`
-	Logging LoggingConfig `yaml:"logging"`
-	Metrics MetricsConfig `yaml:"metrics"`
-	Debug   DebugConfig   `yaml:"debug"`
+	Storage      StorageConfig `yaml:"storage"`
+	Indexer      IndexerConfig `yaml:"indexer"`
+	Submit       SubmitConfig  `yaml:"submit"`
+	Wallet       WalletConfig  `yaml:"wallet"`
+	Worker       WorkerConfig  `yaml:"worker"`
+	Logging      LoggingConfig `yaml:"logging"`
+	Metrics      MetricsConfig `yaml:"metrics"`
+	Debug        DebugConfig   `yaml:"debug"`
+	Profile      string        `yaml:"profile" envconfig:"PROFILE"`
+	Network      string        `yaml:"network" envconfig:"NETWORK"`
+	NetworkMagic uint32
 }
 
 type IndexerConfig struct {
-	Network       string `yaml:"network"       envconfig:"INDEXER_NETWORK"`
-	NetworkMagic  uint32 `yaml:"networkMagic"  envconfig:"INDEXER_NETWORK_MAGIC"`
 	Address       string `yaml:"address"       envconfig:"INDEXER_TCP_ADDRESS"`
 	SocketPath    string `yaml:"socketPath"    envconfig:"INDEXER_SOCKET_PATH"`
 	ScriptAddress string `yaml:"scriptAddress" envconfig:"INDEXER_SCRIPT_ADDRESS"`
@@ -45,10 +47,9 @@ type IndexerConfig struct {
 }
 
 type SubmitConfig struct {
-	NetworkMagic uint32 `yaml:"networkMagic" envconfig:"SUBMIT_NETWORK_MAGIC"`
-	Address      string `yaml:"address"      envconfig:"SUBMIT_TCP_ADDRESS"`
-	SocketPath   string `yaml:"socketPath"   envconfig:"SUBMIT_SOCKET_PATH"`
-	Url          string `yaml:"url"          envconfig:"SUBMIT_URL"`
+	Address    string `yaml:"address"      envconfig:"SUBMIT_TCP_ADDRESS"`
+	SocketPath string `yaml:"socketPath"   envconfig:"SUBMIT_SOCKET_PATH"`
+	Url        string `yaml:"url"          envconfig:"SUBMIT_URL"`
 }
 
 type StorageConfig struct {
@@ -92,9 +93,6 @@ var globalConfig = &Config{
 		ListenAddress: "",
 		ListenPort:    8081,
 	},
-	Indexer: IndexerConfig{
-		Network: "mainnet",
-	},
 	Storage: StorageConfig{
 		// TODO: pick a better location
 		Directory: "./.bluefin",
@@ -104,6 +102,8 @@ var globalConfig = &Config{
 	Worker: WorkerConfig{
 		Count: runtime.NumCPU() / 2,
 	},
+	Network: "mainnet",
+	Profile: "tuna-v1",
 }
 
 func Load(configFile string) (*Config, error) {
@@ -125,6 +125,14 @@ func Load(configFile string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error processing environment: %s", err)
 	}
+	// Populate network magic value
+	if err := globalConfig.populateNetworkMagic(); err != nil {
+		return nil, err
+	}
+	// Check specified profile
+	if err := globalConfig.validateProfile(); err != nil {
+		return nil, err
+	}
 	// Populate our Indexer startup
 	if err := globalConfig.populateIndexer(); err != nil {
 		return nil, err
@@ -137,17 +145,29 @@ func GetConfig() *Config {
 	return globalConfig
 }
 
-func (c *Config) populateIndexer() error {
-	if c.Indexer.Network == "mainnet" {
-		c.Indexer.InterceptHash = "b019548e41b55ae702fee37d8b9ae716c978712c02bc4862ba13db6602e5af72"
-		c.Indexer.InterceptSlot = 101511155
-		c.Indexer.ScriptAddress = "addr1wynelppvx0hdjp2tnc78pnt28veznqjecf9h3wy4edqajxsg7hwsc"
-	} else if c.Indexer.Network == "preview" {
-		c.Indexer.InterceptHash = "b652abee9cf82145c3b220b614451e3c8ff5c504072a8c418c8c1ae1b70eb86f"
-		c.Indexer.InterceptSlot = 26352021
-		c.Indexer.ScriptAddress = "addr_test1wpgzl0aa4lramtdfcv6m69zq0q09g3ws3wk6wlwzqv5xdfsdcf2qa"
-	} else {
-		return fmt.Errorf("unable to configure network: %s", c.Indexer.Network)
+func (c *Config) populateNetworkMagic() error {
+	network := ouroboros.NetworkByName(c.Network)
+	if network == ouroboros.NetworkInvalid {
+		return fmt.Errorf("unknown network: %s", c.Network)
 	}
+	c.NetworkMagic = network.NetworkMagic
+	return nil
+}
+
+func (c *Config) validateProfile() error {
+	if _, ok := Profiles[c.Network]; !ok {
+		return fmt.Errorf("no profiles defined for network %s", c.Network)
+	}
+	if _, ok := Profiles[c.Network][c.Profile]; !ok {
+		return fmt.Errorf("no profile %s defined for network %s", c.Profile, c.Network)
+	}
+	return nil
+}
+
+func (c *Config) populateIndexer() error {
+	profile := Profiles[c.Network][c.Profile]
+	c.Indexer.InterceptHash = profile.InterceptHash
+	c.Indexer.InterceptSlot = profile.InterceptSlot
+	c.Indexer.ScriptAddress = profile.ScriptAddress
 	return nil
 }

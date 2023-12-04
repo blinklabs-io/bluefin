@@ -76,7 +76,7 @@ func main() {
 	//tx.SendTx([]byte("foo"))
 
 	// Start indexer
-	logger.Infof("starting indexer on %s", cfg.Indexer.Network)
+	logger.Infof("starting indexer on %s", cfg.Network)
 	if err := indexer.GetIndexer().Start(); err != nil {
 		logger.Fatalf("failed to start indexer: %s", err)
 	}

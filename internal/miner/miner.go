@@ -35,11 +35,17 @@ type Miner struct {
 	waitGroup  *sync.WaitGroup
 	resultChan chan Result
 	doneChan   chan any
-	blockData  models.TunaV1State
-	state      *State
+	blockData  any
+	state      TargetState
 }
 
-type State struct {
+type TargetState interface {
+	ToBytes() ([]byte, error)
+	SetNonce([16]byte)
+	GetNonce() [16]byte
+}
+
+type TargetStateV1 struct {
 	Nonce            [16]byte
 	BlockNumber      int64
 	CurrentHash      []byte
@@ -48,13 +54,42 @@ type State struct {
 	EpochTime        int64
 }
 
+func (t *TargetStateV1) SetNonce(nonce [16]byte) {
+	t.Nonce = nonce
+}
+
+func (t *TargetStateV1) GetNonce() [16]byte {
+	return t.Nonce
+}
+
+func (state *TargetStateV1) MarshalCBOR() ([]byte, error) {
+	tmp := cbor.NewConstructor(
+		0,
+		cbor.IndefLengthList{
+			Items: []any{
+				state.Nonce,
+				state.BlockNumber,
+				state.CurrentHash,
+				state.LeadingZeros,
+				state.DifficultyNumber,
+				state.EpochTime,
+			},
+		},
+	)
+	return cbor.Encode(&tmp)
+}
+
+func (state *TargetStateV1) ToBytes() ([]byte, error) {
+	return cbor.Encode(&state)
+}
+
 type DifficultyMetrics struct {
 	LeadingZeros     int64
 	DifficultyNumber int64
 }
 
 type Result struct {
-	BlockData models.TunaV1State
+	BlockData any
 	Nonce     [16]byte
 }
 
@@ -62,7 +97,7 @@ func New(
 	waitGroup *sync.WaitGroup,
 	resultChan chan Result,
 	doneChan chan any,
-	blockData models.TunaV1State,
+	blockData any,
 ) *Miner {
 	return &Miner{
 		Config:     config.GetConfig(),
@@ -77,14 +112,21 @@ func New(
 func (m *Miner) Start() {
 	defer m.waitGroup.Done()
 
-	// Create initial state from block data
-	m.state = &State{
-		Nonce:            randomNonce(),
-		BlockNumber:      m.blockData.BlockNumber,
-		CurrentHash:      m.blockData.TargetHash,
-		LeadingZeros:     m.blockData.LeadingZeros,
-		DifficultyNumber: m.blockData.DifficultyNumber,
-		EpochTime:        m.blockData.EpochTime,
+	profileCfg := config.GetProfile()
+
+	if profileCfg.UseTunaV1 {
+		// Create initial state from block data
+		blockData := m.blockData.(models.TunaV1State)
+		m.state = &TargetStateV1{
+			Nonce:            randomNonce(),
+			BlockNumber:      blockData.BlockNumber,
+			CurrentHash:      blockData.CurrentHash,
+			LeadingZeros:     blockData.LeadingZeros,
+			DifficultyNumber: blockData.DifficultyNumber,
+			EpochTime:        blockData.EpochTime,
+		}
+	} else {
+		panic("profile doesn't have version configured")
 	}
 
 	targetHash := m.calculateHash()
@@ -99,31 +141,40 @@ func (m *Miner) Start() {
 
 	realTimeNow := time.Now().Unix()*1000 - 60000
 
-	epochTime := m.blockData.EpochTime + 90000 + realTimeNow - m.blockData.RealTimeNow
+	var epochTime int64
+	var tmpInterlink [][]byte
+	if profileCfg.UseTunaV1 {
+		blockData := m.blockData.(models.TunaV1State)
+		epochTime = blockData.EpochTime + 90000 + realTimeNow - blockData.RealTimeNow
+		tmpInterlink = blockData.Interlink
+	}
 
 	difficulty := getDifficulty([]byte(targetHash))
 	currentInterlink := calculateInterlink(
 		targetHash,
 		difficulty,
-		DifficultyMetrics{
-			LeadingZeros:     m.blockData.LeadingZeros,
-			DifficultyNumber: m.blockData.DifficultyNumber,
-		},
-		m.blockData.Interlink,
+		m.getCurrentDifficulty(),
+		tmpInterlink,
 	)
 
 	// Construct the new block data
-	postDatum := models.TunaV1State{
-		BlockNumber:      m.blockData.BlockNumber + 1,
-		TargetHash:       targetHash,
-		LeadingZeros:     m.blockData.LeadingZeros,
-		DifficultyNumber: m.blockData.DifficultyNumber,
-		EpochTime:        epochTime,
-		RealTimeNow:      90000 + realTimeNow,
-		Message: []byte(
-			fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString()),
-		),
-		Interlink: currentInterlink,
+	var postDatum any
+	if profileCfg.UseTunaV1 {
+		blockData := m.blockData.(models.TunaV1State)
+		postDatum = models.TunaV1State{
+			BlockNumber:      blockData.BlockNumber + 1,
+			CurrentHash:      targetHash,
+			LeadingZeros:     blockData.LeadingZeros,
+			DifficultyNumber: blockData.DifficultyNumber,
+			EpochTime:        epochTime,
+			RealTimeNow:      90000 + realTimeNow,
+			Extra: []byte(
+				fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString()),
+			),
+			Interlink: currentInterlink,
+		}
+	} else {
+		panic("profile doesn't have version configured")
 	}
 
 	// Check for shutdown
@@ -135,7 +186,7 @@ func (m *Miner) Start() {
 	}
 
 	// Return the result
-	m.resultChan <- Result{BlockData: postDatum, Nonce: m.state.Nonce}
+	m.resultChan <- Result{BlockData: postDatum, Nonce: m.state.GetNonce()}
 }
 
 func randomNonce() [16]byte {
@@ -157,6 +208,15 @@ func incrementNonce(nonce []byte) {
 }
 
 func (m *Miner) calculateHash() []byte {
+	var tmpLeadingZeros int64
+	var tmpDifficultyNumber int64
+	switch v := m.blockData.(type) {
+	case models.TunaV1State:
+		tmpLeadingZeros = v.LeadingZeros
+		tmpDifficultyNumber = v.DifficultyNumber
+	default:
+		panic("unknown state model type")
+	}
 	for {
 		// Check for shutdown
 		select {
@@ -165,7 +225,7 @@ func (m *Miner) calculateHash() []byte {
 		default:
 			break
 		}
-		stateBytes, err := stateToBytes(m.state)
+		stateBytes, err := m.state.ToBytes()
 		if err != nil {
 			logging.GetLogger().Error(err)
 			return nil
@@ -185,49 +245,32 @@ func (m *Miner) calculateHash() []byte {
 		metrics := getDifficulty(hash2)
 
 		// Check the condition
-		if metrics.LeadingZeros > m.blockData.LeadingZeros ||
-			(metrics.LeadingZeros == m.blockData.LeadingZeros && metrics.DifficultyNumber < m.blockData.DifficultyNumber) {
+		if metrics.LeadingZeros > tmpLeadingZeros ||
+			(metrics.LeadingZeros == tmpLeadingZeros && metrics.DifficultyNumber < tmpDifficultyNumber) {
 			return hash2
 		}
 
 		// Currently we create a new random nonce
 		// Uncomment if we decide to increment the nonce
 		// incrementNonce(m.state.Nonce[:])
-
-		m.state.Nonce = randomNonce()
+		m.state.SetNonce(randomNonce())
 	}
 }
 
-func stateToBytes(state *State) ([]byte, error) {
-	tmp := []byte{
-		// Tag 121 (alternative 0)
-		0xd8,
-		0x79,
-		// Indefinite length array
-		0x9f,
+func (m *Miner) getCurrentDifficulty() DifficultyMetrics {
+	var tmpLeadingZeros int64
+	var tmpDifficultyNumber int64
+	switch v := m.blockData.(type) {
+	case models.TunaV1State:
+		tmpLeadingZeros = v.LeadingZeros
+		tmpDifficultyNumber = v.DifficultyNumber
+	default:
+		panic("unknown state model type")
 	}
-	for _, val := range []any{
-		state.Nonce,
-		state.BlockNumber,
-		state.CurrentHash,
-		state.LeadingZeros,
-		state.DifficultyNumber,
-		state.EpochTime,
-	} {
-		data, err := cbor.Encode(&val)
-		if err != nil {
-			return nil, err
-		}
-		tmp = append(tmp, data...)
+	return DifficultyMetrics{
+		LeadingZeros:     tmpLeadingZeros,
+		DifficultyNumber: tmpDifficultyNumber,
 	}
-	tmp = append(
-		tmp,
-		[]byte{
-			// End indefinite length array
-			0xff,
-		}...,
-	)
-	return tmp, nil
 }
 
 func getDifficulty(hash []byte) DifficultyMetrics {

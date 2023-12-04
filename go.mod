@@ -4,9 +4,8 @@ go 1.20
 
 require (
 	github.com/Salvionied/apollo v1.0.4
-	github.com/Salvionied/cbor/v2 v2.6.0
 	github.com/blinklabs-io/bursa v0.5.1
-	github.com/blinklabs-io/cardano-models v0.1.0
+	github.com/blinklabs-io/cardano-models v0.2.0
 	github.com/blinklabs-io/gouroboros v0.66.0
 	github.com/blinklabs-io/snek v0.15.0
 	github.com/dgraph-io/badger/v4 v4.2.0
@@ -27,7 +26,11 @@ require (
 // XXX: uncomment when testing local changes to snek
 // replace github.com/blinklabs-io/snek => ../snek
 
+// XXX: uncomment when testing local changes to cardano-models
+// replace github.com/blinklabs-io/cardano-models => ../cardano-models
+
 require (
+	github.com/Salvionied/cbor/v2 v2.6.0 // indirect
 	github.com/btcsuite/btcutil v1.0.2 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
@@ -49,7 +52,7 @@ require (
 	go.opencensus.io v0.22.5 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
-	golang.org/x/net v0.17.0 // indirect
+	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect

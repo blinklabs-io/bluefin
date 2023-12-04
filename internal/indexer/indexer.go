@@ -16,6 +16,7 @@ package indexer
 
 import (
 	"encoding/hex"
+	"time"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
@@ -34,6 +35,10 @@ import (
 	"github.com/blinklabs-io/snek/pipeline"
 )
 
+const (
+	syncStatusLogInterval = 30 * time.Second
+)
+
 type Indexer struct {
 	pipeline      *pipeline.Pipeline
 	cursorSlot    uint64
@@ -41,6 +46,7 @@ type Indexer struct {
 	tipSlot       uint64
 	tipHash       string
 	tipReached    bool
+	syncLogTimer  *time.Timer
 	lastBlockData models.TunaV1State
 }
 
@@ -156,6 +162,8 @@ func (i *Indexer) Start() error {
 			logger.Fatalf("pipeline failed: %s\n", err)
 		}
 	}()
+	// Schedule periodic catch-up sync log messages
+	i.scheduleSyncStatusLog()
 	return nil
 }
 
@@ -245,10 +253,28 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 	return nil
 }
 
+func (i *Indexer) scheduleSyncStatusLog() {
+	i.syncLogTimer = time.AfterFunc(syncStatusLogInterval, i.syncStatusLog)
+}
+
+func (i *Indexer) syncStatusLog() {
+	logger := logging.GetLogger()
+	logger.Infof(
+		"catch-up sync in progress: at %d.%s (current tip slot is %d)",
+		i.cursorSlot,
+		i.cursorHash,
+		i.tipSlot,
+	)
+	i.scheduleSyncStatusLog()
+}
+
 func (i *Indexer) updateStatus(status input_chainsync.ChainSyncStatus) {
 	logger := logging.GetLogger()
 	// Check if we've hit chain tip
 	if !i.tipReached && status.TipReached {
+		if i.syncLogTimer != nil {
+			i.syncLogTimer.Stop()
+		}
 		i.tipReached = true
 		miner.GetManager().Start(i.lastBlockData)
 	}

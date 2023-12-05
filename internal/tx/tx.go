@@ -168,8 +168,8 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 				Index: 0,
 				// NOTE: these values are estimated
 				ExUnits: Redeemer.ExecutionUnits{
-					Mem:   50_000,
-					Steps: 20_000_000,
+					Mem:   60_000,
+					Steps: 30_000_000,
 				},
 				Data: PlutusData.PlutusData{
 					PlutusDataType: PlutusData.PlutusArray,

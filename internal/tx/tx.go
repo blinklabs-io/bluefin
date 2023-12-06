@@ -70,24 +70,10 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 
 	validatorHash := profileCfg.ValidatorHash
 
-	datumCbor, err := cbor.Encode(&blockData)
-	if err != nil {
-		return nil, err
-	}
-
 	postDatum := PlutusData.PlutusData{
-		PlutusDataType: PlutusData.PlutusArray,
-		Value: []PlutusData.PlutusData{
-			PlutusData.PlutusData{
-				PlutusDataType: PlutusData.PlutusInt,
-				Value:          1,
-			},
-			PlutusData.PlutusData{
-				PlutusDataType: PlutusData.PlutusBytes,
-				TagNr:          24,
-				Value:          datumCbor,
-			},
-		},
+		PlutusDataType: PlutusData.PlutusBytes,
+		TagNr:          0,
+		Value:          blockData,
 	}
 
 	contractAddress, _ := serAddress.DecodeAddress(cfg.Indexer.ScriptAddress)

@@ -5,8 +5,8 @@ github.com/Salvionied/apollo v1.0.9/go.mod h1:5hgk1k4EiWmAoy2yU3q6+clmA4tgnHC4X2
 github.com/Salvionied/cbor/v2 v2.6.0 h1:OEwlZLiodLdNeM9wFoSydLvj6/rHRaxu5G8VzwXSeuY=
 github.com/Salvionied/cbor/v2 v2.6.0/go.mod h1:oFxaUo/mQ5sG1k459nzctGdYa80jy0ZqZ9pln9C/fGw=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
-github.com/blinklabs-io/bursa v0.5.1 h1:NbbMOXR7L8wYTpo098JOT9BCBmLKRN9z4eIkz383CEQ=
-github.com/blinklabs-io/bursa v0.5.1/go.mod h1:k+fdY+TTZ1/lwPmJFPqRsdMDkCKA2OXxqVl16EJAOPk=
+github.com/blinklabs-io/bursa v0.6.0 h1:h4INnhuKjOs+zXXOuGMMAlm+GzvMtzbPKisd3iuTDdU=
+github.com/blinklabs-io/bursa v0.6.0/go.mod h1:k+fdY+TTZ1/lwPmJFPqRsdMDkCKA2OXxqVl16EJAOPk=
 github.com/blinklabs-io/cardano-models v0.2.0 h1:fQ2vkvMLFgQodtFpYE73i+6+eNN5vaIB3GBIys8FsyI=
 github.com/blinklabs-io/cardano-models v0.2.0/go.mod h1:iH8IqSca4WzFQIAT3Ssd3TviILfoCgaJQ8mc3JrIvwE=
 github.com/blinklabs-io/gouroboros v0.67.1 h1:SyzxCIEa2rph3KQr1D+PgqsPNFORN/OdwNtrL0h42g8=

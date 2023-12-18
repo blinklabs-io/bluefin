@@ -11,8 +11,8 @@ github.com/blinklabs-io/cardano-models v0.2.0 h1:fQ2vkvMLFgQodtFpYE73i+6+eNN5vaI
 github.com/blinklabs-io/cardano-models v0.2.0/go.mod h1:iH8IqSca4WzFQIAT3Ssd3TviILfoCgaJQ8mc3JrIvwE=
 github.com/blinklabs-io/gouroboros v0.67.1 h1:SyzxCIEa2rph3KQr1D+PgqsPNFORN/OdwNtrL0h42g8=
 github.com/blinklabs-io/gouroboros v0.67.1/go.mod h1:Q154NJPs7gB93Tggt8ts9RGIlW2kkknr6M90Q3jh0s4=
-github.com/blinklabs-io/snek v0.15.0 h1:opj+apWge2ujHIDiFrI08P6rW7gUeKRsNXzje8UCjx4=
-github.com/blinklabs-io/snek v0.15.0/go.mod h1:9pR+B/oQ/bf+G6tB4NnA6x0i10+ucDixpHc0LzF6500=
+github.com/blinklabs-io/snek v0.16.0 h1:M0qCNzgWNfw4kJ3+UrFjUQTZKid9lYxgxx+rdypW+V8=
+github.com/blinklabs-io/snek v0.16.0/go.mod h1:/XVB/pZFXmASRNZFKUQAuLqU2oznVMQY5YN5y6SQHiM=
 github.com/btcsuite/btcd v0.20.1-beta/go.mod h1:wVuoA8VJLEcwgqHBwHmzLRazpKxTv13Px/pDuV7OomQ=
 github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f/go.mod h1:TdznJufoqS23FtqVCzL0ZqgP5MqXbb4fg/WgDys70nA=
 github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d/go.mod h1:+5NJ2+qvTyV9exUAL/rxXi3DcLg2Ts+ymUAY5y4NvMg=

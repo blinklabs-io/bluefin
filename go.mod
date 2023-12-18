@@ -7,7 +7,7 @@ require (
 	github.com/blinklabs-io/bursa v0.6.0
 	github.com/blinklabs-io/cardano-models v0.2.0
 	github.com/blinklabs-io/gouroboros v0.67.1
-	github.com/blinklabs-io/snek v0.15.0
+	github.com/blinklabs-io/snek v0.16.0
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/minio/sha256-simd v1.0.1

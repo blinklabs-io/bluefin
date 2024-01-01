@@ -9,10 +9,10 @@ github.com/blinklabs-io/bursa v0.6.0 h1:h4INnhuKjOs+zXXOuGMMAlm+GzvMtzbPKisd3iuT
 github.com/blinklabs-io/bursa v0.6.0/go.mod h1:k+fdY+TTZ1/lwPmJFPqRsdMDkCKA2OXxqVl16EJAOPk=
 github.com/blinklabs-io/cardano-models v0.2.0 h1:fQ2vkvMLFgQodtFpYE73i+6+eNN5vaIB3GBIys8FsyI=
 github.com/blinklabs-io/cardano-models v0.2.0/go.mod h1:iH8IqSca4WzFQIAT3Ssd3TviILfoCgaJQ8mc3JrIvwE=
-github.com/blinklabs-io/gouroboros v0.67.1 h1:SyzxCIEa2rph3KQr1D+PgqsPNFORN/OdwNtrL0h42g8=
-github.com/blinklabs-io/gouroboros v0.67.1/go.mod h1:Q154NJPs7gB93Tggt8ts9RGIlW2kkknr6M90Q3jh0s4=
-github.com/blinklabs-io/snek v0.16.0 h1:M0qCNzgWNfw4kJ3+UrFjUQTZKid9lYxgxx+rdypW+V8=
-github.com/blinklabs-io/snek v0.16.0/go.mod h1:/XVB/pZFXmASRNZFKUQAuLqU2oznVMQY5YN5y6SQHiM=
+github.com/blinklabs-io/gouroboros v0.69.2 h1:6FQwC1KxTPYbbugolNU03Dvm3vaCZWoceaaWLx6Skw0=
+github.com/blinklabs-io/gouroboros v0.69.2/go.mod h1:ppm97qgdO1ZsfrrziSgmRRChtESfLtGaUcn9UN1Ft5A=
+github.com/blinklabs-io/snek v0.17.0 h1:c7g9+2UYyAunMFBOs2hoomIUFkVQNB8ZHTCvCGKSQ0E=
+github.com/blinklabs-io/snek v0.17.0/go.mod h1:2WpL9BHe3EvrqcZKjmgQEk48pd1hOUumGexulOvh/Ew=
 github.com/btcsuite/btcd v0.20.1-beta/go.mod h1:wVuoA8VJLEcwgqHBwHmzLRazpKxTv13Px/pDuV7OomQ=
 github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f/go.mod h1:TdznJufoqS23FtqVCzL0ZqgP5MqXbb4fg/WgDys70nA=
 github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d/go.mod h1:+5NJ2+qvTyV9exUAL/rxXi3DcLg2Ts+ymUAY5y4NvMg=

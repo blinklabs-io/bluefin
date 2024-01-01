@@ -1,7 +1,7 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Salvionied/apollo v1.0.10 h1:ahDJcfsa0UM4Ei/FX7zRrRmgKFcBbbyL4L9RbsNvOFA=
-github.com/Salvionied/apollo v1.0.10/go.mod h1:5hgk1k4EiWmAoy2yU3q6+clmA4tgnHC4X23RtMJh4Ao=
+github.com/Salvionied/apollo v1.0.11 h1:D24umErYZD/tjpHZl6IFZQCuj66fyfRE2YQx49EXme0=
+github.com/Salvionied/apollo v1.0.11/go.mod h1:5hgk1k4EiWmAoy2yU3q6+clmA4tgnHC4X23RtMJh4Ao=
 github.com/Salvionied/cbor/v2 v2.6.0 h1:OEwlZLiodLdNeM9wFoSydLvj6/rHRaxu5G8VzwXSeuY=
 github.com/Salvionied/cbor/v2 v2.6.0/go.mod h1:oFxaUo/mQ5sG1k459nzctGdYa80jy0ZqZ9pln9C/fGw=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=

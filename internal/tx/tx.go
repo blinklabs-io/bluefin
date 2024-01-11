@@ -208,7 +208,7 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	sKeyBytes, err := hex.DecodeString(bursa.PaymentSKey.CborHex)
+	sKeyBytes, err := hex.DecodeString(bursa.PaymentESKey.CborHex)
 	if err != nil {
 		return nil, err
 	}

@@ -64,22 +64,13 @@ func Setup() {
 			panic(err)
 		}
 	}
-	rootKey, err := bursa.GetRootKeyFromMnemonic(mnemonic)
+	wallet, err := bursa.NewWallet(
+		mnemonic,
+		cfg.Network,
+		0, 0, 0, 0,
+	)
 	if err != nil {
 		panic(err)
-	}
-	accountKey := bursa.GetAccountKey(rootKey, 0)
-	paymentKey := bursa.GetPaymentKey(accountKey, 0)
-	stakeKey := bursa.GetStakeKey(accountKey, 0)
-	addr := bursa.GetAddress(accountKey, cfg.Network, 0)
-	wallet := &bursa.Wallet{
-		Mnemonic:       mnemonic,
-		PaymentAddress: addr.String(),
-		StakeAddress:   addr.ToReward().String(),
-		PaymentVKey:    bursa.GetPaymentVKey(paymentKey),
-		PaymentSKey:    bursa.GetPaymentSKey(paymentKey),
-		StakeVKey:      bursa.GetStakeVKey(stakeKey),
-		StakeSKey:      bursa.GetStakeVKey(stakeKey),
 	}
 	globalWallet = wallet
 }

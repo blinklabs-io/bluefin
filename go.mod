@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/Salvionied/apollo v1.0.10
 	github.com/blinklabs-io/bursa v0.7.0
-	github.com/blinklabs-io/cardano-models v0.2.0
+	github.com/blinklabs-io/cardano-models v0.3.0
 	github.com/blinklabs-io/gouroboros v0.70.1
 	github.com/blinklabs-io/snek v0.17.1
 	github.com/dgraph-io/badger/v4 v4.2.0
@@ -37,6 +37,10 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fivebinaries/go-cardano-serialization v0.0.0-20220907134105-ec9b85086588 // indirect
 	github.com/fxamacker/cbor/v2 v2.5.0 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+	github.com/go-playground/locales v0.14.1 // indirect
+	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/go-playground/validator/v10 v10.17.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6 // indirect
@@ -46,6 +50,7 @@ require (
 	github.com/jinzhu/copier v0.4.0 // indirect
 	github.com/klauspost/compress v1.12.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
+	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

@@ -9,8 +9,8 @@ github.com/blinklabs-io/bursa v0.7.0 h1:i0VbHfnQ/MjStIDN6ApZYV4NWtLPcYkCmym+PcCj
 github.com/blinklabs-io/bursa v0.7.0/go.mod h1:5oA7x2aBuRXnQUG/xJK64BqsJHoA+Thj0HU41BJonQI=
 github.com/blinklabs-io/cardano-models v0.3.0 h1:Xc7H1l4i96Vaf5bBKXrOl1ctL0vyT/bJ9+OrZUqD6E4=
 github.com/blinklabs-io/cardano-models v0.3.0/go.mod h1:mahC1oL4zVM5TCqZzqZ9I2GWAcEfzhJ3tYBpjwBWVI4=
-github.com/blinklabs-io/gouroboros v0.71.0 h1:vu7Obgmn/kjFYMiIS4dr9PurzklQhgKVsX/m4hc3eos=
-github.com/blinklabs-io/gouroboros v0.71.0/go.mod h1:9UWZu7J050BNTY6TnXioJjgZiQD0pWzpNwM9T9rjEbY=
+github.com/blinklabs-io/gouroboros v0.72.0 h1:HI9DFQ3wi+pr8iOPH7jOr31rNRf2ij7jA2v3dv+2vOQ=
+github.com/blinklabs-io/gouroboros v0.72.0/go.mod h1:1Vpk6pm86JBKHi5riBQv4EAKixX+XvttWv1o6DewLBg=
 github.com/blinklabs-io/snek v0.17.2 h1:B2pNcjtW2iLdo2Hfa4UtIzSVT0Mf4SPRLtCkztiU3YY=
 github.com/blinklabs-io/snek v0.17.2/go.mod h1:7tTZHEeVoq9gU2JsXbas06XXoR9AFyXNs28EgTn4YNs=
 github.com/btcsuite/btcd v0.20.1-beta/go.mod h1:wVuoA8VJLEcwgqHBwHmzLRazpKxTv13Px/pDuV7OomQ=
@@ -42,8 +42,8 @@ github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25Kn
 github.com/fivebinaries/go-cardano-serialization v0.0.0-20220907134105-ec9b85086588 h1:TrEpycmnOvLc6jsJyD+mEWqJbrqi2UGD1HMawMAkpi8=
 github.com/fivebinaries/go-cardano-serialization v0.0.0-20220907134105-ec9b85086588/go.mod h1:tLkxhM4oeOACL9BB0lkpdiGrANPcrpqsydCQrAfZUbw=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
-github.com/fxamacker/cbor/v2 v2.5.0 h1:oHsG0V/Q6E/wqTS2O1Cozzsy69nqCiguo5Q1a1ADivE=
-github.com/fxamacker/cbor/v2 v2.5.0/go.mod h1:TA1xS00nchWmaBnEIxPSE5oHLuJBAVvqrtAnWBwBCVo=
+github.com/fxamacker/cbor/v2 v2.6.0 h1:sU6J2usfADwWlYDAFhZBQ6TnLFBHxgesMrQfQgk1tWA=
+github.com/fxamacker/cbor/v2 v2.6.0/go.mod h1:pxXPTn3joSm21Gbwsv0w9OSA2y1HFR9qXEeXQVeNoDQ=
 github.com/gabriel-vasile/mimetype v1.4.3 h1:in2uUcidCuFcDKtdcBxlR0rJ1+fsokWf+uqxgUFjbI0=
 github.com/gabriel-vasile/mimetype v1.4.3/go.mod h1:d8uq/6HKRL6CGdk+aubisF/M5GcPfT7nKyLpA0lbSSk=
 github.com/go-playground/assert/v2 v2.2.0 h1:JvknZsQTYeFEAhQwI4qEt9cyV5ONwRHC+lYKSsYSR8s=
@@ -111,6 +111,8 @@ github.com/stretchr/testify v1.8.2/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/tyler-smith/go-bip39 v1.1.0 h1:5eUemwrMargf3BSLRRCalXT93Ns6pQJIjYQN2nyfOP8=
 github.com/tyler-smith/go-bip39 v1.1.0/go.mod h1:gUYDtqQw1JS3ZJ8UWVcGTGqqr6YIN3CWg+kkNaLt55U=
+github.com/utxorpc/go-codegen v0.4.0 h1:9YzCURt5Jrnwii8VmQYeKH6K/wYXMQx+DmdjzieSZpM=
+github.com/utxorpc/go-codegen v0.4.0/go.mod h1:rFk8LI55uFqnwftPYTTklTKB8Lhwh4K+ltb2BtrFe3g=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
 github.com/x448/float16 v0.8.4/go.mod h1:14CWIYCyZA/cWjXOioeEpHeN/83MdbZDRQHoFcYsOfg=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
@@ -190,8 +192,8 @@ google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZi
 google.golang.org/grpc v1.20.1/go.mod h1:10oTOabMzJvdu6/UiuZezV6QK5dSlG84ov/aaiqXj38=
 google.golang.org/protobuf v1.26.0-rc.1/go.mod h1:jlhhOSvTdKEhbULTjvd4ARK9grFBp09yW+WbY/TyQbw=
 google.golang.org/protobuf v1.26.0/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQnmE0givc=
-google.golang.org/protobuf v1.31.0 h1:g0LDEJHgrBl9N9r17Ru3sqWhkIx2NB67okBHPwC7hs8=
-google.golang.org/protobuf v1.31.0/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
+google.golang.org/protobuf v1.32.0 h1:pPC6BG5ex8PDFnkbrGU3EixyhKcQ2aDuBS36lqK/C7I=
+google.golang.org/protobuf v1.32.0/go.mod h1:c6P6GXX6sHbq/GpV6MGZEdwhWPcYBgnhAHhKbcUYpos=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 h1:YR8cESwS4TdDjEe65xsg0ogRM/Nc3DYOhEAlW+xobZo=
 gopkg.in/fsnotify.v1 v1.4.7/go.mod h1:Tz8NjZHkW78fSQdbUxIjBTcgA1z1m8ZHf0WmKUhAMys=

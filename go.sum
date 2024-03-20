@@ -9,8 +9,8 @@ github.com/blinklabs-io/bursa v0.7.0 h1:i0VbHfnQ/MjStIDN6ApZYV4NWtLPcYkCmym+PcCj
 github.com/blinklabs-io/bursa v0.7.0/go.mod h1:5oA7x2aBuRXnQUG/xJK64BqsJHoA+Thj0HU41BJonQI=
 github.com/blinklabs-io/cardano-models v0.3.1 h1:CtojPKiiOnd8o3NCsPZM3HYkyQ9mSVqKUz7gFKTVfZU=
 github.com/blinklabs-io/cardano-models v0.3.1/go.mod h1:Z2t4gGSyLGXMRS+BkhED4AUGDIh5rI8NTNInZYBT7eg=
-github.com/blinklabs-io/gouroboros v0.74.0 h1:LiijHT6a+J/jtg7rRFtBPRqgFcg7E7Gt116QASbxwPU=
-github.com/blinklabs-io/gouroboros v0.74.0/go.mod h1:ekagI7z6UElN0EFYGmJnTgj5Zm4p84x0G8PFNblc6sk=
+github.com/blinklabs-io/gouroboros v0.76.0 h1:o1GHNW/p3AYEd2ubfZTQb6FWmyt2zKCZEwg5k8J4Pbc=
+github.com/blinklabs-io/gouroboros v0.76.0/go.mod h1:+EKdUQk5CUtXF/WI2N7mrOxIQSRW0VEaYENffS3I4GM=
 github.com/blinklabs-io/snek v0.17.3 h1:ccbYvQUBKqBn4nUQUtixsvLZZbJCqCel3WO7fGVhONY=
 github.com/blinklabs-io/snek v0.17.3/go.mod h1:bNdPND0TJWr7hgf7v/rI2geTQrP23708uSgWPCKF74I=
 github.com/btcsuite/btcd v0.20.1-beta/go.mod h1:wVuoA8VJLEcwgqHBwHmzLRazpKxTv13Px/pDuV7OomQ=
@@ -106,8 +106,8 @@ github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81P
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/tyler-smith/go-bip39 v1.1.0 h1:5eUemwrMargf3BSLRRCalXT93Ns6pQJIjYQN2nyfOP8=
 github.com/tyler-smith/go-bip39 v1.1.0/go.mod h1:gUYDtqQw1JS3ZJ8UWVcGTGqqr6YIN3CWg+kkNaLt55U=
-github.com/utxorpc/go-codegen v0.4.0 h1:9YzCURt5Jrnwii8VmQYeKH6K/wYXMQx+DmdjzieSZpM=
-github.com/utxorpc/go-codegen v0.4.0/go.mod h1:rFk8LI55uFqnwftPYTTklTKB8Lhwh4K+ltb2BtrFe3g=
+github.com/utxorpc/go-codegen v0.4.4 h1:NnRFkqKJ9ZkZ3pffpD3bb6K0IU6IaDXbkVD/DzDmuKs=
+github.com/utxorpc/go-codegen v0.4.4/go.mod h1:NWAVa5/vHWgSrp/wJzXnMpbaBeST0PmWCU5vX63hZdw=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
 github.com/x448/float16 v0.8.4/go.mod h1:14CWIYCyZA/cWjXOioeEpHeN/83MdbZDRQHoFcYsOfg=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/Salvionied/apollo v1.0.11
-	github.com/blinklabs-io/bursa v0.7.0
+	github.com/blinklabs-io/bursa v0.7.1
 	github.com/blinklabs-io/cardano-models v0.3.1
 	github.com/blinklabs-io/gouroboros v0.76.0
 	github.com/blinklabs-io/snek v0.17.3
@@ -49,7 +49,7 @@ require (
 	github.com/google/flatbuffers v1.12.1 // indirect
 	github.com/jinzhu/copier v0.4.0 // indirect
 	github.com/klauspost/compress v1.12.3 // indirect
-	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect

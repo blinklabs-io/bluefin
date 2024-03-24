@@ -90,17 +90,24 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 		return nil, err
 	}
 	var utxos []UTxO.UTxO
-	tunaPolicyId, _ := Policy.New(validatorHash)
+	tunaPolicyId, err := Policy.New(validatorHash)
+	if err != nil {
+		return nil, err
+	}
 	var tunaCount int64
 	for _, utxoBytes := range utxosBytes {
-		var utxo UTxO.UTxO
+		utxo := UTxO.UTxO{}
 		if _, err := cbor.Decode(utxoBytes, &utxo); err != nil {
 			return nil, err
 		}
 		// Record the number of TUNA in inputs to use in outputs
-		tunaCount += utxo.Output.GetValue().
-			GetAssets().
-			GetByPolicyAndId(*tunaPolicyId, AssetName.NewAssetNameFromString("TUNA"))
+		assets := utxo.Output.GetValue().GetAssets()
+		if assets != nil {
+			tunaCount += assets.GetByPolicyAndId(
+				*tunaPolicyId,
+				AssetName.NewAssetNameFromString("TUNA"),
+			)
+		}
 		utxos = append(utxos, utxo)
 	}
 
@@ -110,7 +117,7 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var scriptUtxos []UTxO.UTxO
+	scriptUtxos := []UTxO.UTxO{}
 	for _, utxoBytes := range scriptUtxosBytes {
 		var utxo UTxO.UTxO
 		if _, err := cbor.Decode(utxoBytes, &utxo); err != nil {
@@ -268,7 +275,7 @@ func submitTxNtN(txRawBytes []byte) (string, error) {
 
 	// Generate TX hash
 	// Unwrap raw transaction bytes into a CBOR array
-	var txUnwrap []cbor.RawMessage
+	txUnwrap := []cbor.RawMessage{}
 	if _, err := cbor.Decode(txRawBytes, &txUnwrap); err != nil {
 		logger.Errorf("failed to unwrap transaction CBOR: %s", err)
 		return "", fmt.Errorf("failed to unwrap transaction CBOR: %s", err)
@@ -333,12 +340,19 @@ func submitTxApi(txRawBytes []byte) (string, error) {
 		return "", fmt.Errorf("failed to create request: %s", err)
 	}
 	req.Header.Add("Content-Type", "application/cbor")
-	resp, err := http.DefaultClient.Do(req)
+	client := &http.Client{Timeout: 5 * time.Minute}
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf(
 			"failed to send request: %s: %s",
 			cfg.Submit.Url,
 			err,
+		)
+	}
+	if resp == nil {
+		return "", fmt.Errorf(
+			"failed parsing empty response from: %s",
+			cfg.Submit.Url,
 		)
 	}
 	// We have to read the entire response body and close it to prevent a memory leak
@@ -347,6 +361,7 @@ func submitTxApi(txRawBytes []byte) (string, error) {
 		return "", fmt.Errorf("failed to read response body: %s", err)
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode == 202 {
 		return string(respBody), nil
 	} else {

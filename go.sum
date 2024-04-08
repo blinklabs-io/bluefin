@@ -9,10 +9,10 @@ github.com/blinklabs-io/bursa v0.7.1 h1:RJ22jtpz1Qa8vYUV8X8svx0k13rcFFksXLibWxN7
 github.com/blinklabs-io/bursa v0.7.1/go.mod h1:CeHkFk0gtTEbYaYvnos5TDhxAOPqkwE2Ja8nwqLKuDw=
 github.com/blinklabs-io/cardano-models v0.3.1 h1:CtojPKiiOnd8o3NCsPZM3HYkyQ9mSVqKUz7gFKTVfZU=
 github.com/blinklabs-io/cardano-models v0.3.1/go.mod h1:Z2t4gGSyLGXMRS+BkhED4AUGDIh5rI8NTNInZYBT7eg=
-github.com/blinklabs-io/gouroboros v0.77.0 h1:uNRpuE4zyJiqgLKM4Ynw8w6EvuCzgEvF4cyphYikKmc=
-github.com/blinklabs-io/gouroboros v0.77.0/go.mod h1:f4ZNhkQ0vliLlsvb+CmD0nGwTf/IYaIflQCBMyxR0RI=
-github.com/blinklabs-io/ouroboros-mock v0.2.0 h1:Wff7mJiFUzktQ5tuWRN9vXNk38wR0ij2Q4bYHwJXaV4=
-github.com/blinklabs-io/ouroboros-mock v0.2.0/go.mod h1:t9eIDjmj339GJtfV7jandJnCqmj8WkZsFg2N1TR68io=
+github.com/blinklabs-io/gouroboros v0.78.0 h1:m/qI5WhN4ZpF96p+dQteiqWP0w+jn1vpL2BG/9JCjgo=
+github.com/blinklabs-io/gouroboros v0.78.0/go.mod h1:xlSqLRuMknQWY73AJCx2HRWo49BfyGnreYT1t3/riVo=
+github.com/blinklabs-io/ouroboros-mock v0.3.0 h1:6VRWyhAv0k7nQEgzFpuqhS/n8OM+OAaLN/sCT5K2Hbc=
+github.com/blinklabs-io/ouroboros-mock v0.3.0/go.mod h1:0dzTNEk/Kvqa7qYHDy7/Nn3OTt+EOosMknB37FRzI1k=
 github.com/blinklabs-io/snek v0.17.3 h1:ccbYvQUBKqBn4nUQUtixsvLZZbJCqCel3WO7fGVhONY=
 github.com/blinklabs-io/snek v0.17.3/go.mod h1:bNdPND0TJWr7hgf7v/rI2geTQrP23708uSgWPCKF74I=
 github.com/btcsuite/btcd v0.20.1-beta/go.mod h1:wVuoA8VJLEcwgqHBwHmzLRazpKxTv13Px/pDuV7OomQ=

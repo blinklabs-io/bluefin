@@ -387,6 +387,7 @@ func createClientConnection(nodeAddress string) net.Conn {
 }
 
 func handleRequestTxIds(
+	ctx txsubmission.CallbackContext,
 	blocking bool,
 	ack uint16,
 	req uint16,
@@ -410,6 +411,7 @@ func handleRequestTxIds(
 }
 
 func handleRequestTxs(
+	ctx txsubmission.CallbackContext,
 	txIds []txsubmission.TxId,
 ) ([]txsubmission.TxBody, error) {
 	ret := []txsubmission.TxBody{

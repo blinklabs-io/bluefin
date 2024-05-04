@@ -178,7 +178,7 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 	eventTx := evt.Payload.(input_chainsync.TransactionEvent)
 	eventCtx := evt.Context.(input_chainsync.TransactionContext)
 	// Delete used UTXOs
-	for _, txInput := range eventTx.Inputs {
+	for _, txInput := range eventTx.Transaction.Consumed() {
 		// We don't have a ledger DB to know where the TX inputs came from, so we just try deleting them for our known addresses
 		for _, tmpAddress := range []string{cfg.Indexer.ScriptAddress, wallet.GetWallet().PaymentAddress} {
 			if err := storage.GetStorage().RemoveUtxo(tmpAddress, txInput.Id().String(), txInput.Index()); err != nil {
@@ -186,7 +186,7 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 			}
 		}
 	}
-	for idx, txOutput := range eventTx.Outputs {
+	for idx, txOutput := range eventTx.Transaction.Produced() {
 		// Write UTXO to storage
 		if err := storage.GetStorage().AddUtxo(
 			txOutput.Address().String(),

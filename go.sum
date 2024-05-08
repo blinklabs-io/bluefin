@@ -5,6 +5,8 @@ github.com/Salvionied/apollo v1.0.11/go.mod h1:5hgk1k4EiWmAoy2yU3q6+clmA4tgnHC4X
 github.com/Salvionied/cbor/v2 v2.6.0 h1:OEwlZLiodLdNeM9wFoSydLvj6/rHRaxu5G8VzwXSeuY=
 github.com/Salvionied/cbor/v2 v2.6.0/go.mod h1:oFxaUo/mQ5sG1k459nzctGdYa80jy0ZqZ9pln9C/fGw=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
+github.com/blinklabs-io/adder v0.19.0 h1:f1i5GNlBXCxC6QqyoNbIh5Zlxel43p62GaQ7vIXCN/E=
+github.com/blinklabs-io/adder v0.19.0/go.mod h1:3IscUaVqLUDhXtvmvEu3NgLKs0+VDcQ1Tn9xGkD8uvY=
 github.com/blinklabs-io/bursa v0.7.2 h1:eBG+LpUaAwxMvzCq9q+HBTOxae4ErtLvxocEzmoMqRU=
 github.com/blinklabs-io/bursa v0.7.2/go.mod h1:f/VQphNyrDROQKHbsnm1y8jFg7jxmZEM9QJgRA95UXA=
 github.com/blinklabs-io/cardano-models v0.3.2 h1:3kH0sy/HhL0U2Go9yrlAlDzoT9BhjKExxzWFmoWUAxQ=
@@ -13,8 +15,6 @@ github.com/blinklabs-io/gouroboros v0.82.0 h1:bakuadyu8b9Rr7MX9WgZy3wgiopdZhoA7x
 github.com/blinklabs-io/gouroboros v0.82.0/go.mod h1:uBExUfgZvhPqiur3N9ReoXv4LpqGmR9jSZjolr1nZ2w=
 github.com/blinklabs-io/ouroboros-mock v0.3.0 h1:6VRWyhAv0k7nQEgzFpuqhS/n8OM+OAaLN/sCT5K2Hbc=
 github.com/blinklabs-io/ouroboros-mock v0.3.0/go.mod h1:0dzTNEk/Kvqa7qYHDy7/Nn3OTt+EOosMknB37FRzI1k=
-github.com/blinklabs-io/snek v0.18.0 h1:uiitNw03EWCBaGGknZ3EQ3RDEvHcwF67t+DgBWCmdJw=
-github.com/blinklabs-io/snek v0.18.0/go.mod h1:71WM+abhoErwwFsjdLUwQ9BfVva5u5RKzu3vJWhUA9w=
 github.com/btcsuite/btcd v0.20.1-beta/go.mod h1:wVuoA8VJLEcwgqHBwHmzLRazpKxTv13Px/pDuV7OomQ=
 github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f/go.mod h1:TdznJufoqS23FtqVCzL0ZqgP5MqXbb4fg/WgDys70nA=
 github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d/go.mod h1:+5NJ2+qvTyV9exUAL/rxXi3DcLg2Ts+ymUAY5y4NvMg=

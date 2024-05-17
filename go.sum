@@ -9,8 +9,8 @@ github.com/blinklabs-io/adder v0.19.0 h1:f1i5GNlBXCxC6QqyoNbIh5Zlxel43p62GaQ7vIX
 github.com/blinklabs-io/adder v0.19.0/go.mod h1:3IscUaVqLUDhXtvmvEu3NgLKs0+VDcQ1Tn9xGkD8uvY=
 github.com/blinklabs-io/bursa v0.7.2 h1:eBG+LpUaAwxMvzCq9q+HBTOxae4ErtLvxocEzmoMqRU=
 github.com/blinklabs-io/bursa v0.7.2/go.mod h1:f/VQphNyrDROQKHbsnm1y8jFg7jxmZEM9QJgRA95UXA=
-github.com/blinklabs-io/cardano-models v0.3.2 h1:3kH0sy/HhL0U2Go9yrlAlDzoT9BhjKExxzWFmoWUAxQ=
-github.com/blinklabs-io/cardano-models v0.3.2/go.mod h1:SV1SDNjwJ+Oq3qu7uGgEXeRnE+fNWgKBgSBY80gfIJI=
+github.com/blinklabs-io/cardano-models v0.3.3 h1:Bh/Rp6OhoyqkMWSp+F7hbyzKJDkubRgUrcwjQpv+JrA=
+github.com/blinklabs-io/cardano-models v0.3.3/go.mod h1:N1Xol+S+IlMk6FeM1LRVLPbM+MVTMuaA6Iu3PrE9DNg=
 github.com/blinklabs-io/gouroboros v0.82.0 h1:bakuadyu8b9Rr7MX9WgZy3wgiopdZhoA7x8s1Rqnua0=
 github.com/blinklabs-io/gouroboros v0.82.0/go.mod h1:uBExUfgZvhPqiur3N9ReoXv4LpqGmR9jSZjolr1nZ2w=
 github.com/blinklabs-io/ouroboros-mock v0.3.0 h1:6VRWyhAv0k7nQEgzFpuqhS/n8OM+OAaLN/sCT5K2Hbc=
@@ -54,8 +54,8 @@ github.com/go-playground/locales v0.14.1 h1:EWaQ/wswjilfKLTECiXz7Rh+3BjFhfDFKv/o
 github.com/go-playground/locales v0.14.1/go.mod h1:hxrqLVvrK65+Rwrd5Fc6F2O76J/NuW9t0sjnWqG1slY=
 github.com/go-playground/universal-translator v0.18.1 h1:Bcnm0ZwsGyWbCzImXv+pAJnYK9S473LQFuzCbDbfSFY=
 github.com/go-playground/universal-translator v0.18.1/go.mod h1:xekY+UJKNuX9WP91TpwSH2VMlDf28Uj24BCp08ZFTUY=
-github.com/go-playground/validator/v10 v10.19.0 h1:ol+5Fu+cSq9JD7SoSqe04GMI92cbn0+wvQ3bZ8b/AU4=
-github.com/go-playground/validator/v10 v10.19.0/go.mod h1:dbuPbCMFw/DrkbEynArYaCwl3amGuJotoKCe95atGMM=
+github.com/go-playground/validator/v10 v10.20.0 h1:K9ISHbSaI0lyB2eWMPJo+kOS/FBExVwjEviJTixqxL8=
+github.com/go-playground/validator/v10 v10.20.0/go.mod h1:dbuPbCMFw/DrkbEynArYaCwl3amGuJotoKCe95atGMM=
 github.com/gogo/protobuf v1.3.2 h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=
 github.com/gogo/protobuf v1.3.2/go.mod h1:P1XiOD3dCwIKUDQYPy72D8LYyHL2YPYrpS2s69NZV8Q=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=

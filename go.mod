@@ -7,7 +7,7 @@ require (
 	github.com/blinklabs-io/adder v0.22.0
 	github.com/blinklabs-io/bursa v0.8.0
 	github.com/blinklabs-io/cardano-models v0.3.3
-	github.com/blinklabs-io/gouroboros v0.85.0
+	github.com/blinklabs-io/gouroboros v0.86.0
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/minio/sha256-simd v1.0.1
@@ -34,9 +34,8 @@ require (
 	github.com/Salvionied/cbor/v2 v2.6.0 // indirect
 	github.com/btcsuite/btcutil v1.0.2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/cosmos/btcutil v1.0.5 // indirect
-	github.com/cosmos/cosmos-sdk v0.50.6 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
+	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fivebinaries/go-cardano-serialization v0.0.0-20220907134105-ec9b85086588 // indirect
 	github.com/fxamacker/cbor/v2 v2.6.0 // indirect
@@ -53,8 +52,10 @@ require (
 	github.com/jinzhu/copier v0.4.0 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	github.com/utxorpc/go-codegen v0.5.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

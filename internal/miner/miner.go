@@ -23,9 +23,12 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/version"
+	"github.com/blinklabs-io/bluefin/internal/wallet"
 
+	"github.com/blinklabs-io/bursa"
 	models "github.com/blinklabs-io/cardano-models"
 	"github.com/blinklabs-io/gouroboros/cbor"
+	"github.com/blinklabs-io/gouroboros/ledger"
 	"github.com/minio/sha256-simd"
 )
 
@@ -83,6 +86,46 @@ func (state *TargetStateV1) ToBytes() ([]byte, error) {
 	return cbor.Encode(&state)
 }
 
+type TargetStateV2 struct {
+	Nonce            [16]byte
+	MinerCredHash    []byte
+	BlockNumber      int64
+	CurrentHash      []byte
+	LeadingZeros     int64
+	DifficultyNumber int64
+	EpochTime        int64
+}
+
+func (t *TargetStateV2) SetNonce(nonce [16]byte) {
+	t.Nonce = nonce
+}
+
+func (t *TargetStateV2) GetNonce() [16]byte {
+	return t.Nonce
+}
+
+func (state *TargetStateV2) MarshalCBOR() ([]byte, error) {
+	tmp := cbor.NewConstructor(
+		0,
+		cbor.IndefLengthList{
+			Items: []any{
+				state.Nonce,
+				state.MinerCredHash,
+				state.BlockNumber,
+				state.CurrentHash,
+				state.LeadingZeros,
+				state.DifficultyNumber,
+				state.EpochTime,
+			},
+		},
+	)
+	return cbor.Encode(&tmp)
+}
+
+func (state *TargetStateV2) ToBytes() ([]byte, error) {
+	return cbor.Encode(&state)
+}
+
 type DifficultyMetrics struct {
 	LeadingZeros     int64
 	DifficultyNumber int64
@@ -126,7 +169,32 @@ func (m *Miner) Start() {
 			EpochTime:        blockData.EpochTime,
 		}
 	} else {
-		panic("profile doesn't have version configured")
+		// Create initial state from block data
+		rootKey, err := bursa.GetRootKeyFromMnemonic(wallet.GetWallet().Mnemonic)
+		if err != nil {
+			panic(err)
+		}
+		userPkh := bursa.GetPaymentKey(bursa.GetAccountKey(rootKey, 0), 0).Public().PublicKey()
+		minerCredential := cbor.NewConstructor(
+			0,
+			cbor.IndefLengthList{
+				Items: []any{
+					userPkh.Hash(),
+					fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString()),
+				},
+			},
+		)
+		minerCredHash := ledger.NewBlake2b256(minerCredential.Cbor()).Bytes()
+		blockData := m.blockData.(models.TunaV2State)
+		m.state = &TargetStateV2{
+			Nonce:            randomNonce(),
+			MinerCredHash:    minerCredHash,
+			BlockNumber:      blockData.BlockNumber,
+			CurrentHash:      blockData.CurrentHash,
+			LeadingZeros:     blockData.LeadingZeros,
+			DifficultyNumber: blockData.DifficultyNumber,
+			EpochTime:        blockData.EpochTime,
+		}
 	}
 
 	targetHash := m.calculateHash()
@@ -145,6 +213,10 @@ func (m *Miner) Start() {
 	var tmpInterlink [][]byte
 	if profileCfg.UseTunaV1 {
 		blockData := m.blockData.(models.TunaV1State)
+		epochTime = blockData.EpochTime + 90000 + realTimeNow - blockData.RealTimeNow
+		tmpInterlink = blockData.Interlink
+	} else {
+		blockData := m.blockData.(models.TunaV2State)
 		epochTime = blockData.EpochTime + 90000 + realTimeNow - blockData.RealTimeNow
 		tmpInterlink = blockData.Interlink
 	}
@@ -174,7 +246,19 @@ func (m *Miner) Start() {
 			Interlink: currentInterlink,
 		}
 	} else {
-		panic("profile doesn't have version configured")
+		blockData := m.blockData.(models.TunaV2State)
+		postDatum = models.TunaV2State{
+			BlockNumber:      blockData.BlockNumber + 1,
+			CurrentHash:      targetHash,
+			LeadingZeros:     blockData.LeadingZeros,
+			DifficultyNumber: blockData.DifficultyNumber,
+			EpochTime:        epochTime,
+			RealTimeNow:      90000 + realTimeNow,
+			Extra: []byte(
+				fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString()),
+			),
+			Interlink: currentInterlink,
+		}
 	}
 
 	// Check for shutdown
@@ -212,6 +296,9 @@ func (m *Miner) calculateHash() []byte {
 	var tmpDifficultyNumber int64
 	switch v := m.blockData.(type) {
 	case models.TunaV1State:
+		tmpLeadingZeros = v.LeadingZeros
+		tmpDifficultyNumber = v.DifficultyNumber
+	case models.TunaV2State:
 		tmpLeadingZeros = v.LeadingZeros
 		tmpDifficultyNumber = v.DifficultyNumber
 	default:
@@ -262,6 +349,9 @@ func (m *Miner) getCurrentDifficulty() DifficultyMetrics {
 	var tmpDifficultyNumber int64
 	switch v := m.blockData.(type) {
 	case models.TunaV1State:
+		tmpLeadingZeros = v.LeadingZeros
+		tmpDifficultyNumber = v.DifficultyNumber
+	case models.TunaV2State:
 		tmpLeadingZeros = v.LeadingZeros
 		tmpDifficultyNumber = v.DifficultyNumber
 	default:

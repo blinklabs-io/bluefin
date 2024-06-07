@@ -73,7 +73,13 @@ func (i *Indexer) Start() error {
 		}
 		i.lastBlockData = tmpBlockData
 	} else {
-		panic("profile doesn't have version configured")
+		var tmpBlockData models.TunaV2State
+		if len(lastBlockDataBytes) > 0 {
+			if _, err := cbor.Decode(lastBlockDataBytes, &tmpBlockData); err != nil {
+				return fmt.Errorf("failed to parse last block data: %s", err)
+			}
+		}
+		i.lastBlockData = tmpBlockData
 	}
 	// Create pipeline
 	i.pipeline = pipeline.New()
@@ -237,7 +243,33 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 						tmpExtra,
 					)
 				} else {
-					panic("profile doesn't have version configured")
+					var blockData models.TunaV2State
+					if _, err := cbor.Decode(datum.Cbor(), &blockData); err != nil {
+						logger.Warnf(
+							"error decoding TX (%s) output datum: %s",
+							eventCtx.TransactionHash,
+							err,
+						)
+						return err
+					}
+					i.lastBlockData = blockData
+					var tmpExtra any
+					switch v := blockData.Extra.(type) {
+					case []byte:
+						tmpExtra = string(v)
+					default:
+						tmpExtra = v
+					}
+					logger.Infof(
+						"found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, real time now: %d, extra: %v",
+						blockData.BlockNumber,
+						blockData.CurrentHash,
+						blockData.LeadingZeros,
+						blockData.DifficultyNumber,
+						blockData.EpochTime,
+						blockData.RealTimeNow,
+						tmpExtra,
+					)
 				}
 
 				if err := storage.GetStorage().UpdateBlockData(&(i.lastBlockData)); err != nil {

@@ -139,6 +139,9 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	if profileCfg.UseTunaV1 {
 		tmpBlockData := blockData.(models.TunaV1State)
 		blockDataRealTimeNow = tmpBlockData.RealTimeNow
+	} else {
+		tmpBlockData := blockData.(models.TunaV2State)
+		blockDataRealTimeNow = tmpBlockData.RealTimeNow
 	}
 
 	// Determine validity start/end slot based on datum

@@ -1,4 +1,4 @@
-// Copyright 2023 Blink Labs Software
+// Copyright 2024 Blink Labs Software
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -181,20 +181,21 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 	cfg := config.GetConfig()
 	profileCfg := config.GetProfile()
 	logger := logging.GetLogger()
+	store := storage.GetStorage()
 	eventTx := evt.Payload.(input_chainsync.TransactionEvent)
 	eventCtx := evt.Context.(input_chainsync.TransactionContext)
 	// Delete used UTXOs
 	for _, txInput := range eventTx.Transaction.Consumed() {
 		// We don't have a ledger DB to know where the TX inputs came from, so we just try deleting them for our known addresses
 		for _, tmpAddress := range []string{cfg.Indexer.ScriptAddress, wallet.GetWallet().PaymentAddress} {
-			if err := storage.GetStorage().RemoveUtxo(tmpAddress, txInput.Id().String(), txInput.Index()); err != nil {
+			if err := store.RemoveUtxo(tmpAddress, txInput.Id().String(), txInput.Index()); err != nil {
 				return err
 			}
 		}
 	}
 	for idx, txOutput := range eventTx.Transaction.Produced() {
 		// Write UTXO to storage
-		if err := storage.GetStorage().AddUtxo(
+		if err := store.AddUtxo(
 			txOutput.Address().String(),
 			eventCtx.TransactionHash,
 			uint32(idx),
@@ -253,26 +254,24 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 						return err
 					}
 					i.lastBlockData = blockData
-					var tmpExtra any
-					switch v := blockData.Extra.(type) {
-					case []byte:
-						tmpExtra = string(v)
-					default:
-						tmpExtra = v
+					// Update trie
+					trieKey := store.Trie().HashKey(blockData.CurrentHash)
+					if err := store.Trie().Update(trieKey, blockData.CurrentHash); err != nil {
+						return err
 					}
 					logger.Infof(
-						"found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, real time now: %d, extra: %v",
+						"found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, current POSIX time: %d, merkle root = %x",
 						blockData.BlockNumber,
 						blockData.CurrentHash,
 						blockData.LeadingZeros,
 						blockData.DifficultyNumber,
 						blockData.EpochTime,
-						blockData.RealTimeNow,
-						tmpExtra,
+						blockData.CurrentPosixTime,
+						blockData.MerkleRoot,
 					)
 				}
 
-				if err := storage.GetStorage().UpdateBlockData(&(i.lastBlockData)); err != nil {
+				if err := store.UpdateBlockData(&(i.lastBlockData)); err != nil {
 					return err
 				}
 

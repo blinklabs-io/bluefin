@@ -1,4 +1,4 @@
-// Copyright 2023 Blink Labs Software
+// Copyright 2024 Blink Labs Software
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,11 +19,13 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"math/big"
 	"net"
 	"net/http"
 	"time"
 
 	"github.com/Salvionied/apollo"
+	"github.com/Salvionied/apollo/serialization"
 	serAddress "github.com/Salvionied/apollo/serialization/Address"
 	"github.com/Salvionied/apollo/serialization/AssetName"
 	"github.com/Salvionied/apollo/serialization/Key"
@@ -40,6 +42,7 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/storage"
+	"github.com/blinklabs-io/bluefin/internal/version"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 )
 
@@ -69,6 +72,11 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	profileCfg := config.GetProfile()
 
 	validatorHash := profileCfg.ValidatorHash
+	validatorHashBytes, err := hex.DecodeString(validatorHash)
+	if err != nil {
+		return nil, err
+	}
+	mintValidatorHash := profileCfg.MintValidatorHash
 
 	postDatum := PlutusData.PlutusData{
 		PlutusDataType: PlutusData.PlutusBytes,
@@ -90,9 +98,19 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 		return nil, err
 	}
 	var utxos []UTxO.UTxO
-	tunaPolicyId, err := Policy.New(validatorHash)
-	if err != nil {
-		return nil, err
+	var tunaPolicyId *Policy.PolicyId
+	if profileCfg.UseTunaV1 {
+		var err error
+		tunaPolicyId, err = Policy.New(validatorHash)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		var err error
+		tunaPolicyId, err = Policy.New(mintValidatorHash)
+		if err != nil {
+			return nil, err
+		}
 	}
 	var tunaCount int64
 	for _, utxoBytes := range utxosBytes {
@@ -136,71 +154,187 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	validatorOutRef := scriptUtxos[0]
 
 	var blockDataRealTimeNow int64
+	var blockDataBlockNumber int64
+	var blockDataHash []byte
 	if profileCfg.UseTunaV1 {
 		tmpBlockData := blockData.(models.TunaV1State)
 		blockDataRealTimeNow = tmpBlockData.RealTimeNow
 	} else {
 		tmpBlockData := blockData.(models.TunaV2State)
-		blockDataRealTimeNow = tmpBlockData.RealTimeNow
+		blockDataRealTimeNow = tmpBlockData.CurrentPosixTime
+		blockDataBlockNumber = tmpBlockData.BlockNumber
+		blockDataHash = tmpBlockData.CurrentHash
 	}
 
 	// Determine validity start/end slot based on datum
 	datumSlot := unixTimeToSlot(blockDataRealTimeNow / 1000)
 
-	apollob = apollob.AddLoadedUTxOs(utxos...)
-	apollob = apollob.
-		PayToContract(
-			contractAddress, &postDatum, int(validatorOutRef.Output.PostAlonzo.Amount.Am.Coin), true, apollo.NewUnit(validatorHash, "lord tuna", 1),
-		).
-		SetValidityStart(int64(datumSlot-90)).
-		SetTtl(int64(datumSlot+90)).
-		PayToAddress(
-			myAddress, 2000000, apollo.NewUnit(validatorHash, "TUNA", int(tunaCount+5000000000)),
-		).
-		MintAssetsWithRedeemer(
-			apollo.NewUnit(validatorHash, "TUNA", 5000000000),
-			Redeemer.Redeemer{
-				Tag:   Redeemer.MINT,
-				Index: 0,
-				// NOTE: these values are estimated
-				ExUnits: Redeemer.ExecutionUnits{
-					Mem:   80_000,
-					Steps: 30_000_000,
+	apollob = apollob.AddLoadedUTxOs(utxos...).
+		SetValidityStart(int64(datumSlot - 90)).
+		SetTtl(int64(datumSlot + 90))
+
+	if profileCfg.UseTunaV1 {
+		apollob = apollob.
+			PayToAddress(
+				myAddress, 2000000, apollo.NewUnit(validatorHash, "TUNA", int(tunaCount+5000000000)),
+			).
+			PayToContract(
+				contractAddress, &postDatum, int(validatorOutRef.Output.PostAlonzo.Amount.Am.Coin), true, apollo.NewUnit(validatorHash, "lord tuna", 1),
+			).
+			MintAssetsWithRedeemer(
+				apollo.NewUnit(validatorHash, "TUNA", 5000000000),
+				Redeemer.Redeemer{
+					Tag:   Redeemer.MINT,
+					Index: 0,
+					// NOTE: these values are estimated
+					ExUnits: Redeemer.ExecutionUnits{
+						Mem:   80_000,
+						Steps: 30_000_000,
+					},
+					Data: PlutusData.PlutusData{
+						PlutusDataType: PlutusData.PlutusArray,
+						TagNr:          121,
+						Value:          PlutusData.PlutusIndefArray{},
+					},
 				},
-				Data: PlutusData.PlutusData{
-					PlutusDataType: PlutusData.PlutusArray,
-					TagNr:          121,
-					Value:          PlutusData.PlutusIndefArray{},
-				},
-			},
-		).
-		CollectFrom(
-			validatorOutRef,
-			Redeemer.Redeemer{
-				Tag: Redeemer.SPEND,
-				// NOTE: these values are estimated
-				ExUnits: Redeemer.ExecutionUnits{
-					Mem:   450_000,
-					Steps: 200_000_000,
-				},
-				Data: PlutusData.PlutusData{
-					PlutusDataType: PlutusData.PlutusArray,
-					TagNr:          122,
-					Value: PlutusData.PlutusIndefArray{
-						PlutusData.PlutusData{
-							PlutusDataType: PlutusData.PlutusBytes,
-							Value:          nonce,
+			).
+			CollectFrom(
+				validatorOutRef,
+				Redeemer.Redeemer{
+					Tag: Redeemer.SPEND,
+					// NOTE: these values are estimated
+					ExUnits: Redeemer.ExecutionUnits{
+						Mem:   450_000,
+						Steps: 200_000_000,
+					},
+					Data: PlutusData.PlutusData{
+						PlutusDataType: PlutusData.PlutusArray,
+						TagNr:          122,
+						Value: PlutusData.PlutusIndefArray{
+							PlutusData.PlutusData{
+								PlutusDataType: PlutusData.PlutusBytes,
+								Value:          nonce,
+							},
 						},
 					},
 				},
+			)
+	} else {
+		// Build miner credential
+		userPkh := wallet.PaymentKeyHash()
+		minerCredential := cbor.NewConstructor(
+			0,
+			cbor.IndefLengthList{
+				userPkh,
+				[]byte(fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString())),
 			},
 		)
-	if profileCfg.ScriptInputRefTxId != "" {
-		// Use a script input ref
-		apollob = apollob.AddReferenceInput(
-			profileCfg.ScriptInputRefTxId,
-			int(profileCfg.ScriptInputRefOutIndex),
-		)
+		// Convert old and new block numbers to byte representation for use in token names
+		oldBlockNumberBytes := big.NewInt(int64(blockDataBlockNumber - 1)).Bytes()
+		newBlockNumberBytes := big.NewInt(int64(blockDataBlockNumber)).Bytes()
+		// Temporarily add new target hash to trie to calculate merkle proof
+		trie := storage.GetStorage().Trie()
+		tmpHashKey := storage.HashValue(blockDataHash).Bytes()
+		if err := trie.Update(tmpHashKey, blockDataHash); err != nil {
+			return nil, err
+		}
+		proof, err := trie.Prove(tmpHashKey)
+		if err != nil {
+			return nil, err
+		}
+		// Remove item from trie until it comes in via the indexer
+		_ = trie.Delete(tmpHashKey)
+		minerRedeemer := Redeemer.Redeemer{
+			Tag: Redeemer.SPEND,
+			// NOTE: these values are estimated
+			ExUnits: Redeemer.ExecutionUnits{
+				Mem:   550_000,
+				Steps: 300_000_000,
+			},
+			Data: PlutusData.PlutusData{
+				PlutusDataType: PlutusData.PlutusBytes,
+				TagNr:          0,
+				Value: cbor.NewConstructor(
+					0,
+					cbor.IndefLengthList{
+						nonce,
+						minerCredential,
+						proof,
+					},
+				),
+			},
+		}
+		mintRedeemer := Redeemer.Redeemer{
+			Tag: Redeemer.MINT,
+			// NOTE: these values are estimated
+			ExUnits: Redeemer.ExecutionUnits{
+				Mem:   280_000,
+				Steps: 130_000_000,
+			},
+			Data: PlutusData.PlutusData{
+				PlutusDataType: PlutusData.PlutusBytes,
+				TagNr:          0,
+				Value: cbor.NewConstructor(
+					1,
+					cbor.IndefLengthList{
+						cbor.NewConstructor(
+							0,
+							cbor.IndefLengthList{
+								cbor.NewConstructor(
+									0,
+									cbor.IndefLengthList{
+										validatorOutRef.Input.TransactionId,
+									},
+								),
+								validatorOutRef.Input.Index,
+							},
+						),
+						blockDataBlockNumber - 1,
+					},
+				),
+			},
+		}
+		apollob = apollob.
+			PayToAddress(
+				myAddress, 2000000, apollo.NewUnit(mintValidatorHash, "TUNA", int(tunaCount+5000000000)),
+			).
+			PayToContract(
+				contractAddress,
+				&postDatum,
+				int(validatorOutRef.Output.PostAlonzo.Amount.Am.Coin),
+				true,
+				apollo.NewUnit(mintValidatorHash, "TUNA"+string(validatorHashBytes), 1),
+				apollo.NewUnit(mintValidatorHash, "COUNTER"+string(newBlockNumberBytes), 1),
+			).
+			CollectFrom(
+				validatorOutRef,
+				minerRedeemer,
+			).
+			MintAssetsWithRedeemer(
+				apollo.NewUnit(mintValidatorHash, "TUNA", 5000000000),
+				mintRedeemer,
+			).
+			MintAssetsWithRedeemer(
+				apollo.NewUnit(mintValidatorHash, "COUNTER"+string(newBlockNumberBytes), 1),
+				mintRedeemer,
+			).
+			MintAssetsWithRedeemer(
+				apollo.NewUnit(mintValidatorHash, "COUNTER"+string(oldBlockNumberBytes), -1),
+				mintRedeemer,
+			).
+			AddRequiredSigner(
+				serialization.PubKeyHash(userPkh),
+			)
+
+	}
+	if len(profileCfg.ScriptRefInputs) > 0 {
+		// Use script reference input(s)
+		for _, refInput := range profileCfg.ScriptRefInputs {
+			apollob = apollob.AddReferenceInput(
+				refInput.TxId,
+				int(refInput.OutputIdx),
+			)
+		}
 	} else {
 		// Include the script with the TX
 		validatorScriptBytes, err := hex.DecodeString(profileCfg.ValidatorScript)
@@ -218,15 +352,13 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	sKeyBytes, err := hex.DecodeString(bursa.PaymentExtendedSKey.CborHex)
+	sKeyBytes, err := hex.DecodeString(bursa.PaymentSKey.CborHex)
 	if err != nil {
 		return nil, err
 	}
 	// Strip off leading 2 bytes as shortcut for CBOR decoding to unwrap bytes
 	vKeyBytes = vKeyBytes[2:]
 	sKeyBytes = sKeyBytes[2:]
-	// Strip out public key portion of extended private key
-	sKeyBytes = append(sKeyBytes[:64], sKeyBytes[96:]...)
 	vkey := Key.VerificationKey{Payload: vKeyBytes}
 	skey := Key.SigningKey{Payload: sKeyBytes}
 	tx, err = tx.SignWithSkey(vkey, skey)
@@ -237,6 +369,7 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("txBytes = %x\n", txBytes)
 	return txBytes, nil
 }
 

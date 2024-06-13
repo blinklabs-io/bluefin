@@ -181,20 +181,21 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 	cfg := config.GetConfig()
 	profileCfg := config.GetProfile()
 	logger := logging.GetLogger()
+	stg := storage.GetStorage()
 	eventTx := evt.Payload.(input_chainsync.TransactionEvent)
 	eventCtx := evt.Context.(input_chainsync.TransactionContext)
 	// Delete used UTXOs
 	for _, txInput := range eventTx.Transaction.Consumed() {
 		// We don't have a ledger DB to know where the TX inputs came from, so we just try deleting them for our known addresses
 		for _, tmpAddress := range []string{cfg.Indexer.ScriptAddress, wallet.GetWallet().PaymentAddress} {
-			if err := storage.GetStorage().RemoveUtxo(tmpAddress, txInput.Id().String(), txInput.Index()); err != nil {
+			if err := stg.RemoveUtxo(tmpAddress, txInput.Id().String(), txInput.Index()); err != nil {
 				return err
 			}
 		}
 	}
 	for idx, txOutput := range eventTx.Transaction.Produced() {
 		// Write UTXO to storage
-		if err := storage.GetStorage().AddUtxo(
+		if err := stg.AddUtxo(
 			txOutput.Address().String(),
 			eventCtx.TransactionHash,
 			uint32(idx),
@@ -204,6 +205,7 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 		}
 		// Handle datum for script address
 		if txOutput.Address().String() == cfg.Indexer.ScriptAddress {
+			fmt.Printf("TX cbor = %x\n", eventTx.Transaction.Cbor())
 			datum := txOutput.Datum()
 			if datum != nil {
 				if _, err := datum.Decode(); err != nil {
@@ -253,26 +255,25 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 						return err
 					}
 					i.lastBlockData = blockData
-					var tmpExtra any
-					switch v := blockData.Extra.(type) {
-					case []byte:
-						tmpExtra = string(v)
-					default:
-						tmpExtra = v
+					// Update trie
+					trieKey := stg.Trie().HashKey(blockData.CurrentHash)
+					if err := stg.Trie().Update(trieKey, blockData.CurrentHash); err != nil {
+						return err
 					}
+					fmt.Printf("trie hash = %x\n", stg.Trie().Hash())
 					logger.Infof(
-						"found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, real time now: %d, extra: %v",
+						"found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, current POSIX time: %d, merkle root = %x",
 						blockData.BlockNumber,
 						blockData.CurrentHash,
 						blockData.LeadingZeros,
 						blockData.DifficultyNumber,
 						blockData.EpochTime,
-						blockData.RealTimeNow,
-						tmpExtra,
+						blockData.CurrentPosixTime,
+						blockData.MerkleRoot,
 					)
 				}
 
-				if err := storage.GetStorage().UpdateBlockData(&(i.lastBlockData)); err != nil {
+				if err := stg.UpdateBlockData(&(i.lastBlockData)); err != nil {
 					return err
 				}
 

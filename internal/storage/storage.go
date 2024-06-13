@@ -1,4 +1,4 @@
-// Copyright 2023 Blink Labs Software
+// Copyright 2024 Blink Labs Software
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,7 +34,8 @@ const (
 )
 
 type Storage struct {
-	db *badger.DB
+	db   *badger.DB
+	trie *Trie
 }
 
 var globalStorage = &Storage{}
@@ -55,6 +56,12 @@ func (s *Storage) Load() error {
 	if err := s.compareFingerprint(); err != nil {
 		return err
 	}
+	// Populate trie
+	trie, err := NewTrie(s.db, cfg.Profile)
+	if err != nil {
+		return err
+	}
+	s.trie = trie
 	return nil
 }
 
@@ -92,6 +99,10 @@ func (s *Storage) compareFingerprint() error {
 		return err
 	}
 	return nil
+}
+
+func (s *Storage) Trie() *Trie {
+	return s.trie
 }
 
 func (s *Storage) UpdateCursor(slotNumber uint64, blockHash string) error {

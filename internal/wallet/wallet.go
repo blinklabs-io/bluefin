@@ -1,4 +1,4 @@
-// Copyright 2023 Blink Labs Software
+// Copyright 2024 Blink Labs Software
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import (
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
+	"golang.org/x/crypto/blake2b"
 
 	"github.com/blinklabs-io/bursa"
 )
@@ -77,4 +78,19 @@ func Setup() {
 
 func GetWallet() *bursa.Wallet {
 	return globalWallet
+}
+
+func PaymentKeyHash() []byte {
+	rootKey, err := bursa.GetRootKeyFromMnemonic(globalWallet.Mnemonic)
+	if err != nil {
+		panic(err)
+	}
+	userPkh := bursa.GetPaymentKey(bursa.GetAccountKey(rootKey, 0), 0).Public().PublicKey()
+	tmpHasher, err := blake2b.New(28, nil)
+	if err != nil {
+		panic(err)
+	}
+	tmpHasher.Write(userPkh)
+	hash := tmpHasher.Sum(nil)
+	return hash
 }

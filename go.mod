@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/Salvionied/apollo v1.0.11
-	github.com/blinklabs-io/adder v0.22.0
+	github.com/blinklabs-io/adder v0.22.1
 	github.com/blinklabs-io/bursa v0.8.0
 	github.com/blinklabs-io/cardano-models v0.3.3
 	github.com/blinklabs-io/gouroboros v0.88.0
@@ -55,7 +55,6 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	github.com/utxorpc/go-codegen v0.5.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

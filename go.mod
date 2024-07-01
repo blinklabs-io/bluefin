@@ -7,7 +7,7 @@ require (
 	github.com/blinklabs-io/adder v0.22.1
 	github.com/blinklabs-io/bursa v0.8.0
 	github.com/blinklabs-io/cardano-models v0.3.3
-	github.com/blinklabs-io/gouroboros v0.88.0
+	github.com/blinklabs-io/gouroboros v0.89.1
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/minio/sha256-simd v1.0.1
@@ -38,7 +38,7 @@ require (
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fivebinaries/go-cardano-serialization v0.0.0-20220907134105-ec9b85086588 // indirect
-	github.com/fxamacker/cbor/v2 v2.6.0 // indirect
+	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect

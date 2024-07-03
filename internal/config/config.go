@@ -17,7 +17,6 @@ package config
 import (
 	"fmt"
 	"os"
-	"runtime"
 
 	ouroboros "github.com/blinklabs-io/gouroboros"
 	"github.com/kelseyhightower/envconfig"
@@ -100,7 +99,8 @@ var globalConfig = &Config{
 	// The default worker config is somewhat conservative: worker count is set
 	// to half of the available logical CPUs
 	Worker: WorkerConfig{
-		Count: runtime.NumCPU() / 2,
+		// TODO: restore original after we add locking around the trie for the workers
+		Count: 1, //runtime.NumCPU() / 2,
 	},
 	Network: "mainnet",
 	Profile: "tuna-v1",

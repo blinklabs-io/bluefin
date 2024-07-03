@@ -1,4 +1,4 @@
-// Copyright 2023 Blink Labs Software
+// Copyright 2024 Blink Labs Software
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,13 +22,12 @@ import (
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
+	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/version"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 
-	"github.com/blinklabs-io/bursa"
 	models "github.com/blinklabs-io/cardano-models"
 	"github.com/blinklabs-io/gouroboros/cbor"
-	"github.com/blinklabs-io/gouroboros/ledger"
 	"github.com/minio/sha256-simd"
 )
 
@@ -69,31 +68,29 @@ func (state *TargetStateV1) MarshalCBOR() ([]byte, error) {
 	tmp := cbor.NewConstructor(
 		0,
 		cbor.IndefLengthList{
-			Items: []any{
-				state.Nonce,
-				state.BlockNumber,
-				state.CurrentHash,
-				state.LeadingZeros,
-				state.DifficultyNumber,
-				state.EpochTime,
-			},
+			state.Nonce,
+			state.BlockNumber,
+			state.CurrentHash,
+			state.LeadingZeros,
+			state.DifficultyNumber,
+			state.EpochTime,
 		},
 	)
 	return cbor.Encode(&tmp)
 }
 
 func (state *TargetStateV1) ToBytes() ([]byte, error) {
-	return cbor.Encode(&state)
+	return cbor.Encode(state)
 }
 
 type TargetStateV2 struct {
 	Nonce            [16]byte
 	MinerCredHash    []byte
+	EpochTime        int64
 	BlockNumber      int64
 	CurrentHash      []byte
 	LeadingZeros     int64
 	DifficultyNumber int64
-	EpochTime        int64
 }
 
 func (t *TargetStateV2) SetNonce(nonce [16]byte) {
@@ -108,22 +105,20 @@ func (state *TargetStateV2) MarshalCBOR() ([]byte, error) {
 	tmp := cbor.NewConstructor(
 		0,
 		cbor.IndefLengthList{
-			Items: []any{
-				state.Nonce,
-				state.MinerCredHash,
-				state.BlockNumber,
-				state.CurrentHash,
-				state.LeadingZeros,
-				state.DifficultyNumber,
-				state.EpochTime,
-			},
+			state.Nonce,
+			state.MinerCredHash,
+			state.EpochTime,
+			state.BlockNumber,
+			state.CurrentHash,
+			state.LeadingZeros,
+			state.DifficultyNumber,
 		},
 	)
 	return cbor.Encode(&tmp)
 }
 
 func (state *TargetStateV2) ToBytes() ([]byte, error) {
-	return cbor.Encode(&state)
+	return cbor.Encode(state)
 }
 
 type DifficultyMetrics struct {
@@ -169,31 +164,32 @@ func (m *Miner) Start() {
 			EpochTime:        blockData.EpochTime,
 		}
 	} else {
-		// Create initial state from block data
-		rootKey, err := bursa.GetRootKeyFromMnemonic(wallet.GetWallet().Mnemonic)
-		if err != nil {
-			panic(err)
-		}
-		userPkh := bursa.GetPaymentKey(bursa.GetAccountKey(rootKey, 0), 0).Public().PublicKey()
+		// Build miner credential
+		userPkh := wallet.PaymentKeyHash()
 		minerCredential := cbor.NewConstructor(
 			0,
 			cbor.IndefLengthList{
-				Items: []any{
-					userPkh.Hash(),
-					fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString()),
-				},
+				userPkh,
+				[]byte(fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString())),
 			},
 		)
-		minerCredHash := ledger.NewBlake2b256(minerCredential.Cbor()).Bytes()
+		minerCredCbor, err := cbor.Encode(&minerCredential)
+		if err != nil {
+			panic(err)
+		}
+		// NOTE: we happen to use the same hash mechanism for our trie keys, so we
+		// can reuse that hashing function here for convenience
+		minerCredHash := storage.GetStorage().Trie().HashKey(minerCredCbor)
+		// Create initial state from block data
 		blockData := m.blockData.(models.TunaV2State)
 		m.state = &TargetStateV2{
 			Nonce:            randomNonce(),
 			MinerCredHash:    minerCredHash,
+			EpochTime:        blockData.EpochTime,
 			BlockNumber:      blockData.BlockNumber,
 			CurrentHash:      blockData.CurrentHash,
 			LeadingZeros:     blockData.LeadingZeros,
 			DifficultyNumber: blockData.DifficultyNumber,
-			EpochTime:        blockData.EpochTime,
 		}
 	}
 
@@ -210,29 +206,25 @@ func (m *Miner) Start() {
 	realTimeNow := time.Now().Unix()*1000 - 60000
 
 	var epochTime int64
-	var tmpInterlink [][]byte
 	if profileCfg.UseTunaV1 {
 		blockData := m.blockData.(models.TunaV1State)
 		epochTime = blockData.EpochTime + 90000 + realTimeNow - blockData.RealTimeNow
-		tmpInterlink = blockData.Interlink
 	} else {
 		blockData := m.blockData.(models.TunaV2State)
-		epochTime = blockData.EpochTime + 90000 + realTimeNow - blockData.RealTimeNow
-		tmpInterlink = blockData.Interlink
+		epochTime = blockData.EpochTime + 90000 + realTimeNow - blockData.CurrentPosixTime
 	}
-
-	difficulty := getDifficulty([]byte(targetHash))
-	currentInterlink := calculateInterlink(
-		targetHash,
-		difficulty,
-		m.getCurrentDifficulty(),
-		tmpInterlink,
-	)
 
 	// Construct the new block data
 	var postDatum any
 	if profileCfg.UseTunaV1 {
 		blockData := m.blockData.(models.TunaV1State)
+		difficulty := getDifficulty([]byte(targetHash))
+		currentInterlink := calculateInterlink(
+			targetHash,
+			difficulty,
+			m.getCurrentDifficulty(),
+			blockData.Interlink,
+		)
 		postDatum = models.TunaV1State{
 			BlockNumber:      blockData.BlockNumber + 1,
 			CurrentHash:      targetHash,
@@ -247,18 +239,24 @@ func (m *Miner) Start() {
 		}
 	} else {
 		blockData := m.blockData.(models.TunaV2State)
+		// TODO: add locking around this so only one worker can modify the trie at a time
+		// Temporarily add new target hash to trie
+		trie := storage.GetStorage().Trie()
+		tmpHashKey := storage.HashValue(targetHash).Bytes()
+		if err := trie.Update(tmpHashKey, targetHash); err != nil {
+			panic(fmt.Sprintf("failed to update storage for trie: %s", err))
+		}
 		postDatum = models.TunaV2State{
 			BlockNumber:      blockData.BlockNumber + 1,
 			CurrentHash:      targetHash,
 			LeadingZeros:     blockData.LeadingZeros,
 			DifficultyNumber: blockData.DifficultyNumber,
 			EpochTime:        epochTime,
-			RealTimeNow:      90000 + realTimeNow,
-			Extra: []byte(
-				fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString()),
-			),
-			Interlink: currentInterlink,
+			CurrentPosixTime: 90000 + realTimeNow,
+			MerkleRoot:       trie.Hash(),
 		}
+		// Remove item from trie until it comes in via the indexer
+		_ = trie.Delete(tmpHashKey)
 	}
 
 	// Check for shutdown

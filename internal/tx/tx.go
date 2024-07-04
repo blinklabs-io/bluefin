@@ -252,7 +252,7 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 			Tag: Redeemer.SPEND,
 			// NOTE: these values are estimated
 			ExUnits: Redeemer.ExecutionUnits{
-				Mem:   550_000,
+				Mem:   700_000,
 				Steps: 300_000_000,
 			},
 			Data: PlutusData.PlutusData{
@@ -347,6 +347,10 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 		}
 		apollob = apollob.AttachV2Script(PlutusData.PlutusV2Script(validatorScriptBytes))
 	}
+
+	// Disable ExUnits estimation, since it doesn't work with the backend we use
+	apollob = apollob.DisableExecutionUnitsEstimation()
+
 	tx, err := apollob.Complete()
 	if err != nil {
 		return nil, err

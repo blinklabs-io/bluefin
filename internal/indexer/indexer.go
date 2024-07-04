@@ -262,6 +262,7 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 						trie.Unlock()
 						return err
 					}
+					trie.Unlock()
 					logger.Infof(
 						"found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, current POSIX time: %d, merkle root = %x",
 						blockData.BlockNumber,

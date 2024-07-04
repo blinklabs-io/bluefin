@@ -377,7 +377,9 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("txBytes = %x\n", txBytes)
+	logger.Debug(
+		fmt.Sprintf("TX bytes: %x", txBytes),
+	)
 	return txBytes, nil
 }
 

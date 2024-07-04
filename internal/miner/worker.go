@@ -16,19 +16,28 @@ package miner
 
 import (
 	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/tx"
 )
 
+const (
+	hashRateLogInterval = 60 * time.Second
+)
+
 type Manager struct {
-	workerWaitGroup sync.WaitGroup
-	doneChan        chan any
-	resultChan      chan Result
-	started         bool
-	startMutex      sync.Mutex
-	stopMutex       sync.Mutex
+	workerWaitGroup  sync.WaitGroup
+	doneChan         chan any
+	resultChan       chan Result
+	started          bool
+	startMutex       sync.Mutex
+	stopMutex        sync.Mutex
+	hashCounter      *atomic.Uint64
+	hashLogTimer     *time.Timer
+	hashLogLastCount uint64
 }
 
 var globalManager = &Manager{}
@@ -45,6 +54,9 @@ func (m *Manager) Stop() {
 	if !m.started {
 		return
 	}
+	if m.hashLogTimer != nil {
+		m.hashLogTimer.Stop()
+	}
 	close(m.doneChan)
 	m.workerWaitGroup.Wait()
 	close(m.resultChan)
@@ -60,11 +72,14 @@ func (m *Manager) Start(blockData any) {
 	}
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()
+	// Start hash rate log timer
+	m.hashCounter = &atomic.Uint64{}
+	m.scheduleHashRateLog()
 	// Start workers
 	m.Reset()
 	logger.Infof("starting %d workers", cfg.Worker.Count)
 	for i := 0; i < cfg.Worker.Count; i++ {
-		miner := New(&(m.workerWaitGroup), m.resultChan, m.doneChan, blockData)
+		miner := New(&(m.workerWaitGroup), m.resultChan, m.doneChan, blockData, m.hashCounter)
 		m.workerWaitGroup.Add(1)
 		go miner.Start()
 	}
@@ -83,6 +98,27 @@ func (m *Manager) Start(blockData any) {
 		}
 	}()
 	m.started = true
+}
+
+func (m *Manager) scheduleHashRateLog() {
+	m.hashLogTimer = time.AfterFunc(hashRateLogInterval, m.hashRateLog)
+}
+
+func (m *Manager) hashRateLog() {
+	logger := logging.GetLogger()
+	hashCount := m.hashCounter.Load()
+	// Handle counter rollover
+	if hashCount < m.hashLogLastCount {
+		m.hashLogLastCount = 0
+		m.scheduleHashRateLog()
+		return
+	}
+	hashCountDiff := hashCount - m.hashLogLastCount
+	m.hashLogLastCount = hashCount
+	secondDivisor := uint64(hashRateLogInterval / time.Second)
+	hashCountPerSec := hashCountDiff / secondDivisor
+	logger.Infof("hash rate: %d/s", hashCountPerSec)
+	m.scheduleHashRateLog()
 }
 
 func GetManager() *Manager {

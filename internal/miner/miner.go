@@ -18,6 +18,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
@@ -32,13 +33,14 @@ import (
 )
 
 type Miner struct {
-	Config     *config.Config
-	Logger     *logging.Logger
-	waitGroup  *sync.WaitGroup
-	resultChan chan Result
-	doneChan   chan any
-	blockData  any
-	state      TargetState
+	Config      *config.Config
+	Logger      *logging.Logger
+	waitGroup   *sync.WaitGroup
+	resultChan  chan Result
+	doneChan    chan any
+	blockData   any
+	state       TargetState
+	hashCounter *atomic.Uint64
 }
 
 type TargetState interface {
@@ -136,14 +138,16 @@ func New(
 	resultChan chan Result,
 	doneChan chan any,
 	blockData any,
+	hashCounter *atomic.Uint64,
 ) *Miner {
 	return &Miner{
-		Config:     config.GetConfig(),
-		Logger:     logging.GetLogger(),
-		waitGroup:  waitGroup,
-		resultChan: resultChan,
-		doneChan:   doneChan,
-		blockData:  blockData,
+		Config:      config.GetConfig(),
+		Logger:      logging.GetLogger(),
+		waitGroup:   waitGroup,
+		resultChan:  resultChan,
+		doneChan:    doneChan,
+		blockData:   blockData,
+		hashCounter: hashCounter,
 	}
 }
 
@@ -325,6 +329,9 @@ func (m *Miner) calculateHash() []byte {
 		hasher2 := sha256.New()
 		hasher2.Write(hash)
 		hash2 := hasher2.Sum(nil)
+
+		// Increment hash counter
+		m.hashCounter.Add(1)
 
 		// Get the difficulty metrics for the hash
 		metrics := getDifficulty(hash2)

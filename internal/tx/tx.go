@@ -234,16 +234,20 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 		newBlockNumberBytes := big.NewInt(int64(blockDataBlockNumber)).Bytes()
 		// Temporarily add new target hash to trie to calculate merkle proof
 		trie := storage.GetStorage().Trie()
+		trie.Lock()
 		tmpHashKey := storage.HashValue(blockDataHash).Bytes()
 		if err := trie.Update(tmpHashKey, blockDataHash); err != nil {
+			trie.Unlock()
 			return nil, err
 		}
 		proof, err := trie.Prove(tmpHashKey)
 		if err != nil {
+			trie.Unlock()
 			return nil, err
 		}
 		// Remove item from trie until it comes in via the indexer
 		_ = trie.Delete(tmpHashKey)
+		trie.Unlock()
 		minerRedeemer := Redeemer.Redeemer{
 			Tag: Redeemer.SPEND,
 			// NOTE: these values are estimated

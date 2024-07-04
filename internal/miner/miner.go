@@ -243,9 +243,9 @@ func (m *Miner) Start() {
 		}
 	} else {
 		blockData := m.blockData.(models.TunaV2State)
-		// TODO: add locking around this so only one worker can modify the trie at a time
-		// Temporarily add new target hash to trie
+		// Temporarily add new target hash to trie to calculate new block's merkle root hash
 		trie := storage.GetStorage().Trie()
+		trie.Lock()
 		tmpHashKey := storage.HashValue(targetHash).Bytes()
 		if err := trie.Update(tmpHashKey, targetHash); err != nil {
 			panic(fmt.Sprintf("failed to update storage for trie: %s", err))
@@ -261,6 +261,7 @@ func (m *Miner) Start() {
 		}
 		// Remove item from trie until it comes in via the indexer
 		_ = trie.Delete(tmpHashKey)
+		trie.Unlock()
 	}
 
 	// Check for shutdown

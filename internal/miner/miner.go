@@ -128,6 +128,11 @@ type DifficultyMetrics struct {
 	DifficultyNumber int64
 }
 
+type DifficultyAdjustment struct {
+	Numerator   int64
+	Denominator int64
+}
+
 type Result struct {
 	BlockData any
 	Nonce     [16]byte
@@ -210,12 +215,36 @@ func (m *Miner) Start() {
 	realTimeNow := time.Now().Unix()*1000 - 60000
 
 	var epochTime int64
+	var blockDataBlockNumber int64
+	var difficultyNumber int64
+	var leadingZeros int64
 	if profileCfg.UseTunaV1 {
 		blockData := m.blockData.(models.TunaV1State)
 		epochTime = blockData.EpochTime + 90000 + realTimeNow - blockData.RealTimeNow
+		blockDataBlockNumber = blockData.BlockNumber
+		difficultyNumber = blockData.DifficultyNumber
+		leadingZeros = blockData.LeadingZeros
 	} else {
 		blockData := m.blockData.(models.TunaV2State)
 		epochTime = blockData.EpochTime + 90000 + realTimeNow - blockData.CurrentPosixTime
+		blockDataBlockNumber = blockData.BlockNumber
+		difficultyNumber = blockData.DifficultyNumber
+		leadingZeros = blockData.LeadingZeros
+	}
+
+	// Adjust difficulty on epoch boundary
+	if blockDataBlockNumber > 0 && blockDataBlockNumber%2016 == 0 {
+		adjustment := getDifficultyAdjustment(epochTime, 1_209_600_000)
+		epochTime = 0
+		newDifficulty := calculateDifficultyNumber(
+			DifficultyMetrics{
+				DifficultyNumber: difficultyNumber,
+				LeadingZeros:     leadingZeros,
+			},
+			adjustment,
+		)
+		difficultyNumber = newDifficulty.DifficultyNumber
+		leadingZeros = newDifficulty.LeadingZeros
 	}
 
 	// Construct the new block data
@@ -232,8 +261,8 @@ func (m *Miner) Start() {
 		postDatum = models.TunaV1State{
 			BlockNumber:      blockData.BlockNumber + 1,
 			CurrentHash:      targetHash,
-			LeadingZeros:     blockData.LeadingZeros,
-			DifficultyNumber: blockData.DifficultyNumber,
+			LeadingZeros:     leadingZeros,
+			DifficultyNumber: difficultyNumber,
 			EpochTime:        epochTime,
 			RealTimeNow:      90000 + realTimeNow,
 			Extra: []byte(
@@ -253,8 +282,8 @@ func (m *Miner) Start() {
 		postDatum = models.TunaV2State{
 			BlockNumber:      blockData.BlockNumber + 1,
 			CurrentHash:      targetHash,
-			LeadingZeros:     blockData.LeadingZeros,
-			DifficultyNumber: blockData.DifficultyNumber,
+			LeadingZeros:     leadingZeros,
+			DifficultyNumber: difficultyNumber,
 			EpochTime:        epochTime,
 			CurrentPosixTime: 90000 + realTimeNow,
 			MerkleRoot:       trie.Hash(),
@@ -439,6 +468,60 @@ func halfDifficultyNumber(metrics DifficultyMetrics) DifficultyMetrics {
 		return DifficultyMetrics{
 			LeadingZeros:     metrics.LeadingZeros,
 			DifficultyNumber: newA,
+		}
+	}
+}
+
+func getDifficultyAdjustment(totalEpochTime int64, epochTarget int64) DifficultyAdjustment {
+	if epochTarget/totalEpochTime >= 4 && epochTarget%totalEpochTime > 0 {
+		return DifficultyAdjustment{
+			Numerator:   1,
+			Denominator: 4,
+		}
+	} else if totalEpochTime/epochTarget >= 4 && totalEpochTime%epochTarget > 0 {
+		return DifficultyAdjustment{
+			Numerator:   4,
+			Denominator: 1,
+		}
+	} else {
+		return DifficultyAdjustment{
+			Numerator:   totalEpochTime,
+			Denominator: epochTarget,
+		}
+	}
+}
+
+func calculateDifficultyNumber(diffMetrics DifficultyMetrics, diffAdjustment DifficultyAdjustment) DifficultyMetrics {
+	newPaddedDifficulty := (diffMetrics.DifficultyNumber * 16 * diffAdjustment.Numerator) / diffAdjustment.Denominator
+	newDifficulty := newPaddedDifficulty / 16
+	if newPaddedDifficulty/65536 == 0 {
+		if diffMetrics.LeadingZeros >= 62 {
+			return DifficultyMetrics{
+				DifficultyNumber: 4096,
+				LeadingZeros:     62,
+			}
+		} else {
+			return DifficultyMetrics{
+				DifficultyNumber: newPaddedDifficulty,
+				LeadingZeros:     diffMetrics.LeadingZeros + 1,
+			}
+		}
+	} else if newDifficulty/65536 > 0 {
+		if diffMetrics.LeadingZeros <= 2 {
+			return DifficultyMetrics{
+				DifficultyNumber: 65535,
+				LeadingZeros:     2,
+			}
+		} else {
+			return DifficultyMetrics{
+				DifficultyNumber: newDifficulty / 16,
+				LeadingZeros:     diffMetrics.LeadingZeros - 1,
+			}
+		}
+	} else {
+		return DifficultyMetrics{
+			DifficultyNumber: newDifficulty,
+			LeadingZeros:     diffMetrics.LeadingZeros,
 		}
 	}
 }

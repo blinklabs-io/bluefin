@@ -18,6 +18,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 
@@ -27,6 +28,7 @@ import (
 )
 
 type Trie struct {
+	sync.Mutex
 	db        *badger.DB
 	trie      *mpf.Trie
 	keyPrefix []byte

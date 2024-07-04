@@ -255,8 +255,11 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 					}
 					i.lastBlockData = blockData
 					// Update trie
-					trieKey := store.Trie().HashKey(blockData.CurrentHash)
-					if err := store.Trie().Update(trieKey, blockData.CurrentHash); err != nil {
+					trie := store.Trie()
+					trie.Lock()
+					trieKey := trie.HashKey(blockData.CurrentHash)
+					if err := trie.Update(trieKey, blockData.CurrentHash); err != nil {
+						trie.Unlock()
 						return err
 					}
 					logger.Infof(

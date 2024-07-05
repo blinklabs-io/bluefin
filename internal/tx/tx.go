@@ -252,8 +252,8 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 			Tag: Redeemer.SPEND,
 			// NOTE: these values are estimated
 			ExUnits: Redeemer.ExecutionUnits{
-				Mem:   700_000,
-				Steps: 300_000_000,
+				Mem:   800_000,
+				Steps: 400_000_000,
 			},
 			Data: PlutusData.PlutusData{
 				PlutusDataType: PlutusData.PlutusBytes,

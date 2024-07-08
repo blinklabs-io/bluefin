@@ -15,6 +15,7 @@
 package miner
 
 import (
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -26,6 +27,7 @@ import (
 
 const (
 	hashRateLogInterval = 60 * time.Second
+	restartTimeout      = 2 * time.Minute
 )
 
 type Manager struct {
@@ -38,6 +40,8 @@ type Manager struct {
 	hashCounter      *atomic.Uint64
 	hashLogTimer     *time.Timer
 	hashLogLastCount uint64
+	restartTimer     *time.Timer
+	lastBlockData    any
 }
 
 var globalManager = &Manager{}
@@ -49,6 +53,7 @@ func (m *Manager) Reset() {
 }
 
 func (m *Manager) Stop() {
+	logger := logging.GetLogger()
 	m.stopMutex.Lock()
 	defer m.stopMutex.Unlock()
 	if !m.started {
@@ -61,7 +66,17 @@ func (m *Manager) Stop() {
 	m.workerWaitGroup.Wait()
 	close(m.resultChan)
 	m.started = false
-	logging.GetLogger().Infof("stopped workers")
+	logger.Infof("stopped workers")
+	// Start timer to restart miner
+	m.restartTimer = time.AfterFunc(
+		restartTimeout,
+		func() {
+			logger.Warn(
+				fmt.Sprintf("restarting miner automatically after %s timeout", restartTimeout),
+			)
+			m.Start(m.lastBlockData)
+		},
+	)
 }
 
 func (m *Manager) Start(blockData any) {
@@ -69,6 +84,11 @@ func (m *Manager) Start(blockData any) {
 	defer m.startMutex.Unlock()
 	if m.started {
 		return
+	}
+	m.lastBlockData = blockData
+	// Cancel any restart timer
+	if m.restartTimer != nil {
+		m.restartTimer.Stop()
 	}
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()

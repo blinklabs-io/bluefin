@@ -50,6 +50,7 @@ type SubmitConfig struct {
 	Address    string `yaml:"address"      envconfig:"SUBMIT_TCP_ADDRESS"`
 	SocketPath string `yaml:"socketPath"   envconfig:"SUBMIT_SOCKET_PATH"`
 	Url        string `yaml:"url"          envconfig:"SUBMIT_URL"`
+	UrlKey     string `yaml:"urlKey"       envconfig:"SUBMIT_URL_KEY"`
 }
 
 type StorageConfig struct {

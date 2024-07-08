@@ -486,6 +486,9 @@ func submitTxApi(txRawBytes []byte) (string, error) {
 		return "", fmt.Errorf("failed to create request: %s", err)
 	}
 	req.Header.Add("Content-Type", "application/cbor")
+	if cfg.Submit.UrlKey != "" {
+		req.Header.Add("project_id", cfg.Submit.UrlKey)
+	}
 	client := &http.Client{Timeout: 5 * time.Minute}
 	resp, err := client.Do(req)
 	if err != nil {

@@ -47,10 +47,10 @@ type IndexerConfig struct {
 }
 
 type SubmitConfig struct {
-	Address    string `yaml:"address"      envconfig:"SUBMIT_TCP_ADDRESS"`
-	SocketPath string `yaml:"socketPath"   envconfig:"SUBMIT_SOCKET_PATH"`
-	Url        string `yaml:"url"          envconfig:"SUBMIT_URL"`
-	UrlKey     string `yaml:"urlKey"       envconfig:"SUBMIT_URL_KEY"`
+	Address             string `yaml:"address"      envconfig:"SUBMIT_TCP_ADDRESS"`
+	SocketPath          string `yaml:"socketPath"   envconfig:"SUBMIT_SOCKET_PATH"`
+	Url                 string `yaml:"url"          envconfig:"SUBMIT_URL"`
+	BlockFrostProjectID string `yaml:"blockFrostProjectID"` envconfig:"SUBMIT_BLOCKFROST_PROJECT_ID"`
 }
 
 type StorageConfig struct {

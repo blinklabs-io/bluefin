@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
@@ -34,6 +35,7 @@ const (
 )
 
 type Storage struct {
+	sync.Mutex
 	db   *badger.DB
 	trie *Trie
 }
@@ -190,8 +192,10 @@ func (s *Storage) AddUtxo(
 	txId string,
 	txOutIdx uint32,
 	txOutBytes []byte,
+	slot uint64,
 ) error {
-	key := fmt.Sprintf("utxo_%s_%s.%d", address, txId, txOutIdx)
+	keyUtxo := fmt.Sprintf("utxo_%s_%s.%d", address, txId, txOutIdx)
+	keyAdded := keyUtxo + `_added`
 	err := s.db.Update(func(txn *badger.Txn) error {
 		// Wrap TX output in UTxO structure to make it easier to consume later
 		txIdBytes, err := hex.DecodeString(txId)
@@ -213,7 +217,17 @@ func (s *Storage) AddUtxo(
 		if err != nil {
 			return err
 		}
-		if err := txn.Set([]byte(key), cborBytes); err != nil {
+		if err := txn.Set([]byte(keyUtxo), cborBytes); err != nil {
+			return err
+		}
+		// Set "added" key to provided slot number
+		if err := txn.Set(
+			[]byte(keyAdded),
+			[]byte(
+				// Convert slot to string for storage
+				strconv.Itoa(int(slot)),
+			),
+		); err != nil {
 			return err
 		}
 		return nil
@@ -225,10 +239,23 @@ func (s *Storage) RemoveUtxo(
 	address string,
 	txId string,
 	utxoIdx uint32,
+	slot uint64,
 ) error {
-	key := fmt.Sprintf("utxo_%s_%s.%d", address, txId, utxoIdx)
+	keyUtxo := fmt.Sprintf("utxo_%s_%s.%d", address, txId, utxoIdx)
+	keyDeleted := keyUtxo + `_deleted`
 	err := s.db.Update(func(txn *badger.Txn) error {
-		if err := txn.Delete([]byte(key)); err != nil {
+		// Check if UTxO exists at all
+		if _, err := txn.Get([]byte(keyUtxo)); err != nil {
+			return err
+		}
+		// Set "deleted" key to provided slot number
+		if err := txn.Set(
+			[]byte(keyDeleted),
+			[]byte(
+				// Convert slot to string for storage
+				strconv.Itoa(int(slot)),
+			),
+		); err != nil {
 			return err
 		}
 		return nil
@@ -250,15 +277,21 @@ func (s *Storage) GetUtxos(address string) ([][]byte, error) {
 		defer it.Close()
 		for it.Seek(keyPrefix); it.ValidForPrefix(keyPrefix); it.Next() {
 			item := it.Item()
-			err := item.Value(func(v []byte) error {
-				// Create copy of value for use outside of transaction
-				valCopy := append([]byte{}, v...)
-				ret = append(ret, valCopy)
-				return nil
-			})
+			key := item.Key()
+			// Ignore "added" and "deleted" metadata keys when iterating
+			if strings.HasSuffix(string(key), `_deleted`) || strings.HasSuffix(string(key), `_added`) {
+				continue
+			}
+			// Ignore "deleted" UTxOs
+			keyDeleted := string(key) + `_deleted`
+			if _, err := txn.Get([]byte(keyDeleted)); err != badger.ErrKeyNotFound {
+				continue
+			}
+			val, err := item.ValueCopy(nil)
 			if err != nil {
 				return err
 			}
+			ret = append(ret, val)
 		}
 		return nil
 	})
@@ -269,6 +302,157 @@ func (s *Storage) GetUtxos(address string) ([][]byte, error) {
 		return nil, nil
 	}
 	return ret, nil
+}
+
+func (s *Storage) Rollback(slot uint64) error {
+	logger := logging.GetLogger()
+	keyPrefix := []byte(`utxo_`)
+	var deleteKeys [][]byte
+	err := s.db.Update(func(txn *badger.Txn) error {
+		it := txn.NewIterator(badger.DefaultIteratorOptions)
+		defer it.Close()
+		for it.Seek(keyPrefix); it.ValidForPrefix(keyPrefix); it.Next() {
+			item := it.Item()
+			key := item.KeyCopy(nil)
+			// Ignore "added" and "deleted" metadata keys when iterating
+			if strings.HasSuffix(string(key), `_deleted`) || strings.HasSuffix(string(key), `_added`) {
+				continue
+			}
+			// Restore UTxOs deleted after rollback slot
+			keyDeleted := string(key) + `_deleted`
+			delItem, err := txn.Get([]byte(keyDeleted))
+			if err != nil && err != badger.ErrKeyNotFound {
+				return err
+			}
+			if err != badger.ErrKeyNotFound {
+				delVal, err := delItem.ValueCopy(nil)
+				if err != nil {
+					return err
+				}
+				delSlot, err := strconv.ParseUint(string(delVal), 10, 64)
+				if err != nil {
+					return err
+				}
+				if delSlot > slot {
+					logger.Debug(
+						fmt.Sprintf(
+							"deleting key %s ('deleted' slot %d) to restore deleted UTxO",
+							keyDeleted,
+							delSlot,
+						),
+					)
+					deleteKeys = append(deleteKeys, []byte(keyDeleted))
+				}
+			}
+			// Remove UTxOs added after rollback slot
+			keyAdded := string(key) + `_added`
+			addItem, err := txn.Get([]byte(keyAdded))
+			if err != nil && err != badger.ErrKeyNotFound {
+				return err
+			}
+			if err != badger.ErrKeyNotFound {
+				addVal, err := addItem.ValueCopy(nil)
+				if err != nil {
+					return err
+				}
+				addSlot, err := strconv.ParseUint(string(addVal), 10, 64)
+				if err != nil {
+					return err
+				}
+				if addSlot > slot {
+					logger.Debug(
+						fmt.Sprintf(
+							"deleting keys %s ('added' slot %d) and %s to remove rolled-back UTxO",
+							key,
+							addSlot,
+							keyAdded,
+						),
+					)
+					deleteKeys = append(
+						deleteKeys,
+						key,
+						[]byte(keyAdded),
+					)
+				}
+			}
+		}
+		// We delete the keys outside of the iterator, because apparently you can't delete
+		// the current key when iterating
+		for _, key := range deleteKeys {
+			if err := txn.Delete([]byte(key)); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	// Remove rolled-back hashes from trie
+	if err := s.trie.Rollback(slot); err != nil {
+		return err
+	}
+	return err
+}
+
+func (s *Storage) PurgeDeletedUtxos(beforeSlot uint64) error {
+	logger := logging.GetLogger()
+	keyPrefix := []byte(`utxo_`)
+	var deleteKeys [][]byte
+	err := s.db.Update(func(txn *badger.Txn) error {
+		it := txn.NewIterator(badger.DefaultIteratorOptions)
+		defer it.Close()
+		for it.Seek(keyPrefix); it.ValidForPrefix(keyPrefix); it.Next() {
+			item := it.Item()
+			key := item.KeyCopy(nil)
+			// Ignore "added" and "deleted" metadata keys when iterating
+			if strings.HasSuffix(string(key), `_deleted`) || strings.HasSuffix(string(key), `_added`) {
+				continue
+			}
+			// Check for "deleted" key
+			keyDeleted := string(key) + `_deleted`
+			delItem, err := txn.Get([]byte(keyDeleted))
+			if err != nil {
+				if err == badger.ErrKeyNotFound {
+					continue
+				}
+				return err
+			}
+			delVal, err := delItem.ValueCopy(nil)
+			if err != nil {
+				return err
+			}
+			delSlot, err := strconv.ParseUint(string(delVal), 10, 64)
+			if err != nil {
+				return err
+			}
+			if delSlot < beforeSlot {
+				deleteKeys = append(
+					deleteKeys,
+					// UTxO key
+					key,
+					// UTxO "added" key
+					[]byte(string(key)+`_added`),
+					// UTxO "deleted" key
+					[]byte(string(key)+`_deleted`),
+				)
+			}
+		}
+		// We delete the keys outside of the iterator, because apparently you can't delete
+		// the current key when iterating
+		for _, key := range deleteKeys {
+			if err := txn.Delete([]byte(key)); err != nil {
+				// Leave the rest for the next run if we hit the max transaction size
+				if err == badger.ErrTxnTooBig {
+					logger.Debug("purge deleted UTxOs: badger transaction too large, leaving remainder until next run")
+					break
+				}
+				return err
+			}
+			logger.Debug(
+				fmt.Sprintf("purged deleted UTxO key: %s", key),
+			)
+		}
+		return nil
+	})
+	return err
 }
 
 func GetStorage() *Storage {

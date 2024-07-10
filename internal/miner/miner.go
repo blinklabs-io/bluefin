@@ -279,7 +279,7 @@ func (m *Miner) Start() {
 		trie := storage.GetStorage().Trie()
 		trie.Lock()
 		tmpHashKey := storage.HashValue(targetHash).Bytes()
-		if err := trie.Update(tmpHashKey, targetHash); err != nil {
+		if err := trie.Update(tmpHashKey, targetHash, 0); err != nil {
 			panic(fmt.Sprintf("failed to update storage for trie: %s", err))
 		}
 		postDatum = models.TunaV2State{

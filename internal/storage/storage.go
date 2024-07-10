@@ -86,7 +86,10 @@ func (s *Storage) compareFingerprint() error {
 		}
 		err = item.Value(func(v []byte) error {
 			if string(v) != fingerprint {
-				return fmt.Errorf("config fingerprint in DB doesn't match current config: %s", v)
+				return fmt.Errorf(
+					"config fingerprint in DB doesn't match current config: %s",
+					v,
+				)
 			}
 			return nil
 		})

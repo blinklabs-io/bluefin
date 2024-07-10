@@ -85,7 +85,9 @@ func PaymentKeyHash() []byte {
 	if err != nil {
 		panic(err)
 	}
-	userPkh := bursa.GetPaymentKey(bursa.GetAccountKey(rootKey, 0), 0).Public().PublicKey()
+	userPkh := bursa.GetPaymentKey(bursa.GetAccountKey(rootKey, 0), 0).
+		Public().
+		PublicKey()
 	tmpHasher, err := blake2b.New(28, nil)
 	if err != nil {
 		panic(err)

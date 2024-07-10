@@ -72,7 +72,10 @@ func (m *Manager) Stop() {
 		restartTimeout,
 		func() {
 			logger.Warn(
-				fmt.Sprintf("restarting miner automatically after %s timeout", restartTimeout),
+				fmt.Sprintf(
+					"restarting miner automatically after %s timeout",
+					restartTimeout,
+				),
 			)
 			m.Start(m.lastBlockData)
 		},
@@ -99,7 +102,13 @@ func (m *Manager) Start(blockData any) {
 	m.Reset()
 	logger.Infof("starting %d workers", cfg.Worker.Count)
 	for i := 0; i < cfg.Worker.Count; i++ {
-		miner := New(&(m.workerWaitGroup), m.resultChan, m.doneChan, blockData, m.hashCounter)
+		miner := New(
+			&(m.workerWaitGroup),
+			m.resultChan,
+			m.doneChan,
+			blockData,
+			m.hashCounter,
+		)
 		m.workerWaitGroup.Add(1)
 		go miner.Start()
 	}

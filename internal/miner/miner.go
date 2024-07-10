@@ -266,7 +266,10 @@ func (m *Miner) Start() {
 			EpochTime:        epochTime,
 			RealTimeNow:      90000 + realTimeNow,
 			Extra: []byte(
-				fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString()),
+				fmt.Sprintf(
+					"Bluefin %s by Blink Labs",
+					version.GetVersionString(),
+				),
 			),
 			Interlink: currentInterlink,
 		}
@@ -472,7 +475,10 @@ func halfDifficultyNumber(metrics DifficultyMetrics) DifficultyMetrics {
 	}
 }
 
-func getDifficultyAdjustment(totalEpochTime int64, epochTarget int64) DifficultyAdjustment {
+func getDifficultyAdjustment(
+	totalEpochTime int64,
+	epochTarget int64,
+) DifficultyAdjustment {
 	if epochTarget/totalEpochTime >= 4 && epochTarget%totalEpochTime > 0 {
 		return DifficultyAdjustment{
 			Numerator:   1,
@@ -491,7 +497,10 @@ func getDifficultyAdjustment(totalEpochTime int64, epochTarget int64) Difficulty
 	}
 }
 
-func calculateDifficultyNumber(diffMetrics DifficultyMetrics, diffAdjustment DifficultyAdjustment) DifficultyMetrics {
+func calculateDifficultyNumber(
+	diffMetrics DifficultyMetrics,
+	diffAdjustment DifficultyAdjustment,
+) DifficultyMetrics {
 	newPaddedDifficulty := (diffMetrics.DifficultyNumber * 16 * diffAdjustment.Numerator) / diffAdjustment.Denominator
 	newDifficulty := newPaddedDifficulty / 16
 	if newPaddedDifficulty/65536 == 0 {

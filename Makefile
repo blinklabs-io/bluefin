@@ -25,6 +25,12 @@ mod-tidy:
 clean:
 	rm -f $(BINARIES)
 
+format:
+	go fmt ./...
+
+golines:
+	golines -w --ignore-generated --chain-split-dots --max-len=80 --reformat-tags .
+
 test: mod-tidy
 	go test -v -race ./...
 

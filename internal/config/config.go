@@ -47,9 +47,9 @@ type IndexerConfig struct {
 }
 
 type SubmitConfig struct {
-	Address             string `yaml:"address"      envconfig:"SUBMIT_TCP_ADDRESS"`
-	SocketPath          string `yaml:"socketPath"   envconfig:"SUBMIT_SOCKET_PATH"`
-	Url                 string `yaml:"url"          envconfig:"SUBMIT_URL"`
+	Address             string `yaml:"address"             envconfig:"SUBMIT_TCP_ADDRESS"`
+	SocketPath          string `yaml:"socketPath"          envconfig:"SUBMIT_SOCKET_PATH"`
+	Url                 string `yaml:"url"                 envconfig:"SUBMIT_URL"`
 	BlockFrostProjectID string `yaml:"blockFrostProjectID" envconfig:"SUBMIT_BLOCKFROST_PROJECT_ID"`
 }
 
@@ -160,7 +160,11 @@ func (c *Config) validateProfile() error {
 		return fmt.Errorf("no profiles defined for network %s", c.Network)
 	}
 	if _, ok := Profiles[c.Network][c.Profile]; !ok {
-		return fmt.Errorf("no profile %s defined for network %s", c.Profile, c.Network)
+		return fmt.Errorf(
+			"no profile %s defined for network %s",
+			c.Profile,
+			c.Network,
+		)
 	}
 	return nil
 }

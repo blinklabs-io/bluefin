@@ -17,6 +17,7 @@ package tx
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -70,6 +71,7 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	cfg := config.GetConfig()
 	logger := logging.GetLogger()
 	bursa := wallet.GetWallet()
+	store := storage.GetStorage()
 
 	profileCfg := config.GetProfile()
 
@@ -95,10 +97,13 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 		SetWalletAsChangeAddress()
 
 	// Gather input UTxOs from our wallet
-	utxosBytes, err := storage.GetStorage().GetUtxos(bursa.PaymentAddress)
+	store.Lock()
+	utxosBytes, err := store.GetUtxos(bursa.PaymentAddress)
 	if err != nil {
+		store.Unlock()
 		return nil, err
 	}
+	store.Unlock()
 	var utxos []UTxO.UTxO
 	var tunaPolicyId *Policy.PolicyId
 	if profileCfg.UseTunaV1 {
@@ -132,11 +137,13 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	}
 
 	// Gather UTxO(s) for script
-	scriptUtxosBytes, err := storage.GetStorage().
-		GetUtxos(cfg.Indexer.ScriptAddress)
+	store.Lock()
+	scriptUtxosBytes, err := store.GetUtxos(cfg.Indexer.ScriptAddress)
 	if err != nil {
+		store.Unlock()
 		return nil, err
 	}
+	store.Unlock()
 	scriptUtxos := []UTxO.UTxO{}
 	for _, utxoBytes := range scriptUtxosBytes {
 		var utxo UTxO.UTxO
@@ -152,6 +159,9 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 			cfg.Indexer.ScriptAddress,
 			len(scriptUtxos),
 		)
+	}
+	if len(scriptUtxos) == 0 {
+		return nil, errors.New("no script UTxOs found")
 	}
 	validatorOutRef := scriptUtxos[0]
 
@@ -238,7 +248,7 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 		trie := storage.GetStorage().Trie()
 		trie.Lock()
 		tmpHashKey := storage.HashValue(blockDataHash).Bytes()
-		if err := trie.Update(tmpHashKey, blockDataHash); err != nil {
+		if err := trie.Update(tmpHashKey, blockDataHash, 0); err != nil {
 			trie.Unlock()
 			return nil, err
 		}

@@ -38,6 +38,7 @@ import (
 
 const (
 	syncStatusLogInterval = 30 * time.Second
+	rollbackSlots         = 50 * 20 // 50 blocks with a 20s average between
 )
 
 type Indexer struct {
@@ -146,7 +147,7 @@ func (i *Indexer) Start() error {
 	// Configure pipeline filters
 	// We only care about transaction events
 	filterEvent := filter_event.New(
-		filter_event.WithTypes([]string{"chainsync.transaction"}),
+		filter_event.WithTypes([]string{"chainsync.transaction", "chainsync.rollback"}),
 	)
 	i.pipeline.AddFilter(filterEvent)
 	// We only care about transactions on a certain address
@@ -178,30 +179,69 @@ func (i *Indexer) Start() error {
 }
 
 func (i *Indexer) handleEvent(evt event.Event) error {
+	switch evt.Payload.(type) {
+	case input_chainsync.RollbackEvent:
+		return i.handleEventRollback(evt)
+	case input_chainsync.TransactionEvent:
+		return i.handleEventTransaction(evt)
+	default:
+		return fmt.Errorf("unknown event payload type: %T", evt.Payload)
+	}
+}
+
+func (i *Indexer) handleEventRollback(evt event.Event) error {
+	logger := logging.GetLogger()
+	store := storage.GetStorage()
+	eventRollback := evt.Payload.(input_chainsync.RollbackEvent)
+	store.Lock()
+	defer store.Unlock()
+	if err := store.Rollback(eventRollback.SlotNumber); err != nil {
+		return err
+	}
+	logger.Info(
+		fmt.Sprintf("rolled back to %d.%s", eventRollback.SlotNumber, eventRollback.BlockHash),
+	)
+	// Purge older deleted UTxOs
+	if err := store.PurgeDeletedUtxos(eventRollback.SlotNumber - rollbackSlots); err != nil {
+		logger.Warn(
+			fmt.Sprintf("failed to purge deleted UTxOs: %s", err),
+		)
+	}
+	return nil
+}
+
+func (i *Indexer) handleEventTransaction(evt event.Event) error {
 	cfg := config.GetConfig()
 	profileCfg := config.GetProfile()
 	logger := logging.GetLogger()
+	bursa := wallet.GetWallet()
 	store := storage.GetStorage()
 	eventTx := evt.Payload.(input_chainsync.TransactionEvent)
 	eventCtx := evt.Context.(input_chainsync.TransactionContext)
+	store.Lock()
+	defer store.Unlock()
 	// Delete used UTXOs
 	for _, txInput := range eventTx.Transaction.Consumed() {
 		// We don't have a ledger DB to know where the TX inputs came from, so we just try deleting them for our known addresses
-		for _, tmpAddress := range []string{cfg.Indexer.ScriptAddress, wallet.GetWallet().PaymentAddress} {
-			if err := store.RemoveUtxo(tmpAddress, txInput.Id().String(), txInput.Index()); err != nil {
+		for _, tmpAddress := range []string{cfg.Indexer.ScriptAddress, bursa.PaymentAddress} {
+			if err := store.RemoveUtxo(tmpAddress, txInput.Id().String(), txInput.Index(), eventCtx.SlotNumber); err != nil {
 				return err
 			}
 		}
 	}
 	for idx, txOutput := range eventTx.Transaction.Produced() {
-		// Write UTXO to storage
-		if err := store.AddUtxo(
-			txOutput.Address().String(),
-			eventCtx.TransactionHash,
-			uint32(idx),
-			txOutput.Cbor(),
-		); err != nil {
-			return err
+		if txOutput.Address().String() == cfg.Indexer.ScriptAddress ||
+			txOutput.Address().String() == bursa.PaymentAddress {
+			// Write UTXO to storage
+			if err := store.AddUtxo(
+				txOutput.Address().String(),
+				eventCtx.TransactionHash,
+				uint32(idx),
+				txOutput.Cbor(),
+				eventCtx.SlotNumber,
+			); err != nil {
+				return err
+			}
 		}
 		// Handle datum for script address
 		if txOutput.Address().String() == cfg.Indexer.ScriptAddress {
@@ -258,7 +298,7 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 					trie := store.Trie()
 					trie.Lock()
 					trieKey := trie.HashKey(blockData.CurrentHash)
-					if err := trie.Update(trieKey, blockData.CurrentHash); err != nil {
+					if err := trie.Update(trieKey, blockData.CurrentHash, eventCtx.SlotNumber); err != nil {
 						trie.Unlock()
 						return err
 					}
@@ -279,12 +319,21 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 					return err
 				}
 
-				// Restart miners for new datum
 				if i.tipReached {
+					// TODO: defer starting miner until after processing all TX outputs
+					// Restart miners for new datum
 					miner.GetManager().Stop()
 					miner.GetManager().Start(i.lastBlockData)
 				}
 			}
+		}
+	}
+	// Purge older deleted UTxOs
+	if i.tipReached {
+		if err := store.PurgeDeletedUtxos(eventCtx.SlotNumber - rollbackSlots); err != nil {
+			logger.Warn(
+				fmt.Sprintf("failed to purge deleted UTxOs: %s", err),
+			)
 		}
 	}
 	return nil

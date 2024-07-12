@@ -17,6 +17,7 @@ package storage
 import (
 	"encoding/hex"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -55,7 +56,7 @@ func (t *Trie) load() error {
 			return err
 		}
 		trieKey := t.HashKey(seedHashBytes)
-		if err := t.Update(trieKey, seedHashBytes); err != nil {
+		if err := t.Update(trieKey, seedHashBytes, 0); err != nil {
 			return err
 		}
 	}
@@ -82,13 +83,27 @@ func (t *Trie) load() error {
 	return err
 }
 
-func (t *Trie) Update(key []byte, val []byte) error {
+func (t *Trie) Update(key []byte, val []byte, slot uint64) error {
 	// Update trie
 	t.trie.Set(key, val)
 	// Update storage
 	dbKey := t.dbKeyPrefix(key)
 	err := t.db.Update(func(txn *badger.Txn) error {
-		return txn.Set(dbKey, val)
+		if err := txn.Set(dbKey, val); err != nil {
+			return err
+		}
+		// Set "added" key to provided slot number
+		keyAdded := `meta_` + string(dbKey) + `_added`
+		if err := txn.Set(
+			[]byte(keyAdded),
+			[]byte(
+				// Convert slot to string for storage
+				strconv.Itoa(int(slot)),
+			),
+		); err != nil {
+			return err
+		}
+		return nil
 	})
 	return err
 }
@@ -101,7 +116,57 @@ func (t *Trie) Delete(key []byte) error {
 	// Update storage
 	dbKey := t.dbKeyPrefix(key)
 	err := t.db.Update(func(txn *badger.Txn) error {
-		return txn.Delete(dbKey)
+		if err := txn.Delete(dbKey); err != nil {
+			return err
+		}
+		// Delete "added" key
+		keyAdded := `meta_` + string(dbKey) + `_added`
+		if err := txn.Delete([]byte(keyAdded)); err != nil {
+			if err != badger.ErrKeyNotFound {
+				return err
+			}
+		}
+		return nil
+	})
+	return err
+}
+
+func (t *Trie) Rollback(slot uint64) error {
+	dbKeyPrefix := t.dbKeyPrefix(nil)
+	err := t.db.Update(func(txn *badger.Txn) error {
+		it := txn.NewIterator(badger.DefaultIteratorOptions)
+		defer it.Close()
+		for it.Seek(dbKeyPrefix); it.ValidForPrefix(dbKeyPrefix); it.Next() {
+			item := it.Item()
+			key := item.Key()
+			keyAdded := `meta_` + string(key) + `_added`
+			addItem, err := txn.Get([]byte(keyAdded))
+			if err != nil {
+				if err == badger.ErrKeyNotFound {
+					continue
+				}
+				return err
+			}
+			addVal, err := addItem.ValueCopy(nil)
+			if err != nil {
+				return err
+			}
+			addSlot, err := strconv.Atoi(string(addVal))
+			if err != nil {
+				return err
+			}
+			if addSlot > int(slot) {
+				// Delete rolled-back hashes from trie
+				tmpKey := strings.TrimPrefix(
+					string(item.Key()),
+					string(dbKeyPrefix),
+				)
+				if err := t.Delete([]byte(tmpKey)); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
 	})
 	return err
 }

@@ -26,8 +26,7 @@ import (
 )
 
 const (
-	hashRateLogInterval = 60 * time.Second
-	restartTimeout      = 2 * time.Minute
+	restartTimeout = 2 * time.Minute
 )
 
 type Manager struct {
@@ -49,7 +48,7 @@ var globalManager = &Manager{}
 func (m *Manager) Reset() {
 	m.workerWaitGroup = sync.WaitGroup{}
 	m.doneChan = make(chan any)
-	m.resultChan = make(chan Result, config.GetConfig().Worker.Count)
+	m.resultChan = make(chan Result, config.GetConfig().Miner.WorkerCount)
 }
 
 func (m *Manager) Stop() {
@@ -100,8 +99,8 @@ func (m *Manager) Start(blockData any) {
 	m.scheduleHashRateLog()
 	// Start workers
 	m.Reset()
-	logger.Infof("starting %d workers", cfg.Worker.Count)
-	for i := 0; i < cfg.Worker.Count; i++ {
+	logger.Infof("starting %d workers", cfg.Miner.WorkerCount)
+	for i := 0; i < cfg.Miner.WorkerCount; i++ {
 		miner := New(
 			&(m.workerWaitGroup),
 			m.resultChan,
@@ -130,10 +129,12 @@ func (m *Manager) Start(blockData any) {
 }
 
 func (m *Manager) scheduleHashRateLog() {
-	m.hashLogTimer = time.AfterFunc(hashRateLogInterval, m.hashRateLog)
+	cfg := config.GetConfig()
+	m.hashLogTimer = time.AfterFunc(time.Duration(cfg.Miner.HashRateInterval)*time.Second, m.hashRateLog)
 }
 
 func (m *Manager) hashRateLog() {
+	cfg := config.GetConfig()
 	logger := logging.GetLogger()
 	hashCount := m.hashCounter.Load()
 	// Handle counter rollover
@@ -144,7 +145,7 @@ func (m *Manager) hashRateLog() {
 	}
 	hashCountDiff := hashCount - m.hashLogLastCount
 	m.hashLogLastCount = hashCount
-	secondDivisor := uint64(hashRateLogInterval / time.Second)
+	secondDivisor := uint64(cfg.Miner.HashRateInterval)
 	hashCountPerSec := hashCountDiff / secondDivisor
 	logger.Infof("hash rate: %d/s", hashCountPerSec)
 	m.scheduleHashRateLog()

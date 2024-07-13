@@ -29,7 +29,7 @@ type Config struct {
 	Indexer      IndexerConfig `yaml:"indexer"`
 	Submit       SubmitConfig  `yaml:"submit"`
 	Wallet       WalletConfig  `yaml:"wallet"`
-	Worker       WorkerConfig  `yaml:"worker"`
+	Miner        MinerConfig   `yaml:"miner"`
 	Logging      LoggingConfig `yaml:"logging"`
 	Metrics      MetricsConfig `yaml:"metrics"`
 	Debug        DebugConfig   `yaml:"debug"`
@@ -61,8 +61,9 @@ type WalletConfig struct {
 	Mnemonic string `yaml:"mnemonic" envconfig:"MNEMONIC"`
 }
 
-type WorkerConfig struct {
-	Count int `yaml:"count" envconfig:"WORKER_COUNT"`
+type MinerConfig struct {
+	WorkerCount      int `yaml:"workers" envconfig:"WORKER_COUNT"`
+	HashRateInterval int `yaml:"hashRateInterval" envconfig:"HASH_RATE_INTERVAL"`
 }
 
 type LoggingConfig struct {
@@ -100,8 +101,9 @@ var globalConfig = &Config{
 	},
 	// The default worker config is somewhat conservative: worker count is set
 	// to half of the available logical CPUs
-	Worker: WorkerConfig{
-		Count: runtime.NumCPU() / 2,
+	Miner: MinerConfig{
+		WorkerCount:      runtime.NumCPU() / 2,
+		HashRateInterval: 60,
 	},
 	Network: "mainnet",
 	Profile: "tuna-v1",

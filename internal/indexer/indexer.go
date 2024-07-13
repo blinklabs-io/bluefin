@@ -229,23 +229,23 @@ func (i *Indexer) handleEventTransaction(evt event.Event) error {
 			}
 		}
 	}
-	for idx, txOutput := range eventTx.Transaction.Produced() {
-		if txOutput.Address().String() == cfg.Indexer.ScriptAddress ||
-			txOutput.Address().String() == bursa.PaymentAddress {
+	for _, utxo := range eventTx.Transaction.Produced() {
+		if utxo.Output.Address().String() == cfg.Indexer.ScriptAddress ||
+			utxo.Output.Address().String() == bursa.PaymentAddress {
 			// Write UTXO to storage
 			if err := store.AddUtxo(
-				txOutput.Address().String(),
+				utxo.Output.Address().String(),
 				eventCtx.TransactionHash,
-				uint32(idx),
-				txOutput.Cbor(),
+				utxo.Id.Index(),
+				utxo.Output.Cbor(),
 				eventCtx.SlotNumber,
 			); err != nil {
 				return err
 			}
 		}
 		// Handle datum for script address
-		if txOutput.Address().String() == cfg.Indexer.ScriptAddress {
-			datum := txOutput.Datum()
+		if utxo.Output.Address().String() == cfg.Indexer.ScriptAddress {
+			datum := utxo.Output.Datum()
 			if datum != nil {
 				if _, err := datum.Decode(); err != nil {
 					logger.Warnf(

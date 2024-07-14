@@ -34,6 +34,9 @@ golines:
 test: mod-tidy
 	go test -v -race ./...
 
+bench: mod-tidy
+	go test -v -bench=. ./...
+
 # Build our program binaries
 # Depends on GO_FILES to determine when rebuild is needed
 $(BINARIES): mod-tidy $(GO_FILES)

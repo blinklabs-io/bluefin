@@ -41,6 +41,7 @@ type Miner struct {
 	blockData   any
 	state       TargetState
 	hashCounter *atomic.Uint64
+	nonceCount  uint8
 }
 
 type TargetState interface {
@@ -315,17 +316,6 @@ func randomNonce() [16]byte {
 	return ret
 }
 
-//nolint:unused
-func incrementNonce(nonce []byte) {
-	for i := len(nonce) - 1; i >= 0; i-- {
-		if nonce[i] < 255 {
-			nonce[i]++
-			break
-		}
-		nonce[i] = 0
-	}
-}
-
 func (m *Miner) calculateHash() []byte {
 	var tmpLeadingZeros int64
 	var tmpDifficultyNumber int64
@@ -375,10 +365,18 @@ func (m *Miner) calculateHash() []byte {
 			return hash2
 		}
 
-		// Currently we create a new random nonce
-		// Uncomment if we decide to increment the nonce
-		// incrementNonce(m.state.Nonce[:])
-		m.state.SetNonce(randomNonce())
+		// Generate a new random nonce when nonceCount rolls over, and increment bytes in existing nonce otherwise
+		if m.nonceCount == 0 {
+			m.state.SetNonce(randomNonce())
+		} else {
+			nonce := m.state.GetNonce()
+			// Increment each byte of the nonce
+			for j := 0; j < 16; j++ {
+				nonce[j]++
+			}
+			m.state.SetNonce(nonce)
+		}
+		m.nonceCount++
 	}
 }
 

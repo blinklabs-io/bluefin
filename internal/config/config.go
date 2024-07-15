@@ -102,7 +102,7 @@ var globalConfig = &Config{
 	// The default worker config is somewhat conservative: worker count is set
 	// to half of the available logical CPUs
 	Miner: MinerConfig{
-		WorkerCount:      runtime.NumCPU() / 2,
+		WorkerCount:      max(1, runtime.NumCPU()/2),
 		HashRateInterval: 60,
 	},
 	Network: "mainnet",

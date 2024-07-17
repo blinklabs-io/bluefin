@@ -33,6 +33,7 @@ import (
 	"github.com/blinklabs-io/adder/pipeline"
 	models "github.com/blinklabs-io/cardano-models"
 	"github.com/blinklabs-io/gouroboros/cbor"
+	"github.com/blinklabs-io/gouroboros/ledger"
 	ocommon "github.com/blinklabs-io/gouroboros/protocol/common"
 )
 
@@ -229,22 +230,61 @@ func (i *Indexer) handleEventTransaction(evt event.Event) error {
 			}
 		}
 	}
+	// Check for TUNA mints
+	var tunaMintCount int64
+	var tunaPolicyId string
+	if profileCfg.UseTunaV1 {
+		tunaPolicyId = profileCfg.ValidatorHash
+	} else {
+		tunaPolicyId = profileCfg.MintValidatorHash
+	}
+	tunaPolicyIdHex, err := hex.DecodeString(tunaPolicyId)
+	if err != nil {
+		return err
+	}
+	mints := eventTx.Transaction.AssetMint()
+	if mints != nil {
+		tunaMintCount = mints.Asset(
+			ledger.Blake2b224(tunaPolicyIdHex),
+			[]byte("TUNA"),
+		)
+	}
+	// Process produced UTxOs
 	for _, utxo := range eventTx.Transaction.Produced() {
-		if utxo.Output.Address().String() == cfg.Indexer.ScriptAddress ||
-			utxo.Output.Address().String() == bursa.PaymentAddress {
-			// Write UTXO to storage
-			if err := store.AddUtxo(
-				utxo.Output.Address().String(),
-				eventCtx.TransactionHash,
-				utxo.Id.Index(),
-				utxo.Output.Cbor(),
-				eventCtx.SlotNumber,
-			); err != nil {
-				return err
+		outputAddress := utxo.Output.Address().String()
+		// Ignore outputs to addresses that we don't care about
+		if outputAddress != cfg.Indexer.ScriptAddress &&
+			outputAddress != bursa.PaymentAddress {
+			continue
+		}
+		// Write UTXO to storage
+		if err := store.AddUtxo(
+			outputAddress,
+			eventCtx.TransactionHash,
+			utxo.Id.Index(),
+			utxo.Output.Cbor(),
+			eventCtx.SlotNumber,
+		); err != nil {
+			return err
+		}
+		// Show message when receiving freshly minted TUNA
+		if outputAddress == bursa.PaymentAddress {
+			if tunaMintCount > 0 {
+				if utxo.Output.Assets() != nil {
+					outputTunaCount := utxo.Output.Assets().Asset(
+						ledger.Blake2b224(tunaPolicyIdHex),
+						[]byte("TUNA"),
+					)
+					if outputTunaCount > 0 {
+						logger.Info(
+							fmt.Sprintf("minted %d TUNA!", tunaMintCount),
+						)
+					}
+				}
 			}
 		}
 		// Handle datum for script address
-		if utxo.Output.Address().String() == cfg.Indexer.ScriptAddress {
+		if outputAddress == cfg.Indexer.ScriptAddress {
 			datum := utxo.Output.Datum()
 			if datum != nil {
 				if _, err := datum.Decode(); err != nil {

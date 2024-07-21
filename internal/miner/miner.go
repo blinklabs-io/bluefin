@@ -44,7 +44,7 @@ type Miner struct {
 }
 
 type TargetState interface {
-	ToBytes() ([]byte, error)
+	MarshalCBOR() ([]byte, error)
 	SetNonce([16]byte)
 	GetNonce() [16]byte
 }
@@ -81,10 +81,6 @@ func (state *TargetStateV1) MarshalCBOR() ([]byte, error) {
 	return cbor.Encode(&tmp)
 }
 
-func (state *TargetStateV1) ToBytes() ([]byte, error) {
-	return cbor.Encode(state)
-}
-
 type TargetStateV2 struct {
 	Nonce            [16]byte
 	MinerCredHash    []byte
@@ -93,6 +89,7 @@ type TargetStateV2 struct {
 	CurrentHash      []byte
 	LeadingZeros     int64
 	DifficultyNumber int64
+	cachedCbor       []byte
 }
 
 func (t *TargetStateV2) SetNonce(nonce [16]byte) {
@@ -104,6 +101,14 @@ func (t *TargetStateV2) GetNonce() [16]byte {
 }
 
 func (state *TargetStateV2) MarshalCBOR() ([]byte, error) {
+	// Use cached CBOR to generate new CBOR more quickly
+	if state.cachedCbor != nil {
+		// Replace nonce value in cached CBOR with current nonce
+		for i := 0; i < 16; i++ {
+			state.cachedCbor[4+i] = state.Nonce[i]
+		}
+		return state.cachedCbor, nil
+	}
 	tmp := cbor.NewConstructor(
 		0,
 		cbor.IndefLengthList{
@@ -116,11 +121,13 @@ func (state *TargetStateV2) MarshalCBOR() ([]byte, error) {
 			state.DifficultyNumber,
 		},
 	)
-	return cbor.Encode(&tmp)
-}
-
-func (state *TargetStateV2) ToBytes() ([]byte, error) {
-	return cbor.Encode(state)
+	cborData, err := cbor.Encode(&tmp)
+	if err != nil {
+		return nil, err
+	}
+	state.cachedCbor = make([]byte, len(cborData))
+	copy(state.cachedCbor, cborData)
+	return cborData, nil
 }
 
 type DifficultyMetrics struct {
@@ -347,7 +354,7 @@ func (m *Miner) calculateHash() []byte {
 		default:
 			break
 		}
-		stateBytes, err := m.state.ToBytes()
+		stateBytes, err := m.state.MarshalCBOR()
 		if err != nil {
 			logging.GetLogger().Error(err)
 			return nil

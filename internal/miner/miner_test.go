@@ -68,3 +68,39 @@ func BenchmarkSha256Simd(b *testing.B) {
 		hasher.Sum(nil)
 	}
 }
+
+// BenchmarkTargetStateCborMarshal tests marshaling TargetStateV2 to CBOR
+func BenchmarkTargetStateCborMarshal(b *testing.B) {
+	tmpHash := [32]byte{}
+	tmpState := TargetStateV2{
+		Nonce:            randomNonce(),
+		MinerCredHash:    tmpHash[:],
+		EpochTime:        999999,
+		BlockNumber:      999999,
+		CurrentHash:      tmpHash[:],
+		LeadingZeros:     4,
+		DifficultyNumber: 65535,
+	}
+	for i := 0; i < b.N; i++ {
+		_, _ = tmpState.MarshalCBOR()
+	}
+}
+
+// BenchmarkTargetStateCborMarshalNoCache tests marshaling TargetStateV2 to CBOR without caching
+func BenchmarkTargetStateCborMarshalNoCache(b *testing.B) {
+	tmpHash := [32]byte{}
+	tmpState := TargetStateV2{
+		Nonce:            randomNonce(),
+		MinerCredHash:    tmpHash[:],
+		EpochTime:        999999,
+		BlockNumber:      999999,
+		CurrentHash:      tmpHash[:],
+		LeadingZeros:     4,
+		DifficultyNumber: 65535,
+	}
+	for i := 0; i < b.N; i++ {
+		_, _ = tmpState.MarshalCBOR()
+		// Wipe out CBOR cache
+		tmpState.cachedCbor = nil
+	}
+}

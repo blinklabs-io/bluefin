@@ -32,6 +32,11 @@ import (
 	"github.com/minio/sha256-simd"
 )
 
+const (
+	DefaultEpochNumber = 2016
+	DefaultEpochTarget = 1_209_600_000
+)
+
 type Miner struct {
 	Config      *config.Config
 	Logger      *logging.Logger
@@ -110,9 +115,11 @@ func (state *TargetStateV2) MarshalCBOR() ([]byte, error) {
 		}
 		return state.cachedCbor, nil
 	}
-	tmp := cbor.NewConstructor(
-		0,
-		cbor.IndefLengthList{
+	// There are different ways we can order the fields for V2, so we need to check which
+	profileCfg := config.GetProfile()
+	var indefList cbor.IndefLengthList
+	if profileCfg.TunaV2OldTargetStateOrder {
+		indefList = cbor.IndefLengthList{
 			state.Nonce,
 			state.MinerCredHash,
 			state.EpochTime,
@@ -120,7 +127,21 @@ func (state *TargetStateV2) MarshalCBOR() ([]byte, error) {
 			state.CurrentHash,
 			state.LeadingZeros,
 			state.DifficultyNumber,
-		},
+		}
+	} else {
+		indefList = cbor.IndefLengthList{
+			state.Nonce,
+			state.MinerCredHash,
+			state.BlockNumber,
+			state.CurrentHash,
+			state.LeadingZeros,
+			state.DifficultyNumber,
+			state.EpochTime,
+		}
+	}
+	tmp := cbor.NewConstructor(
+		0,
+		indefList,
 	)
 	cborData, err := cbor.Encode(&tmp)
 	if err != nil {
@@ -241,8 +262,16 @@ func (m *Miner) Start() {
 	}
 
 	// Adjust difficulty on epoch boundary
-	if blockDataBlockNumber > 0 && blockDataBlockNumber%2016 == 0 {
-		adjustment := getDifficultyAdjustment(epochTime, 1_209_600_000)
+	epochNumber := DefaultEpochNumber
+	if profileCfg.EpochNumber > 0 {
+		epochNumber = profileCfg.EpochNumber
+	}
+	epochTarget := DefaultEpochTarget
+	if profileCfg.EpochTarget > 0 {
+		epochTarget = profileCfg.EpochTarget
+	}
+	if blockDataBlockNumber > 0 && blockDataBlockNumber%int64(epochNumber) == 0 {
+		adjustment := getDifficultyAdjustment(epochTime, int64(epochTarget))
 		epochTime = 0
 		newDifficulty := calculateDifficultyNumber(
 			DifficultyMetrics{

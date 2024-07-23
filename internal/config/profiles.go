@@ -15,17 +15,20 @@
 package config
 
 type Profile struct {
-	InterceptHash          string
-	InterceptSlot          uint64
-	ScriptAddress          string
-	ValidatorHash          string
-	MintValidatorHash      string
-	ValidatorScript        string
-	ScriptInputRefTxId     string
-	ScriptInputRefOutIndex uint32
-	ScriptRefInputs        []RefInput
-	SeedHashes             []string
-	UseTunaV1              bool
+	InterceptHash             string
+	InterceptSlot             uint64
+	ScriptAddress             string
+	ValidatorHash             string
+	MintValidatorHash         string
+	ValidatorScript           string
+	ScriptInputRefTxId        string
+	ScriptInputRefOutIndex    uint32
+	ScriptRefInputs           []RefInput
+	SeedHashes                []string
+	UseTunaV1                 bool
+	TunaV2OldTargetStateOrder bool
+	EpochNumber               int
+	EpochTarget               int
 }
 
 func GetProfile() Profile {
@@ -50,6 +53,8 @@ var Profiles = map[string]map[string]Profile{
 		},
 		"tuna-v2": Profile{
 			UseTunaV1: false,
+			// The original preview contract(s) had the target state fields in a different order
+			TunaV2OldTargetStateOrder: true,
 			// NOTE: this intercept point corresponds to the block before the script input ref UTxO(s) below
 			InterceptHash:     "ee45da6d3387a822a83b8cba0b3dff2d5d4f444fef1a1650d63288fb3a97e135",
 			InterceptSlot:     53121619,
@@ -76,6 +81,46 @@ var Profiles = map[string]map[string]Profile{
 				"00000fcdcb33f425a1fae31d92a847bdc60d75cf90a132608bf9074e9675d23e",
 				"000002057bf654592884cdd370317eeec835545c5b4909f15fae751b24b014db",
 				"00000d1c0cc8af18e5e69d1f43196f528af8b2b08d52467376b657b7232172a3",
+			},
+		},
+		"tuna-v2-short-epoch": Profile{
+			UseTunaV1:   false,
+			EpochNumber: 50,
+			EpochTarget: 30_000_000,
+			// NOTE: this intercept point corresponds to the block before the script input ref UTxO(s) below
+			InterceptHash:     "ccb9a79f1308d4073b00ca6d28faeb18c24868fc1ad1841f320b93ebbb1c0fd7",
+			InterceptSlot:     54956382,
+			ScriptAddress:     "addr_test1wqdk2m0zx8ygc0gvjm2g2vavxz3k39r7cavksuv30sf2hwc6nlup4",
+			ValidatorHash:     "1b656de231c88c3d0c96d48533ac30a368947ec7596871917c12abbb",
+			MintValidatorHash: "6d8b234f4d0ecb7808f5132034eb0cb90207f2727e4f0bc83f57b57c",
+			ScriptRefInputs: []RefInput{
+				// Spend script
+				{
+					TxId:      "92c032672d50488fcc7962e8d2229b3c7796e007e9ebc524e0f02ec276df8e0d",
+					OutputIdx: 1,
+				},
+				// Mint script
+				{
+					TxId:      "4776495e57a13cf9d8419f84227c643e1c02dfe26ee86f472abd644ba76c4c74",
+					OutputIdx: 0,
+				},
+			},
+			// NOTE: these come from the upstream V1PreviewHistory.json file
+			// https://github.com/cardano-miners/fortuna/blob/df7b5d6c75ae334529b29b6cb00f3dfbddf762de/V1PreviewHistory.json
+			SeedHashes: []string{
+				"8a623238dcfe41cd25356cac234e202b8cd3a7e9fe295e462818c610e4b82a8d",
+				"00000c4708deb49a1076a185b4ab963ea7107ee08fd94bbe12ad7f8072a210c4",
+				"00000f3390355d958e16eaf7252f70058fe19cebb0b1a7f940e2ce18021d8bfe",
+				"000002694ef5552134bb700fe031c6591bd4b1d81c1bb4a117b635662953d039",
+				"00000a252051028bd77ab25139419ed03254ba24a8332479176c4df8005d7336",
+				"000002fbe7b31cad029b21e69ee39227029be382c8a6f2338405d0b1bf681eaf",
+				"00000769debb1fe2576c1c81037073754dadf18431519bd2fab3a2d8abad1ae7",
+				"00000e4ed1ded7f0336ec69e01310a1e4b73eaad1f4a900b7c99d30448c5cfee",
+				"000004fd95295374da6c85e69a81d03e5b50a1bd9694ff68b983b7561d346405",
+				"0000008b29b3a26868f65c6c046c7a115aea7cbf48bec9f9474952bb51536230",
+				"000002e9a6dcae68fc1cc22109d7ca363b4435749641601ff7c3e09715c2c5eb",
+				"00000c7383ee4c191a32b84e2ec5ec200241a57cc4f58ee1d65cab645973003c",
+				"00000b7fdf94f608cd61fc4620e9575d163461d2dd59f5bb39300e11e6fec200",
 			},
 		},
 	},

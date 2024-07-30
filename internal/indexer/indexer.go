@@ -250,6 +250,7 @@ func (i *Indexer) handleEventTransaction(evt event.Event) error {
 		)
 	}
 	// Process produced UTxOs
+	startMiner := false
 	for _, utxo := range eventTx.Transaction.Produced() {
 		outputAddress := utxo.Output.Address().String()
 		// Ignore outputs to addresses that we don't care about
@@ -360,10 +361,7 @@ func (i *Indexer) handleEventTransaction(evt event.Event) error {
 				}
 
 				if i.tipReached {
-					// TODO: defer starting miner until after processing all TX outputs
-					// Restart miners for new datum
-					miner.GetManager().Stop()
-					miner.GetManager().Start(i.lastBlockData)
+					startMiner = true
 				}
 			}
 		}
@@ -375,6 +373,11 @@ func (i *Indexer) handleEventTransaction(evt event.Event) error {
 				fmt.Sprintf("failed to purge deleted UTxOs: %s", err),
 			)
 		}
+	}
+	// (Re)start miner if we got a new datum
+	if startMiner {
+		miner.GetManager().Stop()
+		miner.GetManager().Start(i.lastBlockData)
 	}
 	return nil
 }

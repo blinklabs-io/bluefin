@@ -44,7 +44,6 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/storage"
-	"github.com/blinklabs-io/bluefin/internal/version"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 )
 
@@ -238,7 +237,7 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 			0,
 			cbor.IndefLengthList{
 				userPkh,
-				[]byte(fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString())),
+				[]byte(cfg.Miner.Message),
 			},
 		)
 		// Convert old and new block numbers to byte representation for use in token names

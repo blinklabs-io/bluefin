@@ -17,6 +17,7 @@ package wallet
 import (
 	"errors"
 	"os"
+	"path"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
@@ -34,9 +35,17 @@ func Setup() {
 	// TODO: check storage for mnemonic
 	mnemonic := cfg.Wallet.Mnemonic
 	if mnemonic == "" {
+		pwd, err := os.Getwd()
+		if err != nil {
+			panic(err.Error())
+		}
+		seedPath := path.Join(
+			pwd,
+			"seed.txt",
+		)
 		// Read seed.txt if it exists
-		if data, err := os.ReadFile("seed.txt"); err == nil {
-			logger.Infof("read mnemonic from seed.txt")
+		if data, err := os.ReadFile(seedPath); err == nil {
+			logger.Infof("read mnemonic from %s", seedPath)
 			mnemonic = string(data)
 		} else if errors.Is(err, os.ErrNotExist) {
 			mnemonic, err = bursa.NewMnemonic()
@@ -45,7 +54,7 @@ func Setup() {
 			}
 			// Write seed.txt
 			// WARNING: this will clobber existing files
-			f, err := os.Create("seed.txt")
+			f, err := os.Create(seedPath)
 			if err != nil {
 				panic(err)
 			}
@@ -59,7 +68,7 @@ func Setup() {
 			if err != nil {
 				panic(err)
 			}
-			logger.Infof("wrote generated mnemonic to seed.txt")
+			logger.Infof("wrote generated mnemonic to %s", seedPath)
 			// TODO: write mnemonic to storage
 		} else {
 			panic(err)

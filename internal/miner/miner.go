@@ -24,7 +24,6 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/storage"
-	"github.com/blinklabs-io/bluefin/internal/version"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 
 	models "github.com/blinklabs-io/cardano-models"
@@ -188,6 +187,7 @@ func New(
 func (m *Miner) Start() {
 	defer m.waitGroup.Done()
 
+	cfg := config.GetConfig()
 	profileCfg := config.GetProfile()
 
 	if profileCfg.UseTunaV1 {
@@ -208,7 +208,7 @@ func (m *Miner) Start() {
 			0,
 			cbor.IndefLengthList{
 				userPkh,
-				[]byte(fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString())),
+				[]byte(cfg.Miner.Message),
 			},
 		)
 		minerCredCbor, err := cbor.Encode(&minerCredential)
@@ -302,13 +302,8 @@ func (m *Miner) Start() {
 			DifficultyNumber: difficultyNumber,
 			EpochTime:        epochTime,
 			RealTimeNow:      90000 + realTimeNow,
-			Extra: []byte(
-				fmt.Sprintf(
-					"Bluefin %s by Blink Labs",
-					version.GetVersionString(),
-				),
-			),
-			Interlink: currentInterlink,
+			Extra:            []byte(cfg.Miner.Message),
+			Interlink:        currentInterlink,
 		}
 	} else {
 		blockData := m.blockData.(models.TunaV2State)

@@ -19,6 +19,7 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/blinklabs-io/bluefin/internal/version"
 	ouroboros "github.com/blinklabs-io/gouroboros"
 	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v2"
@@ -62,8 +63,9 @@ type WalletConfig struct {
 }
 
 type MinerConfig struct {
-	WorkerCount      int `yaml:"workers" envconfig:"WORKER_COUNT"`
-	HashRateInterval int `yaml:"hashRateInterval" envconfig:"HASH_RATE_INTERVAL"`
+	WorkerCount      int    `yaml:"workers" envconfig:"WORKER_COUNT"`
+	HashRateInterval int    `yaml:"hashRateInterval" envconfig:"HASH_RATE_INTERVAL"`
+	Message          string `yaml:"message" envconfig:"MINER_MESSAGE"`
 }
 
 type LoggingConfig struct {
@@ -104,6 +106,7 @@ var globalConfig = &Config{
 	Miner: MinerConfig{
 		WorkerCount:      max(1, runtime.NumCPU()/2),
 		HashRateInterval: 60,
+		Message:          fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString()),
 	},
 	Network: "mainnet",
 	Profile: "tuna-v1",

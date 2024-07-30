@@ -20,9 +20,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"math/big"
 	"net"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -42,7 +44,6 @@ import (
 	"golang.org/x/crypto/blake2b"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
-	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 )
@@ -62,13 +63,14 @@ func SendTx(blockData any, nonce [16]byte) error {
 	if err != nil {
 		return err
 	}
-	logging.GetLogger().Infof("successfully submitted TX %s", txId)
+	slog.Info(
+		fmt.Sprintf("successfully submitted TX %s", txId),
+	)
 	return nil
 }
 
 func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	cfg := config.GetConfig()
-	logger := logging.GetLogger()
 	bursa := wallet.GetWallet()
 	store := storage.GetStorage()
 
@@ -153,10 +155,12 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	}
 	// There should only ever be 1 UTxO for the script address
 	if len(scriptUtxos) > 1 {
-		logger.Warnf(
-			"found unexpected UTxO(s) at script address (%s), expected 1 and found %d",
-			cfg.Indexer.ScriptAddress,
-			len(scriptUtxos),
+		slog.Warn(
+			fmt.Sprintf(
+				"found unexpected UTxO(s) at script address (%s), expected 1 and found %d",
+				cfg.Indexer.ScriptAddress,
+				len(scriptUtxos),
+			),
 		)
 	}
 	if len(scriptUtxos) == 0 {
@@ -388,7 +392,7 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	logger.Debug(
+	slog.Debug(
 		fmt.Sprintf("TX bytes: %x", txBytes),
 	)
 	return txBytes, nil
@@ -404,7 +408,6 @@ func unixTimeToSlot(unixTime int64) uint64 {
 
 func submitTx(txRawBytes []byte) (string, error) {
 	cfg := config.GetConfig()
-	logger := logging.GetLogger()
 	if cfg.Submit.Address != "" {
 		return submitTxNtN(txRawBytes)
 	} else if cfg.Submit.SocketPath != "" {
@@ -415,7 +418,10 @@ func submitTx(txRawBytes []byte) (string, error) {
 		// Populate address info from indexer network
 		network := ouroboros.NetworkByName(cfg.Network)
 		if network == ouroboros.NetworkInvalid {
-			logger.Fatalf("unknown network: %s", cfg.Network)
+			slog.Error(
+				fmt.Sprintf("unknown network: %s", cfg.Network),
+			)
+			os.Exit(1)
 		}
 		cfg.Submit.Address = fmt.Sprintf("%s:%d", network.PublicRootAddress, network.PublicRootPort)
 		return submitTxNtN(txRawBytes)
@@ -426,7 +432,6 @@ func submitTxNtN(txRawBytes []byte) (string, error) {
 	ntnMutex.Lock()
 	defer ntnMutex.Unlock()
 	cfg := config.GetConfig()
-	logger := logging.GetLogger()
 
 	// Record TX bytes in global for use in handler functions
 	ntnTxBytes = txRawBytes[:]
@@ -436,7 +441,9 @@ func submitTxNtN(txRawBytes []byte) (string, error) {
 	// Unwrap raw transaction bytes into a CBOR array
 	txUnwrap := []cbor.RawMessage{}
 	if _, err := cbor.Decode(txRawBytes, &txUnwrap); err != nil {
-		logger.Errorf("failed to unwrap transaction CBOR: %s", err)
+		slog.Error(
+			fmt.Sprintf("failed to unwrap transaction CBOR: %s", err),
+		)
 		return "", fmt.Errorf("failed to unwrap transaction CBOR: %s", err)
 	}
 	// index 0 is the transaction body
@@ -476,7 +483,9 @@ func submitTxNtN(txRawBytes []byte) (string, error) {
 			default:
 			}
 			close(doneChan)
-			logger.Errorf("async error submitting TX via NtN: %s", err)
+			slog.Error(
+				fmt.Sprintf("async error submitting TX via NtN: %s", err),
+			)
 		}
 	}()
 	// Start txSubmission loop

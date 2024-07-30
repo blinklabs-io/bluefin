@@ -17,13 +17,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 
 	_ "go.uber.org/automaxprocs"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/indexer"
-	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/version"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
@@ -31,6 +31,7 @@ import (
 
 var cmdlineFlags struct {
 	configFile string
+	debug      bool
 }
 
 func main() {
@@ -39,6 +40,12 @@ func main() {
 		"config",
 		"",
 		"path to config file to load",
+	)
+	flag.BoolVar(
+		&cmdlineFlags.debug,
+		"debug",
+		false,
+		"enable debug logging",
 	)
 	flag.Parse()
 
@@ -49,36 +56,48 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Configure logging
-	logging.Setup()
-	logger := logging.GetLogger()
-	// Sync logger on exit
-	defer func() {
-		if err := logger.Sync(); err != nil {
-			// We don't actually care about the error here, but we have to do something
-			// to appease the linter
-			return
-		}
-	}()
+	// Configure logger
+	logLevel := slog.LevelInfo
+	if cmdlineFlags.debug {
+		logLevel = slog.LevelDebug
+	}
+	logger := slog.New(
+		slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			Level: logLevel,
+		}),
+	)
+	slog.SetDefault(logger)
 
-	logger.Infof("bluefin %s started", version.GetVersionString())
+	slog.Info(
+		fmt.Sprintf("bluefin %s started", version.GetVersionString()),
+	)
 	// Load storage
 	if err := storage.GetStorage().Load(); err != nil {
-		logger.Fatalf("failed to load storage: %s", err)
+		slog.Error(
+			fmt.Sprintf("failed to load storage: %s", err),
+		)
+		os.Exit(1)
 	}
 
 	// Setup wallet
 	wallet.Setup()
 	bursa := wallet.GetWallet()
-	logger.Infof("loaded mnemonic for address: %s", bursa.PaymentAddress)
+	slog.Info(
+		fmt.Sprintf("loaded mnemonic for address: %s", bursa.PaymentAddress),
+	)
 
 	// Fake Tx
 	//tx.SendTx([]byte("foo"))
 
 	// Start indexer
-	logger.Infof("starting indexer on %s", cfg.Network)
+	slog.Info(
+		fmt.Sprintf("starting indexer on %s", cfg.Network),
+	)
 	if err := indexer.GetIndexer().Start(); err != nil {
-		logger.Fatalf("failed to start indexer: %s", err)
+		slog.Error(
+			fmt.Sprintf("failed to start indexer: %s", err),
+		)
+		os.Exit(1)
 	}
 
 	// Wait forever

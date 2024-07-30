@@ -16,12 +16,12 @@ package miner
 
 import (
 	"fmt"
+	"log/slog"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
-	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/tx"
 )
 
@@ -52,7 +52,6 @@ func (m *Manager) Reset() {
 }
 
 func (m *Manager) Stop() {
-	logger := logging.GetLogger()
 	m.stopMutex.Lock()
 	defer m.stopMutex.Unlock()
 	if !m.started {
@@ -65,12 +64,12 @@ func (m *Manager) Stop() {
 	m.workerWaitGroup.Wait()
 	close(m.resultChan)
 	m.started = false
-	logger.Infof("stopped workers")
+	slog.Info("stopped workers")
 	// Start timer to restart miner
 	m.restartTimer = time.AfterFunc(
 		restartTimeout,
 		func() {
-			logger.Warn(
+			slog.Warn(
 				fmt.Sprintf(
 					"restarting miner automatically after %s timeout",
 					restartTimeout,
@@ -93,13 +92,14 @@ func (m *Manager) Start(blockData any) {
 		m.restartTimer.Stop()
 	}
 	cfg := config.GetConfig()
-	logger := logging.GetLogger()
 	// Start hash rate log timer
 	m.hashCounter = &atomic.Uint64{}
 	m.scheduleHashRateLog()
 	// Start workers
 	m.Reset()
-	logger.Infof("starting %d workers", cfg.Miner.WorkerCount)
+	slog.Info(
+		fmt.Sprintf("starting %d workers", cfg.Miner.WorkerCount),
+	)
 	for i := 0; i < cfg.Miner.WorkerCount; i++ {
 		miner := New(
 			&(m.workerWaitGroup),
@@ -121,7 +121,9 @@ func (m *Manager) Start(blockData any) {
 			m.Stop()
 			// Build and submit the TX
 			if err := tx.SendTx(result.BlockData, result.Nonce); err != nil {
-				logger.Errorf("failed to submit TX: %s", err)
+				slog.Error(
+					fmt.Sprintf("failed to submit TX: %s", err),
+				)
 			}
 		}
 	}()
@@ -135,7 +137,6 @@ func (m *Manager) scheduleHashRateLog() {
 
 func (m *Manager) hashRateLog() {
 	cfg := config.GetConfig()
-	logger := logging.GetLogger()
 	hashCount := m.hashCounter.Load()
 	// Handle counter rollover
 	if hashCount < m.hashLogLastCount {
@@ -147,7 +148,9 @@ func (m *Manager) hashRateLog() {
 	m.hashLogLastCount = hashCount
 	secondDivisor := uint64(cfg.Miner.HashRateInterval)
 	hashCountPerSec := hashCountDiff / secondDivisor
-	logger.Infof("hash rate: %d/s", hashCountPerSec)
+	slog.Info(
+		fmt.Sprintf("hash rate: %d/s", hashCountPerSec),
+	)
 	m.scheduleHashRateLog()
 }
 

@@ -17,10 +17,11 @@ package indexer
 import (
 	"encoding/hex"
 	"fmt"
+	"log/slog"
+	"os"
 	"time"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
-	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/miner"
 	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
@@ -59,7 +60,6 @@ var globalIndexer = &Indexer{}
 func (i *Indexer) Start() error {
 	cfg := config.GetConfig()
 	profileCfg := config.GetProfile()
-	logger := logging.GetLogger()
 	bursa := wallet.GetWallet()
 	// Load saved block data
 	var lastBlockDataBytes cbor.RawMessage
@@ -89,7 +89,7 @@ func (i *Indexer) Start() error {
 	inputOpts := []input_chainsync.ChainSyncOptionFunc{
 		input_chainsync.WithBulkMode(true),
 		input_chainsync.WithAutoReconnect(true),
-		input_chainsync.WithLogger(logger),
+		input_chainsync.WithLogger(NewAdderLogger()),
 		input_chainsync.WithStatusUpdateFunc(i.updateStatus),
 		input_chainsync.WithNetwork(cfg.Network),
 	}
@@ -104,10 +104,12 @@ func (i *Indexer) Start() error {
 		return err
 	}
 	if cursorSlotNumber > 0 {
-		logger.Infof(
-			"found previous chainsync cursor: %d, %s",
-			cursorSlotNumber,
-			cursorBlockHash,
+		slog.Info(
+			fmt.Sprintf(
+				"found previous chainsync cursor: %d, %s",
+				cursorSlotNumber,
+				cursorBlockHash,
+			),
 		)
 		hashBytes, err := hex.DecodeString(cursorBlockHash)
 		if err != nil {
@@ -165,13 +167,19 @@ func (i *Indexer) Start() error {
 	i.pipeline.AddOutput(output)
 	// Start pipeline
 	if err := i.pipeline.Start(); err != nil {
-		logger.Fatalf("failed to start pipeline: %s\n", err)
+		slog.Error(
+			fmt.Sprintf("failed to start pipeline: %s\n", err),
+		)
+		os.Exit(1)
 	}
 	// Start error handler
 	go func() {
 		err, ok := <-i.pipeline.ErrorChan()
 		if ok {
-			logger.Fatalf("pipeline failed: %s\n", err)
+			slog.Error(
+				fmt.Sprintf("pipeline failed: %s\n", err),
+			)
+			os.Exit(1)
 		}
 	}()
 	// Schedule periodic catch-up sync log messages
@@ -191,7 +199,6 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 }
 
 func (i *Indexer) handleEventRollback(evt event.Event) error {
-	logger := logging.GetLogger()
 	store := storage.GetStorage()
 	eventRollback := evt.Payload.(input_chainsync.RollbackEvent)
 	store.Lock()
@@ -199,12 +206,12 @@ func (i *Indexer) handleEventRollback(evt event.Event) error {
 	if err := store.Rollback(eventRollback.SlotNumber); err != nil {
 		return err
 	}
-	logger.Info(
+	slog.Info(
 		fmt.Sprintf("rolled back to %d.%s", eventRollback.SlotNumber, eventRollback.BlockHash),
 	)
 	// Purge older deleted UTxOs
 	if err := store.PurgeDeletedUtxos(eventRollback.SlotNumber - rollbackSlots); err != nil {
-		logger.Warn(
+		slog.Warn(
 			fmt.Sprintf("failed to purge deleted UTxOs: %s", err),
 		)
 	}
@@ -214,7 +221,6 @@ func (i *Indexer) handleEventRollback(evt event.Event) error {
 func (i *Indexer) handleEventTransaction(evt event.Event) error {
 	cfg := config.GetConfig()
 	profileCfg := config.GetProfile()
-	logger := logging.GetLogger()
 	bursa := wallet.GetWallet()
 	store := storage.GetStorage()
 	eventTx := evt.Payload.(input_chainsync.TransactionEvent)
@@ -277,7 +283,7 @@ func (i *Indexer) handleEventTransaction(evt event.Event) error {
 						[]byte("TUNA"),
 					)
 					if outputTunaCount > 0 {
-						logger.Info(
+						slog.Info(
 							fmt.Sprintf("minted %d TUNA!", tunaMintCount),
 						)
 					}
@@ -289,20 +295,24 @@ func (i *Indexer) handleEventTransaction(evt event.Event) error {
 			datum := utxo.Output.Datum()
 			if datum != nil {
 				if _, err := datum.Decode(); err != nil {
-					logger.Warnf(
-						"error decoding TX (%s) output datum: %s",
-						eventCtx.TransactionHash,
-						err,
+					slog.Warn(
+						fmt.Sprintf(
+							"error decoding TX (%s) output datum: %s",
+							eventCtx.TransactionHash,
+							err,
+						),
 					)
 					return err
 				}
 				if profileCfg.UseTunaV1 {
 					var blockData models.TunaV1State
 					if _, err := cbor.Decode(datum.Cbor(), &blockData); err != nil {
-						logger.Warnf(
-							"error decoding TX (%s) output datum: %s",
-							eventCtx.TransactionHash,
-							err,
+						slog.Warn(
+							fmt.Sprintf(
+								"error decoding TX (%s) output datum: %s",
+								eventCtx.TransactionHash,
+								err,
+							),
 						)
 						return err
 					}
@@ -314,23 +324,27 @@ func (i *Indexer) handleEventTransaction(evt event.Event) error {
 					default:
 						tmpExtra = v
 					}
-					logger.Infof(
-						"found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, real time now: %d, extra: %v",
-						blockData.BlockNumber,
-						blockData.CurrentHash,
-						blockData.LeadingZeros,
-						blockData.DifficultyNumber,
-						blockData.EpochTime,
-						blockData.RealTimeNow,
-						tmpExtra,
+					slog.Info(
+						fmt.Sprintf(
+							"found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, real time now: %d, extra: %v",
+							blockData.BlockNumber,
+							blockData.CurrentHash,
+							blockData.LeadingZeros,
+							blockData.DifficultyNumber,
+							blockData.EpochTime,
+							blockData.RealTimeNow,
+							tmpExtra,
+						),
 					)
 				} else {
 					var blockData models.TunaV2State
 					if _, err := cbor.Decode(datum.Cbor(), &blockData); err != nil {
-						logger.Warnf(
-							"error decoding TX (%s) output datum: %s",
-							eventCtx.TransactionHash,
-							err,
+						slog.Warn(
+							fmt.Sprintf(
+								"error decoding TX (%s) output datum: %s",
+								eventCtx.TransactionHash,
+								err,
+							),
 						)
 						return err
 					}
@@ -344,15 +358,17 @@ func (i *Indexer) handleEventTransaction(evt event.Event) error {
 						return err
 					}
 					trie.Unlock()
-					logger.Infof(
-						"found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, current POSIX time: %d, merkle root = %x",
-						blockData.BlockNumber,
-						blockData.CurrentHash,
-						blockData.LeadingZeros,
-						blockData.DifficultyNumber,
-						blockData.EpochTime,
-						blockData.CurrentPosixTime,
-						blockData.MerkleRoot,
+					slog.Info(
+						fmt.Sprintf(
+							"found updated datum: block number: %d, hash: %x, leading zeros: %d, difficulty number: %d, epoch time: %d, current POSIX time: %d, merkle root = %x",
+							blockData.BlockNumber,
+							blockData.CurrentHash,
+							blockData.LeadingZeros,
+							blockData.DifficultyNumber,
+							blockData.EpochTime,
+							blockData.CurrentPosixTime,
+							blockData.MerkleRoot,
+						),
 					)
 				}
 
@@ -369,7 +385,7 @@ func (i *Indexer) handleEventTransaction(evt event.Event) error {
 	// Purge older deleted UTxOs
 	if i.tipReached {
 		if err := store.PurgeDeletedUtxos(eventCtx.SlotNumber - rollbackSlots); err != nil {
-			logger.Warn(
+			slog.Warn(
 				fmt.Sprintf("failed to purge deleted UTxOs: %s", err),
 			)
 		}
@@ -387,18 +403,18 @@ func (i *Indexer) scheduleSyncStatusLog() {
 }
 
 func (i *Indexer) syncStatusLog() {
-	logger := logging.GetLogger()
-	logger.Infof(
-		"catch-up sync in progress: at %d.%s (current tip slot is %d)",
-		i.cursorSlot,
-		i.cursorHash,
-		i.tipSlot,
+	slog.Info(
+		fmt.Sprintf(
+			"catch-up sync in progress: at %d.%s (current tip slot is %d)",
+			i.cursorSlot,
+			i.cursorHash,
+			i.tipSlot,
+		),
 	)
 	i.scheduleSyncStatusLog()
 }
 
 func (i *Indexer) updateStatus(status input_chainsync.ChainSyncStatus) {
-	logger := logging.GetLogger()
 	// Check if we've hit chain tip
 	if !i.tipReached && status.TipReached {
 		if i.syncLogTimer != nil {
@@ -412,11 +428,53 @@ func (i *Indexer) updateStatus(status input_chainsync.ChainSyncStatus) {
 	i.tipSlot = status.TipSlotNumber
 	i.tipHash = status.TipBlockHash
 	if err := storage.GetStorage().UpdateCursor(status.SlotNumber, status.BlockHash); err != nil {
-		logger.Errorf("failed to update cursor: %s", err)
+		slog.Error(
+			fmt.Sprintf("failed to update cursor: %s", err),
+		)
 	}
 }
 
 // GetIndexer returns the global indexer instance
 func GetIndexer() *Indexer {
 	return globalIndexer
+}
+
+// TODO: remove the below once we switch adder to slog
+
+// AdderLogger is a wrapper type to give our logger the expected interface
+type AdderLogger struct{}
+
+func NewAdderLogger() *AdderLogger {
+	return &AdderLogger{}
+}
+
+func (a *AdderLogger) Infof(msg string, args ...any) {
+	slog.Info(
+		fmt.Sprintf(msg, args...),
+	)
+}
+
+func (a *AdderLogger) Warnf(msg string, args ...any) {
+	slog.Warn(
+		fmt.Sprintf(msg, args...),
+	)
+}
+
+func (a *AdderLogger) Debugf(msg string, args ...any) {
+	slog.Debug(
+		fmt.Sprintf(msg, args...),
+	)
+}
+
+func (a *AdderLogger) Errorf(msg string, args ...any) {
+	slog.Error(
+		fmt.Sprintf(msg, args...),
+	)
+}
+
+func (a *AdderLogger) Fatalf(msg string, args ...any) {
+	slog.Error(
+		fmt.Sprintf(msg, args...),
+	)
+	os.Exit(1)
 }

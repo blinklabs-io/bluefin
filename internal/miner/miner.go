@@ -17,12 +17,12 @@ package miner
 import (
 	"crypto/rand"
 	"fmt"
+	"log/slog"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
-	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 
@@ -38,7 +38,6 @@ const (
 
 type Miner struct {
 	Config      *config.Config
-	Logger      *logging.Logger
 	waitGroup   *sync.WaitGroup
 	resultChan  chan Result
 	doneChan    chan any
@@ -175,7 +174,6 @@ func New(
 ) *Miner {
 	return &Miner{
 		Config:      config.GetConfig(),
-		Logger:      logging.GetLogger(),
 		waitGroup:   waitGroup,
 		resultChan:  resultChan,
 		doneChan:    doneChan,
@@ -370,7 +368,7 @@ func (m *Miner) calculateHash() []byte {
 		}
 		stateBytes, err := m.state.MarshalCBOR()
 		if err != nil {
-			logging.GetLogger().Error(err)
+			slog.Error(err.Error())
 			return nil
 		}
 

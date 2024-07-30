@@ -17,12 +17,12 @@ package storage
 import (
 	"encoding/hex"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
-	"github.com/blinklabs-io/bluefin/internal/logging"
 
 	"github.com/blinklabs-io/gouroboros/cbor"
 	"github.com/dgraph-io/badger/v4"
@@ -305,7 +305,6 @@ func (s *Storage) GetUtxos(address string) ([][]byte, error) {
 }
 
 func (s *Storage) Rollback(slot uint64) error {
-	logger := logging.GetLogger()
 	keyPrefix := []byte(`utxo_`)
 	var deleteKeys [][]byte
 	err := s.db.Update(func(txn *badger.Txn) error {
@@ -334,7 +333,7 @@ func (s *Storage) Rollback(slot uint64) error {
 					return err
 				}
 				if delSlot > slot {
-					logger.Debug(
+					slog.Debug(
 						fmt.Sprintf(
 							"deleting key %s ('deleted' slot %d) to restore deleted UTxO",
 							keyDeleted,
@@ -360,7 +359,7 @@ func (s *Storage) Rollback(slot uint64) error {
 					return err
 				}
 				if addSlot > slot {
-					logger.Debug(
+					slog.Debug(
 						fmt.Sprintf(
 							"deleting keys %s ('added' slot %d) and %s to remove rolled-back UTxO",
 							key,
@@ -393,7 +392,6 @@ func (s *Storage) Rollback(slot uint64) error {
 }
 
 func (s *Storage) PurgeDeletedUtxos(beforeSlot uint64) error {
-	logger := logging.GetLogger()
 	keyPrefix := []byte(`utxo_`)
 	var deleteKeys [][]byte
 	err := s.db.Update(func(txn *badger.Txn) error {
@@ -441,12 +439,12 @@ func (s *Storage) PurgeDeletedUtxos(beforeSlot uint64) error {
 			if err := txn.Delete([]byte(key)); err != nil {
 				// Leave the rest for the next run if we hit the max transaction size
 				if err == badger.ErrTxnTooBig {
-					logger.Debug("purge deleted UTxOs: badger transaction too large, leaving remainder until next run")
+					slog.Debug("purge deleted UTxOs: badger transaction too large, leaving remainder until next run")
 					break
 				}
 				return err
 			}
-			logger.Debug(
+			slog.Debug(
 				fmt.Sprintf("purged deleted UTxO key: %s", key),
 			)
 		}
@@ -460,16 +458,32 @@ func GetStorage() *Storage {
 }
 
 // BadgerLogger is a wrapper type to give our logger the expected interface
-type BadgerLogger struct {
-	*logging.Logger
-}
+type BadgerLogger struct{}
 
 func NewBadgerLogger() *BadgerLogger {
-	return &BadgerLogger{
-		Logger: logging.GetLogger(),
-	}
+	return &BadgerLogger{}
+}
+
+func (b *BadgerLogger) Infof(msg string, args ...any) {
+	slog.Info(
+		fmt.Sprintf(msg, args...),
+	)
 }
 
 func (b *BadgerLogger) Warningf(msg string, args ...any) {
-	b.Logger.Warnf(msg, args...)
+	slog.Warn(
+		fmt.Sprintf(msg, args...),
+	)
+}
+
+func (b *BadgerLogger) Debugf(msg string, args ...any) {
+	slog.Debug(
+		fmt.Sprintf(msg, args...),
+	)
+}
+
+func (b *BadgerLogger) Errorf(msg string, args ...any) {
+	slog.Error(
+		fmt.Sprintf(msg, args...),
+	)
 }

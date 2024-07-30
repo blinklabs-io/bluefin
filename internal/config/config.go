@@ -31,7 +31,6 @@ type Config struct {
 	Submit       SubmitConfig  `yaml:"submit"`
 	Wallet       WalletConfig  `yaml:"wallet"`
 	Miner        MinerConfig   `yaml:"miner"`
-	Logging      LoggingConfig `yaml:"logging"`
 	Metrics      MetricsConfig `yaml:"metrics"`
 	Debug        DebugConfig   `yaml:"debug"`
 	Profile      string        `yaml:"profile" envconfig:"PROFILE"`
@@ -68,11 +67,6 @@ type MinerConfig struct {
 	Message          string `yaml:"message" envconfig:"MINER_MESSAGE"`
 }
 
-type LoggingConfig struct {
-	Healthchecks bool   `yaml:"healthchecks" envconfig:"LOGGING_HEALTHCHECKS"`
-	Level        string `yaml:"level"        envconfig:"LOGGING_LEVEL"`
-}
-
 type MetricsConfig struct {
 	ListenAddress string `yaml:"address" envconfig:"METRICS_LISTEN_ADDRESS"`
 	ListenPort    uint   `yaml:"port"    envconfig:"METRICS_LISTEN_PORT"`
@@ -85,10 +79,6 @@ type DebugConfig struct {
 
 // Singleton config instance with default values
 var globalConfig = &Config{
-	Logging: LoggingConfig{
-		Level:        "info",
-		Healthchecks: false,
-	},
 	Debug: DebugConfig{
 		ListenAddress: "localhost",
 		ListenPort:    0,

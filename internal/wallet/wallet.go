@@ -16,11 +16,12 @@ package wallet
 
 import (
 	"errors"
+	"fmt"
+	"log/slog"
 	"os"
 	"path"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
-	"github.com/blinklabs-io/bluefin/internal/logging"
 	"golang.org/x/crypto/blake2b"
 
 	"github.com/blinklabs-io/bursa"
@@ -31,7 +32,6 @@ var globalWallet = &bursa.Wallet{}
 func Setup() {
 	// Setup wallet
 	cfg := config.GetConfig()
-	logger := logging.GetLogger()
 	// TODO: check storage for mnemonic
 	mnemonic := cfg.Wallet.Mnemonic
 	if mnemonic == "" {
@@ -45,7 +45,9 @@ func Setup() {
 		)
 		// Read seed.txt if it exists
 		if data, err := os.ReadFile(seedPath); err == nil {
-			logger.Infof("read mnemonic from %s", seedPath)
+			slog.Info(
+				fmt.Sprintf("read mnemonic from %s", seedPath),
+			)
 			mnemonic = string(data)
 		} else if errors.Is(err, os.ErrNotExist) {
 			mnemonic, err = bursa.NewMnemonic()
@@ -59,7 +61,9 @@ func Setup() {
 				panic(err)
 			}
 			l, err := f.WriteString(mnemonic)
-			logger.Debugf("wrote %d bytes to seed.txt", l)
+			slog.Debug(
+				fmt.Sprintf("wrote %d bytes to seed.txt", l),
+			)
 			if err != nil {
 				f.Close()
 				panic(err)
@@ -68,7 +72,9 @@ func Setup() {
 			if err != nil {
 				panic(err)
 			}
-			logger.Infof("wrote generated mnemonic to %s", seedPath)
+			slog.Info(
+				fmt.Sprintf("wrote generated mnemonic to %s", seedPath),
+			)
 			// TODO: write mnemonic to storage
 		} else {
 			panic(err)

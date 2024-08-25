@@ -99,7 +99,7 @@ var globalConfig = &Config{
 		Message:          fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString()),
 	},
 	Network: "mainnet",
-	Profile: "tuna-v1",
+	Profile: "tuna-v2",
 }
 
 func Load(configFile string) (*Config, error) {

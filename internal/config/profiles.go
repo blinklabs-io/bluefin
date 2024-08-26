@@ -139,7 +139,9 @@ var Profiles = map[string]map[string]Profile{
 			},
 		},
 		"tuna-v2": Profile{
-			UseTunaV1: false,
+			UseTunaV1:   false,
+			EpochNumber: 504,
+			EpochTarget: 302_400_000,
 			// NOTE: this intercept point corresponds to the block before the script input ref UTxO(s) below
 			// TODO: update intercept slot/hash
 			InterceptHash:     "fb01499509d87049d29506034844cf7b146f0c488bf6813a398bd0101caa6299",

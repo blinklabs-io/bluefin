@@ -269,6 +269,23 @@ func (s *Storage) RemoveUtxo(
 	return nil
 }
 
+func (s *Storage) GetScriptRefUtxo(txId string, outputIdx int) ([]byte, error) {
+	var ret []byte
+	key := []byte(fmt.Sprintf("utxo_script_ref_%s.%d", txId, outputIdx))
+	err := s.db.View(func(txn *badger.Txn) error {
+		item, err := txn.Get(key)
+		if err != nil {
+			return err
+		}
+		ret, err = item.ValueCopy(nil)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
 func (s *Storage) GetUtxos(address string) ([][]byte, error) {
 	var ret [][]byte
 	keyPrefix := []byte(fmt.Sprintf("utxo_%s_", address))

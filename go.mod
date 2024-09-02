@@ -3,11 +3,11 @@ module github.com/blinklabs-io/bluefin
 go 1.22
 
 require (
-	github.com/Salvionied/apollo v1.0.12
+	github.com/Salvionied/apollo v1.0.13-0.20240908221422-e50b26fff03e
 	github.com/blinklabs-io/adder v0.23.2
 	github.com/blinklabs-io/bursa v0.8.2
 	github.com/blinklabs-io/cardano-models v0.3.6
-	github.com/blinklabs-io/gouroboros v0.93.2
+	github.com/blinklabs-io/gouroboros v0.93.3
 	github.com/blinklabs-io/merkle-patricia-forestry v0.1.0
 	github.com/dgraph-io/badger/v4 v4.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -51,7 +51,7 @@ require (
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/maestro-org/go-sdk v1.1.3 // indirect
+	github.com/maestro-org/go-sdk v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	github.com/utxorpc/go-codegen v0.9.0 // indirect

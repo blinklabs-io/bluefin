@@ -83,6 +83,44 @@ var Profiles = map[string]map[string]Profile{
 				"00000d1c0cc8af18e5e69d1f43196f528af8b2b08d52467376b657b7232172a3",
 			},
 		},
+		"tuna-v2-test": Profile{
+			UseTunaV1: false,
+			// NOTE: this intercept point corresponds to the block before the script input ref UTxO(s) below
+			InterceptHash:     "d85cb1e85ac4f4b14b8f576dec0bbcdd6fc85eb1db4180357f9935bf8715bd60",
+			InterceptSlot:     55194547,
+			ScriptAddress:     "addr_test1wqshm8qryrhpjlf0trsnag8ujcpl3js20qd7qdf8vad7qfsyphndm",
+			ValidatorHash:     "217d9c0320ee197d2f58e13ea0fc9603f8ca0a781be03527675be026",
+			MintValidatorHash: "40c8fc6abc73927132613dfdb473bb5d49484f50d78fa399cc63a12e",
+			ScriptRefInputs: []RefInput{
+				// Spend script
+				{
+					TxId:      "2eb62193510eb76c153ad0f56bb6e0207b4244c671cbbd6ef4e7f847cc5ae694",
+					OutputIdx: 1,
+				},
+				// Mint script
+				{
+					TxId:      "9c57fd563ff50919dc6c1cea0aa68044137e4a849cd0d91ac825e83de32c458d",
+					OutputIdx: 0,
+				},
+			},
+			// NOTE: these come from the upstream V1PreviewHistory.json file
+			// https://github.com/cardano-miners/fortuna/blob/df7b5d6c75ae334529b29b6cb00f3dfbddf762de/V1PreviewHistory.json
+			SeedHashes: []string{
+				"8a623238dcfe41cd25356cac234e202b8cd3a7e9fe295e462818c610e4b82a8d",
+				"00000c4708deb49a1076a185b4ab963ea7107ee08fd94bbe12ad7f8072a210c4",
+				"00000f3390355d958e16eaf7252f70058fe19cebb0b1a7f940e2ce18021d8bfe",
+				"000002694ef5552134bb700fe031c6591bd4b1d81c1bb4a117b635662953d039",
+				"00000a252051028bd77ab25139419ed03254ba24a8332479176c4df8005d7336",
+				"000002fbe7b31cad029b21e69ee39227029be382c8a6f2338405d0b1bf681eaf",
+				"00000769debb1fe2576c1c81037073754dadf18431519bd2fab3a2d8abad1ae7",
+				"00000e4ed1ded7f0336ec69e01310a1e4b73eaad1f4a900b7c99d30448c5cfee",
+				"000004fd95295374da6c85e69a81d03e5b50a1bd9694ff68b983b7561d346405",
+				"0000008b29b3a26868f65c6c046c7a115aea7cbf48bec9f9474952bb51536230",
+				"000002e9a6dcae68fc1cc22109d7ca363b4435749641601ff7c3e09715c2c5eb",
+				"00000c7383ee4c191a32b84e2ec5ec200241a57cc4f58ee1d65cab645973003c",
+				"00000b7fdf94f608cd61fc4620e9575d163461d2dd59f5bb39300e11e6fec200",
+			},
+		},
 		"tuna-v2-short-epoch": Profile{
 			UseTunaV1:   false,
 			EpochNumber: 50,

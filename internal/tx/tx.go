@@ -91,7 +91,7 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 
 	contractAddress, _ := serAddress.DecodeAddress(cfg.Indexer.ScriptAddress)
 	myAddress, _ := serAddress.DecodeAddress(bursa.PaymentAddress)
-	cc := apollo.NewEmptyBackend()
+	cc := NewCustomChainContext()
 	apollob := apollo.New(&cc)
 	apollob = apollob.
 		SetWalletFromBech32(bursa.PaymentAddress).

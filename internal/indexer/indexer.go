@@ -27,7 +27,6 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 
 	"github.com/blinklabs-io/adder/event"
-	filter_chainsync "github.com/blinklabs-io/adder/filter/chainsync"
 	filter_event "github.com/blinklabs-io/adder/filter/event"
 	input_chainsync "github.com/blinklabs-io/adder/input/chainsync"
 	output_embedded "github.com/blinklabs-io/adder/output/embedded"
@@ -60,7 +59,6 @@ var globalIndexer = &Indexer{}
 func (i *Indexer) Start() error {
 	cfg := config.GetConfig()
 	profileCfg := config.GetProfile()
-	bursa := wallet.GetWallet()
 	// Load saved block data
 	var lastBlockDataBytes cbor.RawMessage
 	if err := storage.GetStorage().GetBlockData(&(lastBlockDataBytes)); err != nil {
@@ -153,13 +151,6 @@ func (i *Indexer) Start() error {
 		filter_event.WithTypes([]string{"chainsync.transaction", "chainsync.rollback"}),
 	)
 	i.pipeline.AddFilter(filterEvent)
-	// We only care about transactions on a certain address
-	filterChainsync := filter_chainsync.New(
-		filter_chainsync.WithAddresses(
-			[]string{cfg.Indexer.ScriptAddress, bursa.PaymentAddress},
-		),
-	)
-	i.pipeline.AddFilter(filterChainsync)
 	// Configure pipeline output
 	output := output_embedded.New(
 		output_embedded.WithCallbackFunc(i.handleEvent),
@@ -258,6 +249,22 @@ func (i *Indexer) handleEventTransaction(evt event.Event) error {
 	// Process produced UTxOs
 	startMiner := false
 	for _, utxo := range eventTx.Transaction.Produced() {
+		// Check for reference inputs
+		for _, refInput := range profileCfg.ScriptRefInputs {
+			if refInput.TxId == eventCtx.TransactionHash &&
+				refInput.OutputIdx == utxo.Id.Index() {
+				// Record script ref UTxO
+				if err := store.AddUtxo(
+					"script_ref",
+					eventCtx.TransactionHash,
+					utxo.Id.Index(),
+					utxo.Output.Cbor(),
+					eventCtx.SlotNumber,
+				); err != nil {
+					return err
+				}
+			}
+		}
 		outputAddress := utxo.Output.Address().String()
 		// Ignore outputs to addresses that we don't care about
 		if outputAddress != cfg.Indexer.ScriptAddress &&

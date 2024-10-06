@@ -20,7 +20,7 @@ import (
 	"log/slog"
 	"os"
 
-	_ "go.uber.org/automaxprocs"
+	"go.uber.org/automaxprocs/maxprocs"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/indexer"
@@ -32,6 +32,10 @@ import (
 var cmdlineFlags struct {
 	configFile string
 	debug      bool
+}
+
+func slogPrintf(format string, v ...any) {
+	slog.Info(fmt.Sprintf(format, v...))
 }
 
 func main() {
@@ -71,6 +75,15 @@ func main() {
 	slog.Info(
 		fmt.Sprintf("bluefin %s started", version.GetVersionString()),
 	)
+
+	// Configure max processes with our logger wrapper, toss undo func
+	_, err = maxprocs.Set(maxprocs.Logger(slogPrintf))
+	if err != nil {
+		// If we hit this, something really wrong happened
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
+
 	// Load storage
 	if err := storage.GetStorage().Load(); err != nil {
 		slog.Error(

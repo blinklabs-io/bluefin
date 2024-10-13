@@ -7,7 +7,7 @@ require (
 	github.com/blinklabs-io/adder v0.23.4
 	github.com/blinklabs-io/bursa v0.8.2
 	github.com/blinklabs-io/cardano-models v0.3.7
-	github.com/blinklabs-io/gouroboros v0.97.0
+	github.com/blinklabs-io/gouroboros v0.98.0
 	github.com/blinklabs-io/merkle-patricia-forestry v0.1.0
 	github.com/dgraph-io/badger/v4 v4.3.0
 	github.com/kelseyhightower/envconfig v1.4.0

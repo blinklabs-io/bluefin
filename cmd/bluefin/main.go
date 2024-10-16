@@ -24,6 +24,7 @@ import (
 
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/indexer"
+	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/version"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
@@ -61,15 +62,8 @@ func main() {
 	}
 
 	// Configure logger
-	logLevel := slog.LevelInfo
-	if cmdlineFlags.debug {
-		logLevel = slog.LevelDebug
-	}
-	logger := slog.New(
-		slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-			Level: logLevel,
-		}),
-	)
+	logging.Configure()
+	logger := logging.GetLogger()
 	slog.SetDefault(logger)
 
 	slog.Info(

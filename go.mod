@@ -2,6 +2,8 @@ module github.com/blinklabs-io/bluefin
 
 go 1.22
 
+toolchain go1.22.6
+
 require (
 	github.com/Salvionied/apollo v1.0.13-0.20240908221422-e50b26fff03e
 	github.com/blinklabs-io/adder v0.23.4

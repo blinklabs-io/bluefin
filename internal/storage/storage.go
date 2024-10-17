@@ -296,7 +296,8 @@ func (s *Storage) GetUtxos(address string) ([][]byte, error) {
 			item := it.Item()
 			key := item.Key()
 			// Ignore "added" and "deleted" metadata keys when iterating
-			if strings.HasSuffix(string(key), `_deleted`) || strings.HasSuffix(string(key), `_added`) {
+			if strings.HasSuffix(string(key), `_deleted`) ||
+				strings.HasSuffix(string(key), `_added`) {
 				continue
 			}
 			// Ignore "deleted" UTxOs
@@ -331,7 +332,8 @@ func (s *Storage) Rollback(slot uint64) error {
 			item := it.Item()
 			key := item.KeyCopy(nil)
 			// Ignore "added" and "deleted" metadata keys when iterating
-			if strings.HasSuffix(string(key), `_deleted`) || strings.HasSuffix(string(key), `_added`) {
+			if strings.HasSuffix(string(key), `_deleted`) ||
+				strings.HasSuffix(string(key), `_added`) {
 				continue
 			}
 			// Restore UTxOs deleted after rollback slot
@@ -418,7 +420,8 @@ func (s *Storage) PurgeDeletedUtxos(beforeSlot uint64) error {
 			item := it.Item()
 			key := item.KeyCopy(nil)
 			// Ignore "added" and "deleted" metadata keys when iterating
-			if strings.HasSuffix(string(key), `_deleted`) || strings.HasSuffix(string(key), `_added`) {
+			if strings.HasSuffix(string(key), `_deleted`) ||
+				strings.HasSuffix(string(key), `_added`) {
 				continue
 			}
 			// Check for "deleted" key
@@ -456,7 +459,9 @@ func (s *Storage) PurgeDeletedUtxos(beforeSlot uint64) error {
 			if err := txn.Delete([]byte(key)); err != nil {
 				// Leave the rest for the next run if we hit the max transaction size
 				if err == badger.ErrTxnTooBig {
-					slog.Debug("purge deleted UTxOs: badger transaction too large, leaving remainder until next run")
+					slog.Debug(
+						"purge deleted UTxOs: badger transaction too large, leaving remainder until next run",
+					)
 					break
 				}
 				return err

@@ -132,7 +132,10 @@ func (m *Manager) Start(blockData any) {
 
 func (m *Manager) scheduleHashRateLog() {
 	cfg := config.GetConfig()
-	m.hashLogTimer = time.AfterFunc(time.Duration(cfg.Miner.HashRateInterval)*time.Second, m.hashRateLog)
+	m.hashLogTimer = time.AfterFunc(
+		time.Duration(cfg.Miner.HashRateInterval)*time.Second,
+		m.hashRateLog,
+	)
 }
 
 func (m *Manager) hashRateLog() {

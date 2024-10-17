@@ -26,6 +26,7 @@ import (
 )
 
 type Config struct {
+	Logging      LoggingConfig `yaml:"logging"`
 	Storage      StorageConfig `yaml:"storage"`
 	Indexer      IndexerConfig `yaml:"indexer"`
 	Submit       SubmitConfig  `yaml:"submit"`
@@ -36,6 +37,10 @@ type Config struct {
 	Profile      string        `yaml:"profile" envconfig:"PROFILE"`
 	Network      string        `yaml:"network" envconfig:"NETWORK"`
 	NetworkMagic uint32
+}
+
+type LoggingConfig struct {
+	Debug bool `yaml:"debug" envconfig:"LOGGING_DEBUG"`
 }
 
 type IndexerConfig struct {
@@ -62,9 +67,9 @@ type WalletConfig struct {
 }
 
 type MinerConfig struct {
-	WorkerCount      int    `yaml:"workers" envconfig:"WORKER_COUNT"`
+	WorkerCount      int    `yaml:"workers"          envconfig:"WORKER_COUNT"`
 	HashRateInterval int    `yaml:"hashRateInterval" envconfig:"HASH_RATE_INTERVAL"`
-	Message          string `yaml:"message" envconfig:"MINER_MESSAGE"`
+	Message          string `yaml:"message"          envconfig:"MINER_MESSAGE"`
 }
 
 type MetricsConfig struct {
@@ -96,7 +101,10 @@ var globalConfig = &Config{
 	Miner: MinerConfig{
 		WorkerCount:      max(1, runtime.NumCPU()/2),
 		HashRateInterval: 60,
-		Message:          fmt.Sprintf("Bluefin %s by Blink Labs", version.GetVersionString()),
+		Message: fmt.Sprintf(
+			"Bluefin %s by Blink Labs",
+			version.GetVersionString(),
+		),
 	},
 	Network: "mainnet",
 	Profile: "tuna-v2",

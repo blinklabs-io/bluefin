@@ -268,7 +268,8 @@ func (m *Miner) Start() {
 	if profileCfg.EpochTarget > 0 {
 		epochTarget = profileCfg.EpochTarget
 	}
-	if blockDataBlockNumber > 0 && blockDataBlockNumber%int64(epochNumber) == 0 {
+	if blockDataBlockNumber > 0 &&
+		blockDataBlockNumber%int64(epochNumber) == 0 {
 		adjustment := getDifficultyAdjustment(epochTime, int64(epochTarget))
 		epochTime = 0
 		newDifficulty := calculateDifficultyNumber(

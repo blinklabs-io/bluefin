@@ -6,10 +6,10 @@ toolchain go1.22.6
 
 require (
 	github.com/Salvionied/apollo v1.0.13-0.20240908221422-e50b26fff03e
-	github.com/blinklabs-io/adder v0.23.4
+	github.com/blinklabs-io/adder v0.24.2
 	github.com/blinklabs-io/bursa v0.8.2
 	github.com/blinklabs-io/cardano-models v0.3.7
-	github.com/blinklabs-io/gouroboros v0.99.0
+	github.com/blinklabs-io/gouroboros v0.100.0
 	github.com/blinklabs-io/merkle-patricia-forestry v0.1.0
 	github.com/dgraph-io/badger/v4 v4.3.1
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -34,7 +34,11 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/Salvionied/cbor/v2 v2.6.0 // indirect
+	github.com/SundaeSwap-finance/kugo v1.0.5 // indirect
+	github.com/SundaeSwap-finance/ogmigo/v6 v6.0.0-20240117201106-ce491d0b031e // indirect
+	github.com/aws/aws-sdk-go v1.48.7 // indirect
 	github.com/btcsuite/btcutil v1.0.2 // indirect
+	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dgraph-io/ristretto v1.0.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -48,7 +52,9 @@ require (
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/flatbuffers v24.3.25+incompatible // indirect
+	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/jinzhu/copier v0.4.0 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.17.10 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
@@ -56,15 +62,14 @@ require (
 	github.com/maestro-org/go-sdk v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
-	github.com/utxorpc/go-codegen v0.10.0 // indirect
+	github.com/utxorpc/go-codegen v0.11.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/exp v0.0.0-20240404231335-c0f41cb1a7a0 // indirect
 	golang.org/x/net v0.29.0 // indirect
+	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/text v0.19.0 // indirect
-	google.golang.org/protobuf v1.34.2 // indirect
+	google.golang.org/protobuf v1.35.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )

@@ -37,7 +37,10 @@ func NewCustomChainContext() CustomChainContext {
 	}
 }
 
-func (c CustomChainContext) GetUtxoFromRef(txHash string, txIndex int) *UTxO.UTxO {
+func (c CustomChainContext) GetUtxoFromRef(
+	txHash string,
+	txIndex int,
+) *UTxO.UTxO {
 	var ret UTxO.UTxO
 	store := storage.GetStorage()
 	store.Lock()

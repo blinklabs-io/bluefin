@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
+	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/miner"
 	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
@@ -87,7 +88,7 @@ func (i *Indexer) Start() error {
 	inputOpts := []input_chainsync.ChainSyncOptionFunc{
 		input_chainsync.WithBulkMode(true),
 		input_chainsync.WithAutoReconnect(true),
-		input_chainsync.WithLogger(NewAdderLogger()),
+		input_chainsync.WithLogger(logging.GetLogger()),
 		input_chainsync.WithStatusUpdateFunc(i.updateStatus),
 		input_chainsync.WithNetwork(cfg.Network),
 	}
@@ -148,7 +149,9 @@ func (i *Indexer) Start() error {
 	// Configure pipeline filters
 	// We only care about transaction events
 	filterEvent := filter_event.New(
-		filter_event.WithTypes([]string{"chainsync.transaction", "chainsync.rollback"}),
+		filter_event.WithTypes(
+			[]string{"chainsync.transaction", "chainsync.rollback"},
+		),
 	)
 	i.pipeline.AddFilter(filterEvent)
 	// Configure pipeline output
@@ -198,7 +201,11 @@ func (i *Indexer) handleEventRollback(evt event.Event) error {
 		return err
 	}
 	slog.Info(
-		fmt.Sprintf("rolled back to %d.%s", eventRollback.SlotNumber, eventRollback.BlockHash),
+		fmt.Sprintf(
+			"rolled back to %d.%s",
+			eventRollback.SlotNumber,
+			eventRollback.BlockHash,
+		),
 	)
 	// Purge older deleted UTxOs
 	if err := store.PurgeDeletedUtxos(eventRollback.SlotNumber - rollbackSlots); err != nil {
@@ -444,44 +451,4 @@ func (i *Indexer) updateStatus(status input_chainsync.ChainSyncStatus) {
 // GetIndexer returns the global indexer instance
 func GetIndexer() *Indexer {
 	return globalIndexer
-}
-
-// TODO: remove the below once we switch adder to slog
-
-// AdderLogger is a wrapper type to give our logger the expected interface
-type AdderLogger struct{}
-
-func NewAdderLogger() *AdderLogger {
-	return &AdderLogger{}
-}
-
-func (a *AdderLogger) Infof(msg string, args ...any) {
-	slog.Info(
-		fmt.Sprintf(msg, args...),
-	)
-}
-
-func (a *AdderLogger) Warnf(msg string, args ...any) {
-	slog.Warn(
-		fmt.Sprintf(msg, args...),
-	)
-}
-
-func (a *AdderLogger) Debugf(msg string, args ...any) {
-	slog.Debug(
-		fmt.Sprintf(msg, args...),
-	)
-}
-
-func (a *AdderLogger) Errorf(msg string, args ...any) {
-	slog.Error(
-		fmt.Sprintf(msg, args...),
-	)
-}
-
-func (a *AdderLogger) Fatalf(msg string, args ...any) {
-	slog.Error(
-		fmt.Sprintf(msg, args...),
-	)
-	os.Exit(1)
 }

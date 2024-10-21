@@ -416,14 +416,21 @@ func submitTx(txRawBytes []byte) (string, error) {
 		return submitTxApi(txRawBytes)
 	} else {
 		// Populate address info from indexer network
-		network := ouroboros.NetworkByName(cfg.Network)
-		if network == ouroboros.NetworkInvalid {
+		network, ok := ouroboros.NetworkByName(cfg.Network)
+		if !ok {
 			slog.Error(
 				fmt.Sprintf("unknown network: %s", cfg.Network),
 			)
 			os.Exit(1)
 		}
-		cfg.Submit.Address = fmt.Sprintf("%s:%d", network.PublicRootAddress, network.PublicRootPort)
+		if len(network.BootstrapPeers) == 0 {
+			slog.Error(
+				fmt.Sprintf("no known peers for network: %s", cfg.Network),
+			)
+			os.Exit(1)
+		}
+		peer := network.BootstrapPeers[0]
+		cfg.Submit.Address = fmt.Sprintf("%s:%d", peer.Address, peer.Port)
 		return submitTxNtN(txRawBytes)
 	}
 }

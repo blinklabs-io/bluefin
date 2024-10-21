@@ -150,8 +150,8 @@ func GetConfig() *Config {
 }
 
 func (c *Config) populateNetworkMagic() error {
-	network := ouroboros.NetworkByName(c.Network)
-	if network == ouroboros.NetworkInvalid {
+	network, ok := ouroboros.NetworkByName(c.Network)
+	if !ok {
 		return fmt.Errorf("unknown network: %s", c.Network)
 	}
 	c.NetworkMagic = network.NetworkMagic

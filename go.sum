@@ -15,8 +15,8 @@ github.com/aws/aws-sdk-go v1.48.7 h1:gDcOhmkohlNk20j0uWpko5cLBbwSkB+xpkshQO45F7Y
 github.com/aws/aws-sdk-go v1.48.7/go.mod h1:LF8svs817+Nz+DmiMQKTO3ubZ/6IaTpq3TjupRn3Eqk=
 github.com/blinklabs-io/adder v0.24.3 h1:JAAmr9NhXi9HyEdSUk3hHtjiGF1vzir5lDRF9d9WSgI=
 github.com/blinklabs-io/adder v0.24.3/go.mod h1:hXSQK+bTBjQnGoR5WXYCSH4IghdSCTwH3oncguAaNqU=
-github.com/blinklabs-io/bursa v0.8.2 h1:f4ofPhTCW/Kev5lMrHRqf37s91NrUeVrpPvL4+JWqxE=
-github.com/blinklabs-io/bursa v0.8.2/go.mod h1:gwpOJC25ASg+xL5lF8nHGMA0Aqv3vt41tGUDiruFjew=
+github.com/blinklabs-io/bursa v0.8.3 h1:nx6+0dU9oaZDU7xejmya9YXd0GeIbsXYsB7puD/2NHM=
+github.com/blinklabs-io/bursa v0.8.3/go.mod h1:+KofXjwZXb6fHuBw60Fm/r/Gxx7Tw779j3DX0d5iF6w=
 github.com/blinklabs-io/cardano-models v0.3.7 h1:KkIFnimGf/5JLL8JPsH7hbfzUrC8qfHBYv3fx+AJSb4=
 github.com/blinklabs-io/cardano-models v0.3.7/go.mod h1:gnL+MVNX7b4bxH7AjeV1xJBbwIqwvXhJDOWiVt5ji50=
 github.com/blinklabs-io/gouroboros v0.102.0 h1:SSw1SW5a/eunPJdwJHARur/dlGdTrLEq5ScRFZjhen0=

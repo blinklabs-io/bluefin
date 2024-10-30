@@ -7,7 +7,7 @@ toolchain go1.22.6
 require (
 	github.com/Salvionied/apollo v1.0.13-0.20240908221422-e50b26fff03e
 	github.com/blinklabs-io/adder v0.24.3
-	github.com/blinklabs-io/bursa v0.8.2
+	github.com/blinklabs-io/bursa v0.8.3
 	github.com/blinklabs-io/cardano-models v0.3.7
 	github.com/blinklabs-io/gouroboros v0.102.0
 	github.com/blinklabs-io/merkle-patricia-forestry v0.1.0

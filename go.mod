@@ -9,13 +9,13 @@ require (
 	github.com/blinklabs-io/adder v0.25.0
 	github.com/blinklabs-io/bursa v0.8.3
 	github.com/blinklabs-io/cardano-models v0.3.8
-	github.com/blinklabs-io/gouroboros v0.103.3
+	github.com/blinklabs-io/gouroboros v0.103.6
 	github.com/blinklabs-io/merkle-patricia-forestry v0.1.1
 	github.com/dgraph-io/badger/v4 v4.3.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/minio/sha256-simd v1.0.1
 	go.uber.org/automaxprocs v1.6.0
-	golang.org/x/crypto v0.28.0
+	golang.org/x/crypto v0.29.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -62,14 +62,14 @@ require (
 	github.com/maestro-org/go-sdk v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
-	github.com/utxorpc/go-codegen v0.11.0 // indirect
+	github.com/utxorpc/go-codegen v0.12.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/exp v0.0.0-20240404231335-c0f41cb1a7a0 // indirect
 	golang.org/x/net v0.29.0 // indirect
-	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.26.0 // indirect
-	golang.org/x/text v0.19.0 // indirect
+	golang.org/x/sync v0.9.0 // indirect
+	golang.org/x/sys v0.27.0 // indirect
+	golang.org/x/text v0.20.0 // indirect
 	google.golang.org/protobuf v1.35.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )

@@ -6,11 +6,11 @@ type Network struct {
 }
 
 var Networks = map[string]Network{
-	"preview": Network{
+	"preview": {
 		ShelleyOffsetSlot: 0,
 		ShelleyOffsetTime: 1666656000,
 	},
-	"mainnet": Network{
+	"mainnet": {
 		ShelleyOffsetSlot: 4924800,
 		ShelleyOffsetTime: 1596491091,
 	},

@@ -17,8 +17,8 @@ github.com/blinklabs-io/adder v0.25.2 h1:qoAR/lzFI1PcBj9VkNTd+rzp0F1vkx3gAHyHlOS
 github.com/blinklabs-io/adder v0.25.2/go.mod h1:+qhbV4h8UVKUnGIJs32Uq6lj11hdFmTud3IDBXBfbuI=
 github.com/blinklabs-io/bursa v0.8.3 h1:nx6+0dU9oaZDU7xejmya9YXd0GeIbsXYsB7puD/2NHM=
 github.com/blinklabs-io/bursa v0.8.3/go.mod h1:+KofXjwZXb6fHuBw60Fm/r/Gxx7Tw779j3DX0d5iF6w=
-github.com/blinklabs-io/cardano-models v0.3.8 h1:Ic+gNeTwAj2etmkRHQbWg3TqAvd8yvVdXBrTy9Ewf5Y=
-github.com/blinklabs-io/cardano-models v0.3.8/go.mod h1:uDEiazZ7jdZTKNJALwRQ7t7k2plm+d9zIqXwi1tWNtw=
+github.com/blinklabs-io/cardano-models v0.4.0 h1:Wz8QtSKmPXcf+6jTU8B1wUDP/T0XkBrBefkWuuMIqKs=
+github.com/blinklabs-io/cardano-models v0.4.0/go.mod h1:rpSFMN5o9X+kqGmfvpDSPadD0xO+2qoB3wNVMj+I6/Y=
 github.com/blinklabs-io/gouroboros v0.105.2 h1:4le/9xA1x626hPp1z/rQQalM5lInqKl006O7v5G1dQE=
 github.com/blinklabs-io/gouroboros v0.105.2/go.mod h1:W7ENnAVntdrUg5c7SIfEhADTKgeXFNankI5Rfeyb5k4=
 github.com/blinklabs-io/merkle-patricia-forestry v0.1.1 h1:6UcTKq3RtCvpqUR9duA8U7YGyvQynJej5Jj/D99BBzk=
@@ -73,8 +73,8 @@ github.com/go-playground/locales v0.14.1 h1:EWaQ/wswjilfKLTECiXz7Rh+3BjFhfDFKv/o
 github.com/go-playground/locales v0.14.1/go.mod h1:hxrqLVvrK65+Rwrd5Fc6F2O76J/NuW9t0sjnWqG1slY=
 github.com/go-playground/universal-translator v0.18.1 h1:Bcnm0ZwsGyWbCzImXv+pAJnYK9S473LQFuzCbDbfSFY=
 github.com/go-playground/universal-translator v0.18.1/go.mod h1:xekY+UJKNuX9WP91TpwSH2VMlDf28Uj24BCp08ZFTUY=
-github.com/go-playground/validator/v10 v10.22.1 h1:40JcKH+bBNGFczGuoBYgX4I6m/i27HYW8P9FDk5PbgA=
-github.com/go-playground/validator/v10 v10.22.1/go.mod h1:dbuPbCMFw/DrkbEynArYaCwl3amGuJotoKCe95atGMM=
+github.com/go-playground/validator/v10 v10.23.0 h1:/PwmTwZhS0dPkav3cdK9kV1FsAmrL8sThn8IHr/sO+o=
+github.com/go-playground/validator/v10 v10.23.0/go.mod h1:dbuPbCMFw/DrkbEynArYaCwl3amGuJotoKCe95atGMM=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
 github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e h1:1r7pUrabqp18hOBcwBwiTsbnFeTZHV9eER/QT5JVZxY=
 github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=

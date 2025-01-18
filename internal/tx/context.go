@@ -1,4 +1,4 @@
-// Copyright 2024 Blink Labs Software
+// Copyright 2025 Blink Labs Software
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package tx
 import (
 	"fmt"
 	"log/slog"
-	"os"
 
 	"github.com/Salvionied/apollo/serialization/UTxO"
 	"github.com/Salvionied/apollo/txBuilding/Backend/Base"
@@ -40,7 +39,7 @@ func NewCustomChainContext() CustomChainContext {
 func (c CustomChainContext) GetUtxoFromRef(
 	txHash string,
 	txIndex int,
-) *UTxO.UTxO {
+) (*UTxO.UTxO, error) {
 	var ret UTxO.UTxO
 	store := storage.GetStorage()
 	store.Lock()
@@ -52,14 +51,14 @@ func (c CustomChainContext) GetUtxoFromRef(
 		slog.Warn(
 			"NOTE: this probably means that you need to remove your .bluefin directory to re-sync from scratch",
 		)
-		os.Exit(1)
+		return nil, err
 	}
 	store.Unlock()
 	if _, err := cbor.Decode(utxoBytes, &ret); err != nil {
 		slog.Error(
 			fmt.Sprintf("failed to decode script ref UTxO bytes: %s", err),
 		)
-		os.Exit(1)
+		return nil, err
 	}
-	return &ret
+	return &ret, nil
 }

@@ -93,9 +93,12 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	myAddress, _ := serAddress.DecodeAddress(bursa.PaymentAddress)
 	cc := NewCustomChainContext()
 	apollob := apollo.New(&cc)
-	apollob, _ = apollob.
+	apollob, err = apollob.
 		SetWalletFromBech32(bursa.PaymentAddress).
 		SetWalletAsChangeAddress()
+	if err != nil {
+		return nil, err
+	}
 
 	// Gather input UTxOs from our wallet
 	store.Lock()

@@ -41,9 +41,29 @@ jobs:
   build-binaries:
     strategy:
       matrix:
-        os: [linux, darwin, freebsd, windows]
-        arch: [amd64, arm64]
-    runs-on: ubuntu-latest
+        include:
+          - runner: macos-latest
+            os: darwin
+            arch: arm64
+          - runner: ubuntu-latest
+            os: freebsd
+            arch: amd64
+          - runner: ubuntu-latest
+            os: freebsd
+            arch: arm64
+          - runner: ubuntu-latest
+            os: linux
+            arch: amd64
+          - runner: ubuntu-latest
+            os: linux
+            arch: arm64
+          - runner: ubuntu-latest
+            os: windows
+            arch: amd64
+          - runner: ubuntu-latest
+            os: windows
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
     needs: [create-draft-release]
     permissions:
       actions: write
@@ -63,6 +83,91 @@ jobs:
           go-version: 1.22.x
       - name: Build binary
         run: GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} make build
+
+      # Sign Windows build
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.os == 'windows' }}
+        with:
+          java-version: 17
+          distribution: 'temurin'
+      - id: 'auth'
+        name: Authenticate with Google Cloud
+        if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.os == 'windows' }}
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.CERTIFICATE_SA_CREDENTIALS }}'
+      - name: Set up Cloud SDK
+        if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.os == 'windows' }}
+        uses: 'google-github-actions/setup-gcloud@v2'
+      - name: Sign windows binary
+        if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.os == 'windows' }}
+        run: |
+          echo "Downloading jsign.jar"
+          curl -L -o jsign.jar https://github.com/ebourg/jsign/releases/download/6.0/jsign-6.0.jar
+          echo "Verifying jsign.jar checksum"
+          echo '05ca18d4ab7b8c2183289b5378d32860f0ea0f3bdab1f1b8cae5894fb225fa8a  jsign.jar' | sha256sum -c
+          echo "${{ secrets.CERTIFICATE_CHAIN }}" | base64 --decode > codesign-chain.pem
+          set +x
+          _filename=bluefin
+          ACCESS_TOKEN=$(gcloud auth print-access-token)
+          echo "::add-mask::$ACCESS_TOKEN"
+          java -jar jsign.jar \
+            --storetype ${{ secrets.CERTIFICATE_STORE_TYPE }} \
+            --storepass "$ACCESS_TOKEN" \
+            --keystore ${{ secrets.CERTIFICATE_KEYSTORE }} \
+            --alias ${{ secrets.CERTIFICATE_KEY_NAME }} \
+            --certfile codesign-chain.pem \
+            --tsmode RFC3161 \
+            --tsaurl http://timestamp.globalsign.com/tsa/r6advanced1 \
+            ${_filename}
+          unset ACCESS_TOKEN
+          set -x
+          echo "Signed Windows binary: ${_filename}"
+          echo "Cleaning up certificate chain"
+          rm -f codesign-chain.pem
+
+      # Sign MacOS build
+
+      - name: Create .app package and sign macos binary
+        if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.os == 'darwin' }}
+        run: |
+          echo "Decoding and importing Apple certificate..."
+          echo -n "${{ secrets.APPLE_CERTIFICATE }}" | base64 --decode -o apple_certificate.p12
+          security create-keychain -p "${{ secrets.APPLE_KEYCHAIN_PASSWORD }}" build.keychain
+          security default-keychain -s build.keychain
+          security set-keychain-settings -lut 21600 build.keychain
+          security unlock-keychain -p "${{ secrets.APPLE_KEYCHAIN_PASSWORD }}" build.keychain
+          security import apple_certificate.p12 -k build.keychain -P "${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "${{ secrets.APPLE_KEYCHAIN_PASSWORD }}" build.keychain
+          echo "Packaging bluefin..."
+          mkdir -p Bluefin.app/Contents/MacOS
+          mkdir -p Bluefin.app/Contents/Resources
+          cp bluefin Bluefin.app/Contents/MacOS/bluefin
+          chmod +x Bluefin.app/Contents/MacOS/bluefin
+          cat <<EOF > Bluefin.app/Contents/Info.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>bluefin</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.blinklabssoftware.bluefin</string>
+              <key>CFBundleName</key>
+              <string>Bluefin</string>
+              <key>CFBundleVersion</key>
+              <string>${{ env.RELEASE_TAG }}</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${{ env.RELEASE_TAG }}</string>
+          </dict>
+          </plist>
+          EOF
+          /usr/bin/codesign --force -s "Developer ID Application: Blink Labs Software (${{ secrets.APPLE_TEAM_ID }})" --options runtime Bluefin.app -v
+          xcrun notarytool store-credentials "notarytool-profile" --apple-id "${{ secrets.APPLE_ID }}" --team-id "${{ secrets.APPLE_TEAM_ID }}" --password "${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}"
+          ditto -c -k --keepParent "Bluefin.app" "notarization.zip"
+          xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
+          xcrun stapler staple "Bluefin.app"
       - name: Upload release asset
         if: startsWith(github.ref, 'refs/tags/')
         run: |
@@ -70,12 +175,19 @@ jobs:
           if [[ ${{ matrix.os }} == windows ]]; then
             _filename=${_filename}.exe
           fi
-          cp bluefin ${_filename}
+          if [[ "${{ matrix.os }}" == "windows" || "${{ matrix.os }}" == "linux" ]]; then
+            cp bluefin ${_filename}
+          fi
+          if [[ "${{ matrix.os }}" == "darwin" ]]; then
+            _filename=bluefin-${{ env.RELEASE_TAG }}-${{ matrix.os }}-${{ matrix.arch }}.zip
+            zip -r ${_filename} Bluefin.app
+          fi
           curl \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Content-Type: application/octet-stream" \
             --data-binary @${_filename} \
             https://uploads.github.com/repos/${{ github.repository_owner }}/bluefin/releases/${{ needs.create-draft-release.outputs.RELEASE_ID }}/assets?name=${_filename}
+
       - name: Attest binary
         uses: actions/attest-build-provenance@v2
         with:

@@ -1,4 +1,4 @@
-// Copyright 2024 Blink Labs Software
+// Copyright 2025 Blink Labs Software
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ func Setup() {
 	wallet, err := bursa.NewWallet(
 		mnemonic,
 		cfg.Network,
-		0, 0, 0, 0,
+		"", 0, 0, 0, 0,
 	)
 	if err != nil {
 		panic(err)
@@ -96,7 +96,7 @@ func GetWallet() *bursa.Wallet {
 }
 
 func PaymentKeyHash() []byte {
-	rootKey, err := bursa.GetRootKeyFromMnemonic(globalWallet.Mnemonic)
+	rootKey, err := bursa.GetRootKeyFromMnemonic(globalWallet.Mnemonic, "")
 	if err != nil {
 		panic(err)
 	}

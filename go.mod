@@ -4,7 +4,7 @@ go 1.22.11
 
 require (
 	github.com/Salvionied/apollo v1.1.0
-	github.com/blinklabs-io/adder v0.25.4
+	github.com/blinklabs-io/adder v0.26.0
 	github.com/blinklabs-io/bursa v0.9.0
 	github.com/blinklabs-io/cardano-models v0.4.0
 	github.com/blinklabs-io/gouroboros v0.108.2

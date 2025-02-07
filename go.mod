@@ -3,7 +3,7 @@ module github.com/blinklabs-io/bluefin
 go 1.22.11
 
 require (
-	github.com/Salvionied/apollo v1.0.13-0.20250116203813-b1928b7dbead
+	github.com/Salvionied/apollo v1.1.0
 	github.com/blinklabs-io/adder v0.25.4
 	github.com/blinklabs-io/bursa v0.9.0
 	github.com/blinklabs-io/cardano-models v0.4.0
@@ -32,8 +32,8 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/Salvionied/cbor/v2 v2.6.0 // indirect
-	github.com/SundaeSwap-finance/kugo v1.0.6-0.20250116035512-6686234216f0 // indirect
-	github.com/SundaeSwap-finance/ogmigo v0.8.2-0.20250113211512-19cbb328b538 // indirect
+	github.com/SundaeSwap-finance/kugo v1.1.0 // indirect
+	github.com/SundaeSwap-finance/ogmigo v0.9.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.6 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.6 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect

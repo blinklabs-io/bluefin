@@ -1,4 +1,4 @@
-// Copyright 2024 Blink Labs Software
+// Copyright 2025 Blink Labs Software
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package storage
 import (
 	"encoding/hex"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"sync"
@@ -84,6 +85,9 @@ func (t *Trie) load() error {
 }
 
 func (t *Trie) Update(key []byte, val []byte, slot uint64) error {
+	if slot > math.MaxInt {
+		return fmt.Errorf("slot number int overflow")
+	}
 	// Update trie
 	t.trie.Set(key, val)
 	// Update storage
@@ -98,7 +102,7 @@ func (t *Trie) Update(key []byte, val []byte, slot uint64) error {
 			[]byte(keyAdded),
 			[]byte(
 				// Convert slot to string for storage
-				strconv.Itoa(int(slot)),
+				strconv.Itoa(int(slot)), // #nosec G115
 			),
 		); err != nil {
 			return err
@@ -132,6 +136,9 @@ func (t *Trie) Delete(key []byte) error {
 }
 
 func (t *Trie) Rollback(slot uint64) error {
+	if slot > math.MaxInt64 {
+		return fmt.Errorf("slot number int overflow")
+	}
 	dbKeyPrefix := t.dbKeyPrefix(nil)
 	err := t.db.Update(func(txn *badger.Txn) error {
 		it := txn.NewIterator(badger.DefaultIteratorOptions)
@@ -155,6 +162,7 @@ func (t *Trie) Rollback(slot uint64) error {
 			if err != nil {
 				return err
 			}
+			// #nosec G115
 			if addSlot > int(slot) {
 				// Delete rolled-back hashes from trie
 				tmpKey := strings.TrimPrefix(

@@ -1,4 +1,4 @@
-// Copyright 2024 Blink Labs Software
+// Copyright 2025 Blink Labs Software
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log/slog"
+	"math"
 	"strconv"
 	"strings"
 	"sync"
@@ -194,6 +195,9 @@ func (s *Storage) AddUtxo(
 	txOutBytes []byte,
 	slot uint64,
 ) error {
+	if slot > math.MaxInt {
+		return fmt.Errorf("slot number int overflow")
+	}
 	keyUtxo := fmt.Sprintf("utxo_%s_%s.%d", address, txId, txOutIdx)
 	keyAdded := keyUtxo + `_added`
 	err := s.db.Update(func(txn *badger.Txn) error {
@@ -225,7 +229,7 @@ func (s *Storage) AddUtxo(
 			[]byte(keyAdded),
 			[]byte(
 				// Convert slot to string for storage
-				strconv.Itoa(int(slot)),
+				strconv.Itoa(int(slot)), // #nosec G115
 			),
 		); err != nil {
 			return err
@@ -241,6 +245,9 @@ func (s *Storage) RemoveUtxo(
 	utxoIdx uint32,
 	slot uint64,
 ) error {
+	if slot > math.MaxInt {
+		return fmt.Errorf("slot number int overflow")
+	}
 	keyUtxo := fmt.Sprintf("utxo_%s_%s.%d", address, txId, utxoIdx)
 	keyDeleted := keyUtxo + `_deleted`
 	err := s.db.Update(func(txn *badger.Txn) error {
@@ -253,7 +260,7 @@ func (s *Storage) RemoveUtxo(
 			[]byte(keyDeleted),
 			[]byte(
 				// Convert slot to string for storage
-				strconv.Itoa(int(slot)),
+				strconv.Itoa(int(slot)), // #nosec G115
 			),
 		); err != nil {
 			return err

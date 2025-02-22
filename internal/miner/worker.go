@@ -1,4 +1,4 @@
-// Copyright 2023 Blink Labs Software
+// Copyright 2025 Blink Labs Software
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -149,7 +149,7 @@ func (m *Manager) hashRateLog() {
 	}
 	hashCountDiff := hashCount - m.hashLogLastCount
 	m.hashLogLastCount = hashCount
-	secondDivisor := uint64(cfg.Miner.HashRateInterval)
+	secondDivisor := uint64(cfg.Miner.HashRateInterval) // #nosec G115
 	hashCountPerSec := hashCountDiff / secondDivisor
 	slog.Info(
 		fmt.Sprintf("hash rate: %d/s", hashCountPerSec),

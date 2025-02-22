@@ -1,4 +1,4 @@
-// Copyright 2024 Blink Labs Software
+// Copyright 2025 Blink Labs Software
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -189,7 +189,7 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 
 	apollob = apollob.AddLoadedUTxOs(utxos...).
 		SetValidityStart(int64(datumSlot - 90)).
-		SetTtl(int64(datumSlot + 90))
+		SetTtl(int64(datumSlot + 90)) // #nosec G115
 
 	if profileCfg.UseTunaV1 {
 		apollob = apollob.
@@ -404,6 +404,10 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 func unixTimeToSlot(unixTime int64) uint64 {
 	cfg := config.GetConfig()
 	networkCfg := config.Networks[cfg.Network]
+	if unixTime < 0 {
+		panic("you have traveled backward in time")
+	}
+	// #nosec G115
 	return networkCfg.ShelleyOffsetSlot + uint64(
 		unixTime-networkCfg.ShelleyOffsetTime,
 	)
@@ -595,7 +599,7 @@ func handleRequestTxIds(
 				EraId: 5,
 				TxId:  ntnTxHash,
 			},
-			Size: uint32(len(ntnTxBytes)),
+			Size: uint32(len(ntnTxBytes)), // #nosec G115
 		},
 	}
 	return ret, nil

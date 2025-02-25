@@ -1,6 +1,6 @@
 module github.com/blinklabs-io/bluefin
 
-go 1.22.11
+go 1.23.6
 
 require (
 	github.com/Salvionied/apollo v1.1.0

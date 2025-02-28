@@ -458,7 +458,7 @@ func submitTxNtN(txRawBytes []byte) (string, error) {
 		slog.Error(
 			fmt.Sprintf("failed to unwrap transaction CBOR: %s", err),
 		)
-		return "", fmt.Errorf("failed to unwrap transaction CBOR: %s", err)
+		return "", fmt.Errorf("failed to unwrap transaction CBOR: %w", err)
 	}
 	// index 0 is the transaction body
 	// Store index 0 (transaction body) as byte array
@@ -509,7 +509,7 @@ func submitTxNtN(txRawBytes []byte) (string, error) {
 	time.Sleep(1 * time.Second)
 
 	if err := o.Close(); err != nil {
-		return "", fmt.Errorf("failed to close connection: %s", err)
+		return "", fmt.Errorf("failed to close connection: %w", err)
 	}
 
 	return hex.EncodeToString(ntnTxHash[:]), nil
@@ -525,7 +525,7 @@ func submitTxApi(txRawBytes []byte) (string, error) {
 	reqBody := bytes.NewBuffer(txRawBytes)
 	req, err := http.NewRequest(http.MethodPost, cfg.Submit.Url, reqBody)
 	if err != nil {
-		return "", fmt.Errorf("failed to create request: %s", err)
+		return "", fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Add("Content-Type", "application/cbor")
 	if cfg.Submit.BlockFrostProjectID != "" {
@@ -535,7 +535,7 @@ func submitTxApi(txRawBytes []byte) (string, error) {
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf(
-			"failed to send request: %s: %s",
+			"failed to send request: %s: %w",
 			cfg.Submit.Url,
 			err,
 		)
@@ -549,7 +549,7 @@ func submitTxApi(txRawBytes []byte) (string, error) {
 	// We have to read the entire response body and close it to prevent a memory leak
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("failed to read response body: %s", err)
+		return "", fmt.Errorf("failed to read response body: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -570,7 +570,7 @@ func createClientConnection(nodeAddress string) (net.Conn, error) {
 
 	conn, err = net.Dial(dialProto, dialAddress)
 	if err != nil {
-		return nil, fmt.Errorf("connection failed: %s", err)
+		return nil, fmt.Errorf("connection failed: %w", err)
 	}
 	return conn, nil
 }

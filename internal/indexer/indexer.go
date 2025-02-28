@@ -69,7 +69,7 @@ func (i *Indexer) Start() error {
 		var tmpBlockData models.TunaV1State
 		if len(lastBlockDataBytes) > 0 {
 			if _, err := cbor.Decode(lastBlockDataBytes, &tmpBlockData); err != nil {
-				return fmt.Errorf("failed to parse last block data: %s", err)
+				return fmt.Errorf("failed to parse last block data: %w", err)
 			}
 		}
 		i.lastBlockData = tmpBlockData
@@ -77,7 +77,7 @@ func (i *Indexer) Start() error {
 		var tmpBlockData models.TunaV2State
 		if len(lastBlockDataBytes) > 0 {
 			if _, err := cbor.Decode(lastBlockDataBytes, &tmpBlockData); err != nil {
-				return fmt.Errorf("failed to parse last block data: %s", err)
+				return fmt.Errorf("failed to parse last block data: %w", err)
 			}
 		}
 		i.lastBlockData = tmpBlockData

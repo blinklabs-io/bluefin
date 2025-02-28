@@ -16,6 +16,7 @@ package storage
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -86,7 +87,7 @@ func (t *Trie) load() error {
 
 func (t *Trie) Update(key []byte, val []byte, slot uint64) error {
 	if slot > math.MaxInt {
-		return fmt.Errorf("slot number int overflow")
+		return errors.New("slot number int overflow")
 	}
 	// Update trie
 	t.trie.Set(key, val)
@@ -137,7 +138,7 @@ func (t *Trie) Delete(key []byte) error {
 
 func (t *Trie) Rollback(slot uint64) error {
 	if slot > math.MaxInt64 {
-		return fmt.Errorf("slot number int overflow")
+		return errors.New("slot number int overflow")
 	}
 	dbKeyPrefix := t.dbKeyPrefix(nil)
 	err := t.db.Update(func(txn *badger.Txn) error {

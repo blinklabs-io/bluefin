@@ -64,7 +64,7 @@ func SendTx(blockData any, nonce [16]byte) error {
 		return err
 	}
 	slog.Info(
-		fmt.Sprintf("successfully submitted TX %s", txId),
+		"successfully submitted TX " + txId,
 	)
 	return nil
 }
@@ -426,13 +426,13 @@ func submitTx(txRawBytes []byte) (string, error) {
 		network, ok := ouroboros.NetworkByName(cfg.Network)
 		if !ok {
 			slog.Error(
-				fmt.Sprintf("unknown network: %s", cfg.Network),
+				"unknown network: " + cfg.Network,
 			)
 			os.Exit(1)
 		}
 		if len(network.BootstrapPeers) == 0 {
 			slog.Error(
-				fmt.Sprintf("no known peers for network: %s", cfg.Network),
+				"no known peers for network: " + cfg.Network,
 			)
 			os.Exit(1)
 		}

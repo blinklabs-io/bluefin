@@ -16,6 +16,7 @@ package storage
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log/slog"
 	"math"
@@ -196,7 +197,7 @@ func (s *Storage) AddUtxo(
 	slot uint64,
 ) error {
 	if slot > math.MaxInt {
-		return fmt.Errorf("slot number int overflow")
+		return errors.New("slot number int overflow")
 	}
 	keyUtxo := fmt.Sprintf("utxo_%s_%s.%d", address, txId, txOutIdx)
 	keyAdded := keyUtxo + `_added`
@@ -246,7 +247,7 @@ func (s *Storage) RemoveUtxo(
 	slot uint64,
 ) error {
 	if slot > math.MaxInt {
-		return fmt.Errorf("slot number int overflow")
+		return errors.New("slot number int overflow")
 	}
 	keyUtxo := fmt.Sprintf("utxo_%s_%s.%d", address, txId, utxoIdx)
 	keyDeleted := keyUtxo + `_deleted`

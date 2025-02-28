@@ -46,7 +46,7 @@ func Setup() {
 		// Read seed.txt if it exists
 		if data, err := os.ReadFile(seedPath); err == nil {
 			slog.Info(
-				fmt.Sprintf("read mnemonic from %s", seedPath),
+				"read mnemonic from " + seedPath,
 			)
 			mnemonic = string(data)
 		} else if errors.Is(err, os.ErrNotExist) {
@@ -73,7 +73,7 @@ func Setup() {
 				panic(err)
 			}
 			slog.Info(
-				fmt.Sprintf("wrote generated mnemonic to %s", seedPath),
+				"wrote generated mnemonic to " + seedPath,
 			)
 			// TODO: write mnemonic to storage
 		} else {

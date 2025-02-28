@@ -90,7 +90,7 @@ func main() {
 	wallet.Setup()
 	bursa := wallet.GetWallet()
 	slog.Info(
-		fmt.Sprintf("loaded mnemonic for address: %s", bursa.PaymentAddress),
+		"loaded mnemonic for address: " + bursa.PaymentAddress,
 	)
 
 	// Fake Tx
@@ -98,7 +98,7 @@ func main() {
 
 	// Start indexer
 	slog.Info(
-		fmt.Sprintf("starting indexer on %s", cfg.Network),
+		"starting indexer on " + cfg.Network,
 	)
 	if err := indexer.GetIndexer().Start(); err != nil {
 		slog.Error(

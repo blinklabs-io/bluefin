@@ -108,7 +108,7 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 		return nil, err
 	}
 	store.Unlock()
-	var utxos []UTxO.UTxO
+	utxos := []UTxO.UTxO{}
 	var tunaPolicyId *Policy.PolicyId
 	if profileCfg.UseTunaV1 {
 		var err error

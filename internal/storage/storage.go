@@ -79,7 +79,7 @@ func (s *Storage) compareFingerprint() error {
 	err := s.db.Update(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte(fingerprintKey))
 		if err != nil {
-			if err == badger.ErrKeyNotFound {
+			if errors.Is(err, badger.ErrKeyNotFound) {
 				if err := txn.Set([]byte(fingerprintKey), []byte(fingerprint)); err != nil {
 					return err
 				}
@@ -146,7 +146,7 @@ func (s *Storage) GetCursor() (uint64, string, error) {
 		}
 		return nil
 	})
-	if err == badger.ErrKeyNotFound {
+	if errors.Is(err, badger.ErrKeyNotFound) {
 		return 0, "", nil
 	}
 	return slotNumber, blockHash, err
@@ -181,7 +181,7 @@ func (s *Storage) GetBlockData(dest any) error {
 		return err
 	})
 	if err != nil {
-		if err == badger.ErrKeyNotFound {
+		if errors.Is(err, badger.ErrKeyNotFound) {
 			return nil
 		}
 		return err
@@ -269,7 +269,7 @@ func (s *Storage) RemoveUtxo(
 		return nil
 	})
 	if err != nil {
-		if err == badger.ErrKeyNotFound {
+		if errors.Is(err, badger.ErrKeyNotFound) {
 			return nil
 		}
 		return err
@@ -310,7 +310,7 @@ func (s *Storage) GetUtxos(address string) ([][]byte, error) {
 			}
 			// Ignore "deleted" UTxOs
 			keyDeleted := string(key) + `_deleted`
-			if _, err := txn.Get([]byte(keyDeleted)); err != badger.ErrKeyNotFound {
+			if _, err := txn.Get([]byte(keyDeleted)); !errors.Is(err, badger.ErrKeyNotFound) {
 				continue
 			}
 			val, err := item.ValueCopy(nil)
@@ -347,10 +347,10 @@ func (s *Storage) Rollback(slot uint64) error {
 			// Restore UTxOs deleted after rollback slot
 			keyDeleted := string(key) + `_deleted`
 			delItem, err := txn.Get([]byte(keyDeleted))
-			if err != nil && err != badger.ErrKeyNotFound {
+			if err != nil && !errors.Is(err, badger.ErrKeyNotFound) {
 				return err
 			}
-			if err != badger.ErrKeyNotFound {
+			if !errors.Is(err, badger.ErrKeyNotFound) {
 				delVal, err := delItem.ValueCopy(nil)
 				if err != nil {
 					return err
@@ -373,10 +373,10 @@ func (s *Storage) Rollback(slot uint64) error {
 			// Remove UTxOs added after rollback slot
 			keyAdded := string(key) + `_added`
 			addItem, err := txn.Get([]byte(keyAdded))
-			if err != nil && err != badger.ErrKeyNotFound {
+			if err != nil && !errors.Is(err, badger.ErrKeyNotFound) {
 				return err
 			}
-			if err != badger.ErrKeyNotFound {
+			if !errors.Is(err, badger.ErrKeyNotFound) {
 				addVal, err := addItem.ValueCopy(nil)
 				if err != nil {
 					return err
@@ -436,7 +436,7 @@ func (s *Storage) PurgeDeletedUtxos(beforeSlot uint64) error {
 			keyDeleted := string(key) + `_deleted`
 			delItem, err := txn.Get([]byte(keyDeleted))
 			if err != nil {
-				if err == badger.ErrKeyNotFound {
+				if errors.Is(err, badger.ErrKeyNotFound) {
 					continue
 				}
 				return err
@@ -466,7 +466,7 @@ func (s *Storage) PurgeDeletedUtxos(beforeSlot uint64) error {
 		for _, key := range deleteKeys {
 			if err := txn.Delete([]byte(key)); err != nil {
 				// Leave the rest for the next run if we hit the max transaction size
-				if err == badger.ErrTxnTooBig {
+				if errors.Is(err, badger.ErrTxnTooBig) {
 					slog.Debug(
 						"purge deleted UTxOs: badger transaction too large, leaving remainder until next run",
 					)

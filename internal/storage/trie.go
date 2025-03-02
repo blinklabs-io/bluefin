@@ -127,7 +127,7 @@ func (t *Trie) Delete(key []byte) error {
 		// Delete "added" key
 		keyAdded := `meta_` + string(dbKey) + `_added`
 		if err := txn.Delete([]byte(keyAdded)); err != nil {
-			if err != badger.ErrKeyNotFound {
+			if !errors.Is(err, badger.ErrKeyNotFound) {
 				return err
 			}
 		}
@@ -150,7 +150,7 @@ func (t *Trie) Rollback(slot uint64) error {
 			keyAdded := `meta_` + string(key) + `_added`
 			addItem, err := txn.Get([]byte(keyAdded))
 			if err != nil {
-				if err == badger.ErrKeyNotFound {
+				if errors.Is(err, badger.ErrKeyNotFound) {
 					continue
 				}
 				return err

@@ -468,8 +468,7 @@ func calculateInterlink(
 	origDifficulty DifficultyMetrics,
 	currentInterlink [][]byte,
 ) [][]byte {
-	interlink := make([][]byte, len(currentInterlink))
-	copy(interlink, currentInterlink)
+	interlink := currentInterlink
 
 	origHalf := halfDifficultyNumber(origDifficulty)
 	currentIndex := 0

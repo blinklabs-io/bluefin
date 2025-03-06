@@ -310,7 +310,10 @@ func (s *Storage) GetUtxos(address string) ([][]byte, error) {
 			}
 			// Ignore "deleted" UTxOs
 			keyDeleted := string(key) + `_deleted`
-			if _, err := txn.Get([]byte(keyDeleted)); !errors.Is(err, badger.ErrKeyNotFound) {
+			if _, err := txn.Get([]byte(keyDeleted)); !errors.Is(
+				err,
+				badger.ErrKeyNotFound,
+			) {
 				continue
 			}
 			val, err := item.ValueCopy(nil)

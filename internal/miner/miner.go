@@ -25,7 +25,6 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
-
 	models "github.com/blinklabs-io/cardano-models"
 	"github.com/blinklabs-io/gouroboros/cbor"
 	"github.com/minio/sha256-simd"

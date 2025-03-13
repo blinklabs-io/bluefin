@@ -24,7 +24,6 @@ import (
 	"sync"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
-
 	mpf "github.com/blinklabs-io/merkle-patricia-forestry"
 	"github.com/dgraph-io/badger/v4"
 	"golang.org/x/crypto/blake2b"

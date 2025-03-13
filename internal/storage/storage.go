@@ -25,7 +25,6 @@ import (
 	"sync"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
-
 	"github.com/blinklabs-io/gouroboros/cbor"
 	"github.com/dgraph-io/badger/v4"
 )
@@ -56,7 +55,7 @@ func (s *Storage) Load() error {
 		return err
 	}
 	s.db = db
-	//defer db.Close()
+	// defer db.Close()
 	if err := s.compareFingerprint(); err != nil {
 		return err
 	}

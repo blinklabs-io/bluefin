@@ -22,9 +22,8 @@ import (
 	"path"
 
 	"github.com/blinklabs-io/bluefin/internal/config"
-	"golang.org/x/crypto/blake2b"
-
 	"github.com/blinklabs-io/bursa"
+	"golang.org/x/crypto/blake2b"
 )
 
 var globalWallet = &bursa.Wallet{}

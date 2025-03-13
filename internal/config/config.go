@@ -1,4 +1,4 @@
-// Copyright 2023 Blink Labs Software
+// Copyright 2025 Blink Labs Software
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
@@ -173,7 +174,10 @@ func (c *Config) validateProfile() error {
 }
 
 func (c *Config) populateIndexer() error {
-	profile := Profiles[c.Network][c.Profile]
+	profile, ok := Profiles[c.Network][c.Profile]
+	if !ok {
+		return errors.New("failed indexer init")
+	}
 	c.Indexer.InterceptHash = profile.InterceptHash
 	c.Indexer.InterceptSlot = profile.InterceptSlot
 	c.Indexer.ScriptAddress = profile.ScriptAddress

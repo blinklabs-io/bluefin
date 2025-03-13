@@ -20,14 +20,13 @@ import (
 	"log/slog"
 	"os"
 
-	"go.uber.org/automaxprocs/maxprocs"
-
 	"github.com/blinklabs-io/bluefin/internal/config"
 	"github.com/blinklabs-io/bluefin/internal/indexer"
 	"github.com/blinklabs-io/bluefin/internal/logging"
 	"github.com/blinklabs-io/bluefin/internal/storage"
 	"github.com/blinklabs-io/bluefin/internal/version"
 	"github.com/blinklabs-io/bluefin/internal/wallet"
+	"go.uber.org/automaxprocs/maxprocs"
 )
 
 var cmdlineFlags struct {
@@ -94,7 +93,7 @@ func main() {
 	)
 
 	// Fake Tx
-	//tx.SendTx([]byte("foo"))
+	// tx.SendTx([]byte("foo"))
 
 	// Start indexer
 	slog.Info(

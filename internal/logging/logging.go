@@ -48,7 +48,6 @@ func Configure() {
 		Level: level,
 	})
 	globalLogger = slog.New(handler).With("component", "main")
-
 }
 
 func GetLogger() *slog.Logger {

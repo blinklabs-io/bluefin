@@ -38,22 +38,23 @@ import (
 	"github.com/Salvionied/apollo/serialization/Policy"
 	"github.com/Salvionied/apollo/serialization/Redeemer"
 	"github.com/Salvionied/apollo/serialization/UTxO"
+	"github.com/blinklabs-io/bluefin/internal/config"
+	"github.com/blinklabs-io/bluefin/internal/storage"
+	"github.com/blinklabs-io/bluefin/internal/wallet"
 	models "github.com/blinklabs-io/cardano-models"
 	ouroboros "github.com/blinklabs-io/gouroboros"
 	"github.com/blinklabs-io/gouroboros/cbor"
 	"github.com/blinklabs-io/gouroboros/protocol/txsubmission"
 	"golang.org/x/crypto/blake2b"
-
-	"github.com/blinklabs-io/bluefin/internal/config"
-	"github.com/blinklabs-io/bluefin/internal/storage"
-	"github.com/blinklabs-io/bluefin/internal/wallet"
 )
 
-var ntnTxBytes []byte
-var ntnTxHash [32]byte
-var ntnSentTx bool
-var ntnMutex sync.Mutex
-var doneChan chan any
+var (
+	ntnTxBytes []byte
+	ntnTxHash  [32]byte
+	ntnSentTx  bool
+	ntnMutex   sync.Mutex
+	doneChan   chan any
+)
 
 func SendTx(blockData any, nonce [16]byte) error {
 	txBytes, err := createTx(blockData, nonce)
@@ -348,7 +349,6 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 			AddRequiredSigner(
 				serialization.PubKeyHash(userPkh),
 			)
-
 	}
 	if len(profileCfg.ScriptRefInputs) > 0 {
 		// Use script reference input(s)
@@ -560,7 +560,7 @@ func submitTxApi(txRawBytes []byte) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 202 {
+	if resp.StatusCode == http.StatusAccepted {
 		return string(respBody), nil
 	} else {
 		return "", fmt.Errorf("failed to submit TX to API: %s: %d: %s", cfg.Submit.Url, resp.StatusCode, respBody)

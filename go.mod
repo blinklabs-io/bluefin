@@ -10,7 +10,7 @@ require (
 	github.com/blinklabs-io/bursa v0.10.0
 	github.com/blinklabs-io/cardano-models v0.5.0
 	github.com/blinklabs-io/gouroboros v0.113.1
-	github.com/blinklabs-io/merkle-patricia-forestry v0.1.2
+	github.com/blinklabs-io/merkle-patricia-forestry v0.1.3
 	github.com/dgraph-io/badger/v4 v4.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/minio/sha256-simd v1.0.1

@@ -6,10 +6,10 @@ toolchain go1.24.1
 
 require (
 	github.com/Salvionied/apollo v1.1.0
-	github.com/blinklabs-io/adder v0.27.0
+	github.com/blinklabs-io/adder v0.28.0
 	github.com/blinklabs-io/bursa v0.10.0
 	github.com/blinklabs-io/cardano-models v0.5.0
-	github.com/blinklabs-io/gouroboros v0.115.2
+	github.com/blinklabs-io/gouroboros v0.116.0
 	github.com/blinklabs-io/merkle-patricia-forestry v0.1.3
 	github.com/dgraph-io/badger/v4 v4.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -43,7 +43,7 @@ require (
 	github.com/dgraph-io/ristretto/v2 v2.1.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fivebinaries/go-cardano-serialization v0.0.0-20220907134105-ec9b85086588 // indirect
-	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
+	github.com/fxamacker/cbor/v2 v2.8.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect

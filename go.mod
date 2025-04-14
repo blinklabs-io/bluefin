@@ -5,7 +5,7 @@ go 1.23.6
 toolchain go1.24.1
 
 require (
-	github.com/Salvionied/apollo v1.1.0
+	github.com/Salvionied/apollo v1.1.1
 	github.com/blinklabs-io/adder v0.28.0
 	github.com/blinklabs-io/bursa v0.11.0
 	github.com/blinklabs-io/cardano-models v0.5.0
@@ -33,7 +33,6 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/Salvionied/cbor/v2 v2.6.0 // indirect
 	github.com/SundaeSwap-finance/kugo v1.1.0 // indirect
 	github.com/SundaeSwap-finance/ogmigo v0.9.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.6 // indirect
@@ -57,7 +56,7 @@ require (
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/maestro-org/go-sdk v1.2.0 // indirect
+	github.com/maestro-org/go-sdk v1.2.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	github.com/utxorpc/go-codegen v0.16.0 // indirect

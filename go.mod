@@ -11,7 +11,7 @@ require (
 	github.com/blinklabs-io/cardano-models v0.5.1
 	github.com/blinklabs-io/gouroboros v0.116.0
 	github.com/blinklabs-io/merkle-patricia-forestry v0.1.3
-	github.com/dgraph-io/badger/v4 v4.6.0
+	github.com/dgraph-io/badger/v4 v4.7.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/minio/sha256-simd v1.0.1
 	go.uber.org/automaxprocs v1.6.0
@@ -39,7 +39,7 @@ require (
 	github.com/btcsuite/btcd/btcutil v1.1.6 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/dgraph-io/ristretto/v2 v2.1.0 // indirect
+	github.com/dgraph-io/ristretto/v2 v2.2.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fivebinaries/go-cardano-serialization v0.0.0-20220907134105-ec9b85086588 // indirect
 	github.com/fxamacker/cbor/v2 v2.8.0 // indirect
@@ -57,7 +57,6 @@ require (
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/maestro-org/go-sdk v1.2.1 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	github.com/utxorpc/go-codegen v0.16.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

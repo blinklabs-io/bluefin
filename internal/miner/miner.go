@@ -107,7 +107,7 @@ func (state *TargetStateV2) MarshalCBOR() ([]byte, error) {
 	// Use cached CBOR to generate new CBOR more quickly
 	if state.cachedCbor != nil {
 		// Replace nonce value in cached CBOR with current nonce
-		for i := 0; i < 16; i++ {
+		for i := range 16 {
 			state.cachedCbor[4+i] = state.Nonce[i]
 		}
 		return state.cachedCbor, nil
@@ -400,7 +400,7 @@ func (m *Miner) calculateHash() []byte {
 		} else {
 			nonce := m.state.GetNonce()
 			// Increment each byte of the nonce
-			for j := 0; j < 16; j++ {
+			for j := range 16 {
 				nonce[j]++
 			}
 			m.state.SetNonce(nonce)

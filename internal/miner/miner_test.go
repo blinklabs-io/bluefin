@@ -40,7 +40,7 @@ func BenchmarkRandomNonceAndIncrement(b *testing.B) {
 			tmpNonce = randomNonce()
 		} else {
 			// Increment each byte of the last nonce
-			for j := 0; j < 16; j++ {
+			for j := range 16 {
 				tmpNonce[j] = byte(uint8(tmpNonce[j]) + 1)
 			}
 		}

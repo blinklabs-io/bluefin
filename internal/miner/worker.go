@@ -100,7 +100,7 @@ func (m *Manager) Start(blockData any) {
 	slog.Info(
 		fmt.Sprintf("starting %d workers", cfg.Miner.WorkerCount),
 	)
-	for i := 0; i < cfg.Miner.WorkerCount; i++ {
+	for range cfg.Miner.WorkerCount {
 		miner := New(
 			&(m.workerWaitGroup),
 			m.resultChan,

@@ -200,12 +200,10 @@ func (t *Trie) HashKey(key []byte) []byte {
 }
 
 func (t *Trie) dbKeyPrefix(key []byte) []byte {
-	return []byte(
-		fmt.Sprintf(
-			"trie_%s_%s",
-			t.keyPrefix,
-			key,
-		),
+	return fmt.Appendf(nil,
+		"trie_%s_%s",
+		t.keyPrefix,
+		key,
 	)
 }
 

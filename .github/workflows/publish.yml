@@ -191,7 +191,7 @@ jobs:
             https://uploads.github.com/repos/${{ github.repository_owner }}/bluefin/releases/${{ needs.create-draft-release.outputs.RELEASE_ID }}/assets?name=${_filename}
 
       - name: Attest binary
-        uses: actions/attest-build-provenance@db473fddc028af60658334401dc6fa3ffd8669fd # v2.3.0 https://github.com/actions/attest-build-provenance/releases/tag/v2.3.0
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0 https://github.com/actions/attest-build-provenance/releases/tag/v2.4.0
         with:
           subject-path: 'bluefin'
 
@@ -248,13 +248,13 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - name: Attest Docker Hub image
-        uses: actions/attest-build-provenance@db473fddc028af60658334401dc6fa3ffd8669fd # v2.3.0 https://github.com/actions/attest-build-provenance/releases/tag/v2.3.0
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0 https://github.com/actions/attest-build-provenance/releases/tag/v2.4.0
         with:
           subject-name: index.docker.io/blinklabs/bluefin
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
       - name: Attest GHCR image
-        uses: actions/attest-build-provenance@db473fddc028af60658334401dc6fa3ffd8669fd # v2.3.0 https://github.com/actions/attest-build-provenance/releases/tag/v2.3.0
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0 https://github.com/actions/attest-build-provenance/releases/tag/v2.4.0
         with:
           subject-name: ghcr.io/${{ github.repository }}
           subject-digest: ${{ steps.push.outputs.digest }}

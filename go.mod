@@ -6,10 +6,10 @@ toolchain go1.24.4
 
 require (
 	github.com/Salvionied/apollo v1.1.1
-	github.com/blinklabs-io/adder v0.30.1
+	github.com/blinklabs-io/adder v0.30.2
 	github.com/blinklabs-io/bursa v0.11.0
 	github.com/blinklabs-io/cardano-models v0.5.1
-	github.com/blinklabs-io/gouroboros v0.122.0
+	github.com/blinklabs-io/gouroboros v0.123.0
 	github.com/blinklabs-io/merkle-patricia-forestry v0.1.3
 	github.com/dgraph-io/badger/v4 v4.7.0
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -65,7 +65,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
-	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/net v0.40.0 // indirect
 	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.26.0 // indirect

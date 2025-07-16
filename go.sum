@@ -15,8 +15,8 @@ github.com/blinklabs-io/bursa v0.11.0 h1:TKgDSqAvL8TO35avT13zNn+EymswedIj/0l4nMj
 github.com/blinklabs-io/bursa v0.11.0/go.mod h1:iRMqaLl1kj8CxqRwCplTD1YaRRT/doZMOg6OUvs7gxU=
 github.com/blinklabs-io/cardano-models v0.5.1 h1:dPe5gT8vwmYUbc+rgofO9WS8otbgAKTo5fpMJhLPLIE=
 github.com/blinklabs-io/cardano-models v0.5.1/go.mod h1:8z20pRjrS/0nUO3r0HEKKP3cYstwbyfIWUsYKv+ud3s=
-github.com/blinklabs-io/gouroboros v0.127.0 h1:Zy+ZIMizxjL90WqexO5x0FFW8W7Nla/p45IS56xY/zw=
-github.com/blinklabs-io/gouroboros v0.127.0/go.mod h1:LUGnvJ1iOmpCihNxT9fyZFf6KD5E45sV8ZqEUgljzDw=
+github.com/blinklabs-io/gouroboros v0.128.2 h1:U9XwvTaKxP7OWv2/TkZ5BvSvtsYcnKyCrbaO1hAq1/0=
+github.com/blinklabs-io/gouroboros v0.128.2/go.mod h1:LUGnvJ1iOmpCihNxT9fyZFf6KD5E45sV8ZqEUgljzDw=
 github.com/blinklabs-io/merkle-patricia-forestry v0.1.4 h1:q+8cIrUMGyCGTs1/djaGXY4EGIvwQQeClKWyD0stTPs=
 github.com/blinklabs-io/merkle-patricia-forestry v0.1.4/go.mod h1:+JYrX47gBjJJ5Iv/MVlK7Ek3dOv+/w7AyzB/ZJfjCto=
 github.com/blinklabs-io/ouroboros-mock v0.3.8 h1:+DAt2rx0ouZUxee5DBMgZq3I1+ZdxFSHG9g3tYl/FKU=

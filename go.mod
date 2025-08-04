@@ -6,7 +6,7 @@ toolchain go1.24.4
 
 require (
 	github.com/Salvionied/apollo v1.2.0
-	github.com/blinklabs-io/adder v0.30.4
+	github.com/blinklabs-io/adder v0.30.5
 	github.com/blinklabs-io/bursa v0.11.0
 	github.com/blinklabs-io/cardano-models v0.5.1
 	github.com/blinklabs-io/gouroboros v0.128.2
@@ -59,7 +59,7 @@ require (
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/maestro-org/go-sdk v1.2.1 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
-	github.com/utxorpc/go-codegen v0.16.0 // indirect
+	github.com/utxorpc/go-codegen v0.17.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel v1.37.0 // indirect

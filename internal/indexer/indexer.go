@@ -85,7 +85,6 @@ func (i *Indexer) Start() error {
 	i.pipeline = pipeline.New()
 	// Configure pipeline input
 	inputOpts := []input_chainsync.ChainSyncOptionFunc{
-		input_chainsync.WithBulkMode(true),
 		input_chainsync.WithAutoReconnect(true),
 		input_chainsync.WithLogger(logging.GetLogger()),
 		input_chainsync.WithStatusUpdateFunc(i.updateStatus),

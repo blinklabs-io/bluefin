@@ -9,7 +9,7 @@ require (
 	github.com/blinklabs-io/adder v0.31.0
 	github.com/blinklabs-io/bursa v0.11.1
 	github.com/blinklabs-io/cardano-models v0.5.1
-	github.com/blinklabs-io/gouroboros v0.131.0
+	github.com/blinklabs-io/gouroboros v0.135.0
 	github.com/blinklabs-io/merkle-patricia-forestry v0.1.5
 	github.com/dgraph-io/badger/v4 v4.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -36,11 +36,17 @@ require (
 	github.com/SundaeSwap-finance/kugo v1.3.0 // indirect
 	github.com/SundaeSwap-finance/ogmigo/v6 v6.1.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.6 // indirect
-	github.com/blinklabs-io/plutigo v0.0.4 // indirect
+	github.com/bits-and-blooms/bitset v1.20.0 // indirect
+	github.com/blinklabs-io/plutigo v0.0.12 // indirect
+	github.com/btcsuite/btcd/btcec/v2 v2.3.5 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.6 // indirect
+	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect
 	github.com/btcsuite/btcutil v1.0.2 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/consensys/gnark-crypto v0.19.0 // indirect
+	github.com/decred/dcrd/crypto/blake256 v1.1.0 // indirect
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/dgraph-io/ristretto/v2 v2.2.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fivebinaries/go-cardano-serialization v0.0.0-20220907134105-ec9b85086588 // indirect

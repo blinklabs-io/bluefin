@@ -306,16 +306,6 @@ func (i *Indexer) handleEventTransaction(evt event.Event) error {
 		if outputAddress == cfg.Indexer.ScriptAddress {
 			datum := utxo.Output.Datum()
 			if datum != nil {
-				if _, err := datum.Decode(); err != nil {
-					slog.Warn(
-						fmt.Sprintf(
-							"error decoding TX (%s) output datum: %s",
-							eventCtx.TransactionHash,
-							err,
-						),
-					)
-					return err
-				}
 				if profileCfg.UseTunaV1 {
 					var blockData models.TunaV1State
 					if _, err := cbor.Decode(datum.Cbor(), &blockData); err != nil {

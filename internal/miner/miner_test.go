@@ -25,7 +25,7 @@ import (
 // BenchmarkRandomNonce tests the performance of generating a completely new random nonce
 // each iteration
 func BenchmarkRandomNonce(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		randomNonce()
 	}
 }
@@ -34,7 +34,7 @@ func BenchmarkRandomNonce(b *testing.B) {
 // and incrementing each byte 255 times
 func BenchmarkRandomNonceAndIncrement(b *testing.B) {
 	var tmpNonce [16]byte
-	for i := 0; i < b.N; i++ {
+	for i := 0; b.Loop(); i++ {
 		if i%256 == 0 {
 			// Generate random nonce for first and every 256 iterations
 			tmpNonce = randomNonce()
@@ -51,7 +51,7 @@ func BenchmarkRandomNonceAndIncrement(b *testing.B) {
 func BenchmarkSha256Builtin(b *testing.B) {
 	var hasher hash.Hash
 	tmpNonce := randomNonce()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		hasher = sha256.New()
 		hasher.Write(tmpNonce[:])
 		hasher.Sum(nil)
@@ -62,7 +62,7 @@ func BenchmarkSha256Builtin(b *testing.B) {
 func BenchmarkSha256Simd(b *testing.B) {
 	var hasher hash.Hash
 	tmpNonce := randomNonce()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		hasher = sha256_simd.New()
 		hasher.Write(tmpNonce[:])
 		hasher.Sum(nil)
@@ -81,7 +81,7 @@ func BenchmarkTargetStateCborMarshal(b *testing.B) {
 		LeadingZeros:     4,
 		DifficultyNumber: 65535,
 	}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_, _ = tmpState.MarshalCBOR()
 	}
 }
@@ -98,7 +98,7 @@ func BenchmarkTargetStateCborMarshalNoCache(b *testing.B) {
 		LeadingZeros:     4,
 		DifficultyNumber: 65535,
 	}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_, _ = tmpState.MarshalCBOR()
 		// Wipe out CBOR cache
 		tmpState.cachedCbor = nil

@@ -6,7 +6,7 @@ toolchain go1.24.4
 
 require (
 	github.com/Salvionied/apollo v1.3.0
-	github.com/blinklabs-io/adder v0.32.6
+	github.com/blinklabs-io/adder v0.33.0
 	github.com/blinklabs-io/bursa v0.11.1
 	github.com/blinklabs-io/cardano-models v0.5.2
 	github.com/blinklabs-io/gouroboros v0.136.0
@@ -34,7 +34,7 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/SundaeSwap-finance/kugo v1.3.0 // indirect
-	github.com/SundaeSwap-finance/ogmigo/v6 v6.1.0 // indirect
+	github.com/SundaeSwap-finance/ogmigo/v6 v6.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.6 // indirect
 	github.com/bits-and-blooms/bitset v1.20.0 // indirect
 	github.com/blinklabs-io/plutigo v0.0.13 // indirect

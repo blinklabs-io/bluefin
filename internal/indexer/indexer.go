@@ -1,4 +1,4 @@
-// Copyright 2024 Blink Labs Software
+// Copyright 2025 Blink Labs Software
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -181,9 +181,9 @@ func (i *Indexer) Start() error {
 
 func (i *Indexer) handleEvent(evt event.Event) error {
 	switch evt.Payload.(type) {
-	case input_chainsync.RollbackEvent:
+	case event.RollbackEvent:
 		return i.handleEventRollback(evt)
-	case input_chainsync.TransactionEvent:
+	case event.TransactionEvent:
 		return i.handleEventTransaction(evt)
 	default:
 		return fmt.Errorf("unknown event payload type: %T", evt.Payload)
@@ -192,7 +192,7 @@ func (i *Indexer) handleEvent(evt event.Event) error {
 
 func (i *Indexer) handleEventRollback(evt event.Event) error {
 	store := storage.GetStorage()
-	eventRollback := evt.Payload.(input_chainsync.RollbackEvent)
+	eventRollback := evt.Payload.(event.RollbackEvent)
 	store.Lock()
 	defer store.Unlock()
 	if err := store.Rollback(eventRollback.SlotNumber); err != nil {
@@ -219,8 +219,8 @@ func (i *Indexer) handleEventTransaction(evt event.Event) error {
 	profileCfg := config.GetProfile()
 	bursa := wallet.GetWallet()
 	store := storage.GetStorage()
-	eventTx := evt.Payload.(input_chainsync.TransactionEvent)
-	eventCtx := evt.Context.(input_chainsync.TransactionContext)
+	eventTx := evt.Payload.(event.TransactionEvent)
+	eventCtx := evt.Context.(event.TransactionContext)
 	store.Lock()
 	defer store.Unlock()
 	// Delete used UTXOs

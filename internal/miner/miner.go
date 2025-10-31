@@ -401,7 +401,7 @@ func (m *Miner) calculateHash() []byte {
 			nonce := m.state.GetNonce()
 			// Increment each byte of the nonce
 			for j := range 16 {
-				nonce[j]++
+				nonce[j]++ //nolint:gosec
 			}
 			m.state.SetNonce(nonce)
 		}

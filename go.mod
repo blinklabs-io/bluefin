@@ -8,7 +8,7 @@ require (
 	github.com/Salvionied/apollo v1.3.0
 	github.com/blinklabs-io/adder v0.33.0
 	github.com/blinklabs-io/bursa v0.11.1
-	github.com/blinklabs-io/cardano-models v0.5.2
+	github.com/blinklabs-io/cardano-models v0.6.0
 	github.com/blinklabs-io/gouroboros v0.137.1
 	github.com/blinklabs-io/merkle-patricia-forestry v0.1.6
 	github.com/dgraph-io/badger/v4 v4.8.0
@@ -51,12 +51,12 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fivebinaries/go-cardano-serialization v0.0.0-20220907134105-ec9b85086588 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.10 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.27.0 // indirect
+	github.com/go-playground/validator/v10 v10.28.0 // indirect
 	github.com/google/flatbuffers v25.2.10+incompatible // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/jinzhu/copier v0.4.0 // indirect

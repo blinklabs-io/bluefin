@@ -27,17 +27,17 @@ import (
 )
 
 type Config struct {
-	Logging      LoggingConfig `yaml:"logging"`
-	Storage      StorageConfig `yaml:"storage"`
-	Indexer      IndexerConfig `yaml:"indexer"`
 	Submit       SubmitConfig  `yaml:"submit"`
+	Storage      StorageConfig `yaml:"storage"`
 	Wallet       WalletConfig  `yaml:"wallet"`
-	Miner        MinerConfig   `yaml:"miner"`
-	Metrics      MetricsConfig `yaml:"metrics"`
-	Debug        DebugConfig   `yaml:"debug"`
 	Profile      string        `yaml:"profile" envconfig:"PROFILE"`
 	Network      string        `yaml:"network" envconfig:"NETWORK"`
+	Indexer      IndexerConfig `yaml:"indexer"`
+	Metrics      MetricsConfig `yaml:"metrics"`
+	Debug        DebugConfig   `yaml:"debug"`
+	Miner        MinerConfig   `yaml:"miner"`
 	NetworkMagic uint32
+	Logging      LoggingConfig `yaml:"logging"`
 }
 
 type LoggingConfig struct {
@@ -68,9 +68,9 @@ type WalletConfig struct {
 }
 
 type MinerConfig struct {
+	Message          string `yaml:"message"          envconfig:"MINER_MESSAGE"`
 	WorkerCount      int    `yaml:"workers"          envconfig:"WORKER_COUNT"`
 	HashRateInterval int    `yaml:"hashRateInterval" envconfig:"HASH_RATE_INTERVAL"`
-	Message          string `yaml:"message"          envconfig:"MINER_MESSAGE"`
 }
 
 type MetricsConfig struct {

@@ -30,17 +30,17 @@ const (
 )
 
 type Manager struct {
-	workerWaitGroup  sync.WaitGroup
+	lastBlockData    any
 	doneChan         chan any
 	resultChan       chan Result
-	started          bool
-	startMutex       sync.Mutex
-	stopMutex        sync.Mutex
 	hashCounter      *atomic.Uint64
 	hashLogTimer     *time.Timer
-	hashLogLastCount uint64
 	restartTimer     *time.Timer
-	lastBlockData    any
+	workerWaitGroup  sync.WaitGroup
+	hashLogLastCount uint64
+	startMutex       sync.Mutex
+	stopMutex        sync.Mutex
+	started          bool
 }
 
 var globalManager = &Manager{}

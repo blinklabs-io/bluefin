@@ -30,10 +30,10 @@ import (
 )
 
 type Trie struct {
-	sync.Mutex
 	db        *badger.DB
 	trie      *mpf.Trie
 	keyPrefix []byte
+	sync.Mutex
 }
 
 func NewTrie(db *badger.DB, keyPrefix string) (*Trie, error) {

@@ -43,14 +43,14 @@ const (
 )
 
 type Indexer struct {
-	pipeline      *pipeline.Pipeline
-	cursorSlot    uint64
-	cursorHash    string
-	tipSlot       uint64
-	tipHash       string
-	tipReached    bool
-	syncLogTimer  *time.Timer
 	lastBlockData any
+	pipeline      *pipeline.Pipeline
+	syncLogTimer  *time.Timer
+	cursorHash    string
+	tipHash       string
+	cursorSlot    uint64
+	tipSlot       uint64
+	tipReached    bool
 }
 
 // Singleton indexer instance

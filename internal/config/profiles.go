@@ -15,20 +15,20 @@
 package config
 
 type Profile struct {
-	InterceptHash             string
-	InterceptSlot             uint64
+	ScriptInputRefTxId        string
 	ScriptAddress             string
 	ValidatorHash             string
 	MintValidatorHash         string
 	ValidatorScript           string
-	ScriptInputRefTxId        string
-	ScriptInputRefOutIndex    uint32
-	ScriptRefInputs           []RefInput
+	InterceptHash             string
 	SeedHashes                []string
+	ScriptRefInputs           []RefInput
+	EpochNumber               int
+	InterceptSlot             uint64
+	EpochTarget               int
+	ScriptInputRefOutIndex    uint32
 	UseTunaV1                 bool
 	TunaV2OldTargetStateOrder bool
-	EpochNumber               int
-	EpochTarget               int
 }
 
 func GetProfile() Profile {

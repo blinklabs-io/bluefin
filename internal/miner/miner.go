@@ -53,12 +53,12 @@ type TargetState interface {
 }
 
 type TargetStateV1 struct {
-	Nonce            [16]byte
-	BlockNumber      int64
 	CurrentHash      []byte
+	BlockNumber      int64
 	LeadingZeros     int64
 	DifficultyNumber int64
 	EpochTime        int64
+	Nonce            [16]byte
 }
 
 func (t *TargetStateV1) SetNonce(nonce [16]byte) {
@@ -85,14 +85,14 @@ func (state *TargetStateV1) MarshalCBOR() ([]byte, error) {
 }
 
 type TargetStateV2 struct {
-	Nonce            [16]byte
 	MinerCredHash    []byte
+	CurrentHash      []byte
+	cachedCbor       []byte
 	EpochTime        int64
 	BlockNumber      int64
-	CurrentHash      []byte
 	LeadingZeros     int64
 	DifficultyNumber int64
-	cachedCbor       []byte
+	Nonce            [16]byte
 }
 
 func (t *TargetStateV2) SetNonce(nonce [16]byte) {

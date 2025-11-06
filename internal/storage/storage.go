@@ -36,9 +36,9 @@ const (
 )
 
 type Storage struct {
-	sync.Mutex
 	db   *badger.DB
 	trie *Trie
+	sync.Mutex
 }
 
 var globalStorage = &Storage{}

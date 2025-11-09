@@ -17,8 +17,8 @@ github.com/blinklabs-io/adder v0.33.0 h1:WGqRUHIlFDl9RfidmyU/RT9GhR3eEZ4XHzSMk90
 github.com/blinklabs-io/adder v0.33.0/go.mod h1:FEXfOLWW+MF7YD/ikxZ8fmYsOwkWVKImfsZM4yx8qm0=
 github.com/blinklabs-io/bursa v0.11.1 h1:mDD6oMP5+m/icSY1ec/gCbCk/g+1yx2w24xfxkfZ3tA=
 github.com/blinklabs-io/bursa v0.11.1/go.mod h1:fNiaUi777BuD3+DGHOuSSkLQ/1ELL6goZUPL8fI7/ZI=
-github.com/blinklabs-io/cardano-models v0.5.2 h1:AmD/BjXOlUElC5ROcruSqelgFierKT4ingWZ+MaifwA=
-github.com/blinklabs-io/cardano-models v0.5.2/go.mod h1:8ZRXr/DKGwdp6iLJBw/0A1Xpc6G0/lD2vpzEqVVuO7w=
+github.com/blinklabs-io/cardano-models v0.6.0 h1:WHawiyzoHwDpvmUnntjRPrciv4SbXlqCGlHPLwVHhK8=
+github.com/blinklabs-io/cardano-models v0.6.0/go.mod h1:2g/kQL/xunie4AHr3fmXj86OMkc4ekbLIJYhYmDqPgA=
 github.com/blinklabs-io/gouroboros v0.137.1 h1:4d3Yp50i53JiBUmpCDQQ98Wh2PsBm3HfcV/axjK789U=
 github.com/blinklabs-io/gouroboros v0.137.1/go.mod h1:6Gnhu76jzCE0p7zHmQn7TjP8t2MMghF711LgxiuLelg=
 github.com/blinklabs-io/merkle-patricia-forestry v0.1.6 h1:gdrVa6XWuuFu0i0cgCM/JRb25v7AEkEIaE7jYZYYHZY=
@@ -87,8 +87,8 @@ github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMo
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
 github.com/fxamacker/cbor/v2 v2.9.0 h1:NpKPmjDBgUfBms6tr6JZkTHtfFGcMKsw3eGcmD/sapM=
 github.com/fxamacker/cbor/v2 v2.9.0/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
-github.com/gabriel-vasile/mimetype v1.4.8 h1:FfZ3gj38NjllZIeJAmMhr+qKL8Wu+nOoI3GqacKw1NM=
-github.com/gabriel-vasile/mimetype v1.4.8/go.mod h1:ByKUIKGjh1ODkGM1asKUbQZOLGrPjydw3hYPU2YU9t8=
+github.com/gabriel-vasile/mimetype v1.4.10 h1:zyueNbySn/z8mJZHLt6IPw0KoZsiQNszIpU+bX4+ZK0=
+github.com/gabriel-vasile/mimetype v1.4.10/go.mod h1:d+9Oxyo1wTzWdyVUPMmXFvp4F9tea18J8ufA774AB3s=
 github.com/go-logr/logr v1.2.2/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
 github.com/go-logr/logr v1.4.3 h1:CjnDlHq8ikf6E492q6eKboGOC0T8CDaOvkHCIg8idEI=
 github.com/go-logr/logr v1.4.3/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
@@ -100,8 +100,8 @@ github.com/go-playground/locales v0.14.1 h1:EWaQ/wswjilfKLTECiXz7Rh+3BjFhfDFKv/o
 github.com/go-playground/locales v0.14.1/go.mod h1:hxrqLVvrK65+Rwrd5Fc6F2O76J/NuW9t0sjnWqG1slY=
 github.com/go-playground/universal-translator v0.18.1 h1:Bcnm0ZwsGyWbCzImXv+pAJnYK9S473LQFuzCbDbfSFY=
 github.com/go-playground/universal-translator v0.18.1/go.mod h1:xekY+UJKNuX9WP91TpwSH2VMlDf28Uj24BCp08ZFTUY=
-github.com/go-playground/validator/v10 v10.27.0 h1:w8+XrWVMhGkxOaaowyKH35gFydVHOvC0/uWoy2Fzwn4=
-github.com/go-playground/validator/v10 v10.27.0/go.mod h1:I5QpIEbmr8On7W0TktmJAumgzX4CA1XNl4ZmDuVHKKo=
+github.com/go-playground/validator/v10 v10.28.0 h1:Q7ibns33JjyW48gHkuFT91qX48KG0ktULL6FgHdG688=
+github.com/go-playground/validator/v10 v10.28.0/go.mod h1:GoI6I1SjPBh9p7ykNE/yj3fFYbyDOpwMn5KXd+m2hUU=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/golang/protobuf v1.4.0-rc.1/go.mod h1:ceaxUfeHdC40wWswd/P6IGgMaK3YpKi5j83Wpe3EHw8=
 github.com/golang/protobuf v1.4.0-rc.1.0.20200221234624-67d41d38c208/go.mod h1:xKAWHe0F5eneWXFV3EuXVDTCmh+JuBKY0li0aMyXATA=

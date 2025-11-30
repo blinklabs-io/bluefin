@@ -1,9 +1,7 @@
-connectrpc.com/connect v1.19.1 h1:R5M57z05+90EfEvCY1b7hBxDVOUl45PrtXtAV2fOC14=
-connectrpc.com/connect v1.19.1/go.mod h1:tN20fjdGlewnSFeZxLKb0xwIZ6ozc3OQs2hTXy4du9w=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
-github.com/Salvionied/apollo v1.3.0 h1:+FMRnNnee+7dgeEuXfW6emvCNQzeNhytUkcoWM19B2o=
-github.com/Salvionied/apollo v1.3.0/go.mod h1:2C/qJI9NGJ5Z04hoNOAGKelQ1n8DEv3Nv+EVyVfcRwE=
+github.com/Salvionied/apollo v1.4.0 h1:nR4qbpOTvrqCBYQsUQhpNbcSoEnPGF9I2k4EQV7y8Cw=
+github.com/Salvionied/apollo v1.4.0/go.mod h1:VYKmVpsd3WGg+BGEti9s6pLZN4bU0hGjiC5fLtVF6bs=
 github.com/SundaeSwap-finance/kugo v1.3.0 h1:8+c+LJWJ0iByzRJXMMTGtWtsbWQmMIJxBb9mkId9XDU=
 github.com/SundaeSwap-finance/kugo v1.3.0/go.mod h1:NZT9DzTSH8N8IM0Mzn/ISn8xASefO0Xqipw8TGGpMvg=
 github.com/SundaeSwap-finance/ogmigo/v6 v6.2.0 h1:DshTW5GtTzUyktZnHvMLkBzxEVkZzAfG1062cZ455no=
@@ -183,8 +181,6 @@ github.com/tyler-smith/go-bip39 v1.1.0 h1:5eUemwrMargf3BSLRRCalXT93Ns6pQJIjYQN2n
 github.com/tyler-smith/go-bip39 v1.1.0/go.mod h1:gUYDtqQw1JS3ZJ8UWVcGTGqqr6YIN3CWg+kkNaLt55U=
 github.com/utxorpc/go-codegen v0.18.1 h1:2eenzXCkqvB2+g8MCq70MBR6koWs9CeTihZ0AqUvLDY=
 github.com/utxorpc/go-codegen v0.18.1/go.mod h1:DFij3zIGDM39BYCuzrz1rSuO3kTIIiHglWV0043wQxo=
-github.com/utxorpc/go-sdk v0.0.0-20250603130048-8c2c6c6648ea h1:vA8y/BgEIi0m7pXEx9Xbh39IBHqIoyPH3VmpgPwjEgY=
-github.com/utxorpc/go-sdk v0.0.0-20250603130048-8c2c6c6648ea/go.mod h1:nPuFOlAnLsZ9OxGaaSEBJlTVOrJ929PK8EUypTbMZxg=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
 github.com/x448/float16 v0.8.4/go.mod h1:14CWIYCyZA/cWjXOioeEpHeN/83MdbZDRQHoFcYsOfg=
 go.opentelemetry.io/auto/sdk v1.1.0 h1:cH53jehLUN6UFLY71z+NDOiNJqDdPRaXzTel0sJySYA=
@@ -205,8 +201,6 @@ golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d/go.mod h1:LzIPMQfyMNhhGPh
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.45.0 h1:jMBrvKuj23MTlT0bQEOBcAE0mjg8mK9RXFhRH6nyF3Q=
 golang.org/x/crypto v0.45.0/go.mod h1:XTGrrkGJve7CYK7J8PEww4aY7gM3qMCElcJQ8n8JdX4=
-golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 h1:yqrTHse8TCMW1M1ZCP+VAR/l0kKxwaAIqN/il7x4voA=
-golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8/go.mod h1:tujkw807nyEEAamNbDrEGzRav+ilXA7PCRAd6xsmwiU=
 golang.org/x/net v0.0.0-20180719180050-a680a1efc54d/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/net v0.0.0-20180906233101-161cd47e91fd/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=

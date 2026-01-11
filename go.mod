@@ -9,7 +9,7 @@ require (
 	github.com/blinklabs-io/adder v0.35.0
 	github.com/blinklabs-io/bursa v0.11.1
 	github.com/blinklabs-io/cardano-models v0.7.0
-	github.com/blinklabs-io/gouroboros v0.145.0
+	github.com/blinklabs-io/gouroboros v0.146.0
 	github.com/blinklabs-io/merkle-patricia-forestry v0.1.6
 	github.com/dgraph-io/badger/v4 v4.9.0
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -38,7 +38,7 @@ require (
 	github.com/SundaeSwap-finance/ogmigo/v6 v6.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.6 // indirect
 	github.com/bits-and-blooms/bitset v1.20.0 // indirect
-	github.com/blinklabs-io/plutigo v0.0.16 // indirect
+	github.com/blinklabs-io/plutigo v0.0.18 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.6 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.6 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect
@@ -80,5 +80,5 @@ require (
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
-	google.golang.org/protobuf v1.36.10 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 )

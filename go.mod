@@ -6,10 +6,10 @@ toolchain go1.24.4
 
 require (
 	github.com/Salvionied/apollo v1.5.0
-	github.com/blinklabs-io/adder v0.35.0
+	github.com/blinklabs-io/adder v0.37.0
 	github.com/blinklabs-io/bursa v0.11.1
 	github.com/blinklabs-io/cardano-models v0.7.0
-	github.com/blinklabs-io/gouroboros v0.146.0
+	github.com/blinklabs-io/gouroboros v0.149.0
 	github.com/blinklabs-io/merkle-patricia-forestry v0.1.6
 	github.com/dgraph-io/badger/v4 v4.9.0
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -38,7 +38,7 @@ require (
 	github.com/SundaeSwap-finance/ogmigo/v6 v6.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.6 // indirect
 	github.com/bits-and-blooms/bitset v1.20.0 // indirect
-	github.com/blinklabs-io/plutigo v0.0.18 // indirect
+	github.com/blinklabs-io/plutigo v0.0.20 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.6 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.6 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect
@@ -68,7 +68,7 @@ require (
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/maestro-org/go-sdk v1.2.1 // indirect
-	github.com/spf13/pflag v1.0.6 // indirect
+	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	github.com/utxorpc/go-codegen v0.18.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

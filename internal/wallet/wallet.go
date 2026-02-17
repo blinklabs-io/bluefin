@@ -49,7 +49,7 @@ func Setup() {
 			)
 			mnemonic = string(data)
 		} else if errors.Is(err, os.ErrNotExist) {
-			mnemonic, err = bursa.NewMnemonic()
+			mnemonic, err = bursa.GenerateMnemonic()
 			if err != nil {
 				panic(err)
 			}
@@ -81,8 +81,7 @@ func Setup() {
 	}
 	wallet, err := bursa.NewWallet(
 		mnemonic,
-		cfg.Network,
-		"", 0, 0, 0, 0,
+		bursa.WithNetwork(cfg.Network),
 	)
 	if err != nil {
 		panic(err)
@@ -99,7 +98,15 @@ func PaymentKeyHash() []byte {
 	if err != nil {
 		panic(err)
 	}
-	userPkh := bursa.GetPaymentKey(bursa.GetAccountKey(rootKey, 0), 0).
+	accountKey, err := bursa.GetAccountKey(rootKey, 0)
+	if err != nil {
+		panic(err)
+	}
+	paymentKey, err := bursa.GetPaymentKey(accountKey, 0)
+	if err != nil {
+		panic(err)
+	}
+	userPkh := paymentKey.
 		Public().
 		PublicKey()
 	tmpHasher, err := blake2b.New(28, nil)

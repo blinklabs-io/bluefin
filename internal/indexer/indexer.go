@@ -18,6 +18,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log/slog"
+	"math/big"
 	"os"
 	"time"
 
@@ -233,7 +234,7 @@ func (i *Indexer) handleEventTransaction(evt event.Event) error {
 		}
 	}
 	// Check for TUNA mints
-	var tunaMintCount int64
+	var tunaMintCount *big.Int
 	var tunaPolicyId string
 	if profileCfg.UseTunaV1 {
 		tunaPolicyId = profileCfg.ValidatorHash
@@ -288,15 +289,15 @@ func (i *Indexer) handleEventTransaction(evt event.Event) error {
 		}
 		// Show message when receiving freshly minted TUNA
 		if outputAddress == bursa.PaymentAddress {
-			if tunaMintCount > 0 {
+			if tunaMintCount != nil && tunaMintCount.Sign() > 0 {
 				if utxo.Output.Assets() != nil {
 					outputTunaCount := utxo.Output.Assets().Asset(
 						ledger.Blake2b224(tunaPolicyIdHex),
 						[]byte("TUNA"),
 					)
-					if outputTunaCount > 0 {
+					if outputTunaCount != nil && outputTunaCount.Sign() > 0 {
 						slog.Info(
-							fmt.Sprintf("minted %d TUNA!", tunaMintCount),
+							fmt.Sprintf("minted %s TUNA!", tunaMintCount),
 						)
 					}
 				}

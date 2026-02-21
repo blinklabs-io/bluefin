@@ -17,6 +17,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"runtime"
 
@@ -138,6 +139,10 @@ func Load(configFile string) (*Config, error) {
 	if err := globalConfig.validateProfile(); err != nil {
 		return nil, err
 	}
+	// Validate submit config
+	if err := globalConfig.validateSubmit(); err != nil {
+		return nil, err
+	}
 	// Populate our Indexer startup
 	if err := globalConfig.populateIndexer(); err != nil {
 		return nil, err
@@ -169,6 +174,26 @@ func (c *Config) validateProfile() error {
 			c.Profile,
 			c.Network,
 		)
+	}
+	return nil
+}
+
+func (c *Config) validateSubmit() error {
+	if c.Submit.Url == "" {
+		return nil
+	}
+	u, err := url.Parse(c.Submit.Url)
+	if err != nil {
+		return fmt.Errorf("invalid submit URL %q: %w", c.Submit.Url, err)
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return fmt.Errorf(
+			"invalid submit URL scheme %q: must be http or https",
+			u.Scheme,
+		)
+	}
+	if u.Host == "" {
+		return fmt.Errorf("invalid submit URL %q: missing host", c.Submit.Url)
 	}
 	return nil
 }

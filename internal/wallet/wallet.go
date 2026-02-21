@@ -54,19 +54,19 @@ func Setup() {
 			}
 			// Write seed.txt
 			// WARNING: this will clobber existing files
-			f, err := os.Create(seedPath)
+			f, err := os.OpenFile(seedPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
 			if err != nil {
 				panic(err)
 			}
 			l, err := f.WriteString(mnemonic)
-			slog.Debug( //nolint:gosec
-				"wrote seed file",
-				"bytes", l,
-			)
 			if err != nil {
 				f.Close()
 				panic(err)
 			}
+			slog.Debug( //nolint:gosec
+				"wrote seed file",
+				"bytes", l,
+			)
 			err = f.Close()
 			if err != nil {
 				panic(err)

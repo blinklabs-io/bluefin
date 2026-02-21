@@ -539,7 +539,7 @@ func submitTxApi(txRawBytes []byte) (string, error) {
 		req.Header.Add("project_id", cfg.Submit.BlockFrostProjectID)
 	}
 	client := &http.Client{Timeout: 5 * time.Minute}
-	resp, err := client.Do(req) //nolint:gosec
+	resp, err := client.Do(req) //nolint:gosec // URL is validated at config load time
 	if err != nil {
 		return "", fmt.Errorf(
 			"failed to send request: %s: %w",
@@ -553,12 +553,12 @@ func submitTxApi(txRawBytes []byte) (string, error) {
 			cfg.Submit.Url,
 		)
 	}
+	defer resp.Body.Close()
 	// We have to read the entire response body and close it to prevent a memory leak
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("failed to read response body: %w", err)
 	}
-	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusAccepted {
 		return string(respBody), nil

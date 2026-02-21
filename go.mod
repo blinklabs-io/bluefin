@@ -7,15 +7,15 @@ toolchain go1.24.4
 require (
 	github.com/Salvionied/apollo v1.5.0
 	github.com/blinklabs-io/adder v0.37.0
-	github.com/blinklabs-io/bursa v0.14.0
+	github.com/blinklabs-io/bursa v0.15.0
 	github.com/blinklabs-io/cardano-models v0.7.0
-	github.com/blinklabs-io/gouroboros v0.152.2
+	github.com/blinklabs-io/gouroboros v0.153.1
 	github.com/blinklabs-io/merkle-patricia-forestry v0.1.6
 	github.com/dgraph-io/badger/v4 v4.9.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/minio/sha256-simd v1.0.1
 	go.uber.org/automaxprocs v1.6.0
-	golang.org/x/crypto v0.47.0
+	golang.org/x/crypto v0.48.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -38,6 +38,7 @@ require (
 	github.com/SundaeSwap-finance/ogmigo/v6 v6.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.6 // indirect
 	github.com/bits-and-blooms/bitset v1.20.0 // indirect
+	github.com/blinklabs-io/go-bip39 v0.2.0 // indirect
 	github.com/blinklabs-io/plutigo v0.0.22 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.6 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.6 // indirect
@@ -77,7 +78,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.39.0 // indirect
 	golang.org/x/net v0.49.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.40.0 // indirect
-	golang.org/x/text v0.33.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )

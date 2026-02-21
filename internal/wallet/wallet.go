@@ -16,7 +16,6 @@ package wallet
 
 import (
 	"errors"
-	"fmt"
 	"log/slog"
 	"os"
 	"path"
@@ -60,8 +59,9 @@ func Setup() {
 				panic(err)
 			}
 			l, err := f.WriteString(mnemonic)
-			slog.Debug(
-				fmt.Sprintf("wrote %d bytes to seed.txt", l),
+			slog.Debug( //nolint:gosec
+				"wrote seed file",
+				"bytes", l,
 			)
 			if err != nil {
 				f.Close()

@@ -15,6 +15,7 @@
 package miner
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"sync/atomic"
@@ -82,11 +83,11 @@ func NewBackend(name string) (Backend, error) {
 	if !ok {
 		switch name {
 		case "opencl":
-			return nil, fmt.Errorf(
+			return nil, errors.New(
 				"opencl backend is not available in this build; rebuild bluefin with the 'opencl' build tag (e.g. `go build -tags opencl ./cmd/bluefin`) and ensure OpenCL headers and an ICD loader are installed",
 			)
 		case "cuda":
-			return nil, fmt.Errorf(
+			return nil, errors.New(
 				"cuda backend is not available in this build; rebuild bluefin with the 'cuda' build tag (e.g. `go build -tags cuda ./cmd/bluefin`) and ensure the CUDA toolkit is installed",
 			)
 		default:

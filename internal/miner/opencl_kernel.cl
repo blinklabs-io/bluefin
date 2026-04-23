@@ -130,23 +130,30 @@ static void sha256_32(const uint *in_words, uint *digest) {
 
 // Compute TUNA difficulty metrics (leading nibble zeros + 16-bit
 // difficulty number) from the 32-byte big-endian hash given as 8 words.
-// Mirrors the host-side getDifficulty().
+// Mirrors the host-side getDifficulty(). Reads past the end of the hash
+// are treated as zero so the lookahead bytes (i+1, i+2) cannot run off
+// the 8-word buffer.
+static inline uchar tuna_byte(const uint *hash_words, uint i) {
+    if (i >= 32) return 0;
+    return (uchar)((hash_words[i >> 2] >> (24u - 8u * (i & 3u))) & 0xffu);
+}
+
 static void tuna_difficulty(const uint *hash_words, uint *out_lz, uint *out_diff) {
     uint lz = 0;
     uint diff = 0;
     for (uint i = 0; i < 32; i++) {
-        uchar c = (uchar)((hash_words[i >> 2] >> (24u - 8u * (i & 3u))) & 0xffu);
+        uchar c = tuna_byte(hash_words, i);
         if (c == 0) {
             lz += 2;
             continue;
         }
         if ((c & 0xf0u) == 0) {
             lz += 1;
-            uchar c1 = (uchar)((hash_words[(i + 1) >> 2] >> (24u - 8u * ((i + 1) & 3u))) & 0xffu);
-            uchar c2 = (uchar)((hash_words[(i + 2) >> 2] >> (24u - 8u * ((i + 2) & 3u))) & 0xffu);
+            uchar c1 = tuna_byte(hash_words, i + 1);
+            uchar c2 = tuna_byte(hash_words, i + 2);
             diff = (uint)c * 4096u + (uint)c1 * 16u + ((uint)c2 / 16u);
         } else {
-            uchar c1 = (uchar)((hash_words[(i + 1) >> 2] >> (24u - 8u * ((i + 1) & 3u))) & 0xffu);
+            uchar c1 = tuna_byte(hash_words, i + 1);
             diff = (uint)c * 256u + (uint)c1;
         }
         *out_lz = lz;

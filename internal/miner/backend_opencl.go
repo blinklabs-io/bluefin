@@ -71,6 +71,16 @@ const (
 	defaultGlobalSize = 1 << 20 // ~1M nonces / dispatch
 )
 
+// ErrNoOpenCLPlatform is returned by newOpenCLBackend when the host has
+// no OpenCL platforms installed (e.g. no ICD loader or no installable
+// client drivers).
+var ErrNoOpenCLPlatform = errors.New("no OpenCL platforms found")
+
+// ErrNoOpenCLDevice is returned by newOpenCLBackend when at least one
+// OpenCL platform is available but no usable compute device was
+// discovered on any of them.
+var ErrNoOpenCLDevice = errors.New("no OpenCL devices available")
+
 func init() {
 	RegisterBackend("opencl", func() (Backend, error) {
 		return newOpenCLBackend()
@@ -359,10 +369,10 @@ func (b *openCLBackend) Search(
 
 		round++
 		// Periodically rotate the base nonce to avoid revisiting the
-		// same (state, gid, round) tuples if the round counter ever
-		// wraps. Rotating every 256 rounds gives 256*global_size ≈
-		// 256M nonces between rotations, well below 2^32.
-		if round == 0 {
+		// same (state, gid, round) tuples. Rotating every 256 rounds
+		// gives 256*global_size ≈ 256M nonces between rotations, well
+		// below 2^32.
+		if round&0xFF == 0 {
 			if _, err := rand.Read(baseNonce); err != nil {
 				return nil, err
 			}
@@ -394,7 +404,7 @@ func pickOpenCLDevice(want int) (C.cl_device_id, C.cl_platform_id, string, error
 		return nil, nil, "", fmt.Errorf("clGetPlatformIDs failed: %d", int(status))
 	}
 	if nPlatforms == 0 {
-		return nil, nil, "", errors.New("no OpenCL platforms found")
+		return nil, nil, "", ErrNoOpenCLPlatform
 	}
 	platforms := make([]C.cl_platform_id, nPlatforms)
 	if status := C.clGetPlatformIDs(nPlatforms, &platforms[0], nil); status != C.CL_SUCCESS {
@@ -432,7 +442,7 @@ func pickOpenCLDevice(want int) (C.cl_device_id, C.cl_platform_id, string, error
 		pool = all
 	}
 	if len(pool) == 0 {
-		return nil, nil, "", errors.New("no OpenCL devices available")
+		return nil, nil, "", ErrNoOpenCLDevice
 	}
 	if want < 0 || want >= len(pool) {
 		// If MINER_GPU_DEVICE was explicitly set out of range, log the

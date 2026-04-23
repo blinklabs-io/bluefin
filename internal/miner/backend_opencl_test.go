@@ -19,6 +19,7 @@ package miner
 import (
 	"bytes"
 	"crypto/sha256"
+	"errors"
 	"sync/atomic"
 	"testing"
 )
@@ -35,7 +36,14 @@ import (
 func TestOpenCLBackendEndToEnd(t *testing.T) {
 	b, err := newOpenCLBackend()
 	if err != nil {
-		t.Skipf("opencl backend unavailable: %v", err)
+		// Only skip when the host genuinely has no OpenCL
+		// platform/device available; any other backend init error
+		// (e.g. clCreateContext / build failures) should fail the
+		// test so we don't mask regressions.
+		if errors.Is(err, ErrNoOpenCLPlatform) || errors.Is(err, ErrNoOpenCLDevice) {
+			t.Skipf("opencl backend unavailable: %v", err)
+		}
+		t.Fatalf("opencl backend init failed: %v", err)
 	}
 	defer b.Close()
 

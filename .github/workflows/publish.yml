@@ -2,9 +2,9 @@ name: publish
 
 on:
   push:
-    branches: ['main']
+    branches: ["main"]
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 concurrency: ${{ github.ref }}
 
@@ -16,7 +16,7 @@ jobs:
     outputs:
       RELEASE_ID: ${{ steps.create-release.outputs.result }}
     steps:
-      - run: "echo \"RELEASE_TAG=${GITHUB_REF#refs/tags/}\" >> $GITHUB_ENV"
+      - run: 'echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV'
       - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 https://github.com/actions/github-script/releases/tag/v9.0.0
         id: create-release
         if: startsWith(github.ref, 'refs/tags/')
@@ -76,13 +76,13 @@ jobs:
       packages: write
       statuses: write
     steps:
-      - run: "echo \"RELEASE_TAG=${GITHUB_REF#refs/tags/}\" >> $GITHUB_ENV"
+      - run: 'echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV'
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2 https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
-          fetch-depth: '0'
+          fetch-depth: "0"
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0 https://github.com/actions/setup-go/releases/tag/v6.4.0
         with:
-          go-version: 1.24.x
+          go-version: 1.25.x
       - name: Build binary
         run: GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} make build
 
@@ -92,16 +92,16 @@ jobs:
         if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.os == 'windows' }}
         with:
           java-version: 17
-          distribution: 'temurin'
-      - id: 'auth'
+          distribution: "temurin"
+      - id: "auth"
         name: Authenticate with Google Cloud
         if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.os == 'windows' }}
-        uses: 'google-github-actions/auth@v3'
+        uses: "google-github-actions/auth@v3"
         with:
-          credentials_json: '${{ secrets.CERTIFICATE_SA_CREDENTIALS }}'
+          credentials_json: "${{ secrets.CERTIFICATE_SA_CREDENTIALS }}"
       - name: Set up Cloud SDK
         if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.os == 'windows' }}
-        uses: 'google-github-actions/setup-gcloud@v3'
+        uses: "google-github-actions/setup-gcloud@v3"
       - name: Sign windows binary
         if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.os == 'windows' }}
         run: |
@@ -193,7 +193,7 @@ jobs:
       - name: Attest binary
         uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0 https://github.com/actions/attest/releases/tag/v4.1.0
         with:
-          subject-path: 'bluefin'
+          subject-path: "bluefin"
 
   build-images:
     runs-on: ubuntu-latest
@@ -207,10 +207,10 @@ jobs:
       packages: write
       statuses: write
     steps:
-      - run: "echo \"RELEASE_TAG=${GITHUB_REF#refs/tags/}\" >> $GITHUB_ENV"
+      - run: 'echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV'
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2 https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
-          fetch-depth: '0'
+          fetch-depth: "0"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0 https://github.com/docker/setup-qemu-action/releases/tag/v4.0.0
       - name: Set up Docker Buildx

@@ -70,6 +70,65 @@ You can also run the code without building a binary, first
 go run ./cmd/bluefin
 ```
 
+## GPU mining (OpenCL)
+
+Bluefin can optionally mine on a GPU using OpenCL. The OpenCL backend
+is gated behind the `opencl` Go build tag so that the default,
+pure-Go, `CGO_ENABLED=0` build keeps working everywhere.
+
+### Build requirements
+
+* A C toolchain (`build-essential` on Debian/Ubuntu).
+* OpenCL headers (`opencl-headers` on Debian/Ubuntu).
+* An OpenCL ICD loader development package
+  (`ocl-icd-opencl-dev` on Debian/Ubuntu).
+
+### Build the binary
+
+```bash
+make build-opencl
+```
+
+This is equivalent to:
+
+```bash
+CGO_ENABLED=1 go build -tags opencl -o bluefin ./cmd/bluefin
+```
+
+### Runtime requirements
+
+You need a vendor OpenCL ICD installed for your GPU at runtime:
+
+* NVIDIA: `nvidia-opencl-icd` (ships with the NVIDIA proprietary driver).
+* AMD: `mesa-opencl-icd` (open-source) or AMDGPU-PRO/ROCm OpenCL.
+* Intel: `intel-opencl-icd` / NEO.
+
+You can verify what OpenCL devices are visible with `clinfo`.
+
+### Running with the OpenCL backend
+
+Select the OpenCL backend at runtime via the `MINER_BACKEND` env var:
+
+```bash
+MINER_BACKEND=opencl ./bluefin
+```
+
+Other relevant env vars:
+
+| Variable | Description | Default |
+| --- | --- | --- |
+| `MINER_BACKEND` | Mining backend: `cpu` or `opencl`. | `cpu` |
+| `MINER_GPU_DEVICE` | Index of the GPU to use (0 = first). | `0` |
+| `MINER_GPU_BATCH_SIZE` | Nonces per kernel dispatch. `0` = sensible default. | `0` |
+
+If `MINER_BACKEND=opencl` is requested on a binary built **without** the
+`opencl` tag, bluefin will exit with a clear error explaining how to
+rebuild with GPU support.
+
+> **Note:** A CUDA backend is planned as a follow-up; the GPU backend
+> framework was designed so that an additional backend can be slotted
+> in behind a `cuda` build tag without further refactoring.
+
 ## WE WANT YOU!!!
 
 We're looking for people to join this project and help get it off the ground.

@@ -41,6 +41,7 @@ type Manager struct {
 	startMutex       sync.Mutex
 	stopMutex        sync.Mutex
 	started          bool
+	backend          Backend
 }
 
 var globalManager = &Manager{}
@@ -63,6 +64,14 @@ func (m *Manager) Stop() {
 	close(m.doneChan)
 	m.workerWaitGroup.Wait()
 	close(m.resultChan)
+	if m.backend != nil {
+		if err := m.backend.Close(); err != nil {
+			slog.Warn(
+				fmt.Sprintf("error closing %s backend: %s", m.backend.Name(), err),
+			)
+		}
+		m.backend = nil
+	}
 	m.started = false
 	slog.Info("stopped workers")
 	// Start timer to restart miner
@@ -92,21 +101,57 @@ func (m *Manager) Start(blockData any) {
 		m.restartTimer.Stop()
 	}
 	cfg := config.GetConfig()
+	// Initialize the configured mining backend
+	backend, err := NewBackend(cfg.Miner.Backend)
+	if err != nil {
+		slog.Error(
+			fmt.Sprintf("failed to initialize miner backend: %s", err),
+		)
+		// Schedule a retry rather than crashing the daemon, so that
+		// transient backend init failures (e.g. GPU not yet ready)
+		// don't take the process down.
+		m.restartTimer = time.AfterFunc(
+			restartTimeout,
+			func() { m.Start(m.lastBlockData) },
+		)
+		return
+	}
+	m.backend = backend
+	// GPU backends manage their own internal parallelism; running
+	// multiple workers against the same device just oversubscribes it.
+	workerCount := cfg.Miner.WorkerCount
+	if backend.Name() != "cpu" {
+		if workerCount > 1 {
+			slog.Info(
+				fmt.Sprintf(
+					"forcing worker count to 1 for %s backend (was %d)",
+					backend.Name(),
+					workerCount,
+				),
+			)
+		}
+		workerCount = 1
+	}
 	// Start hash rate log timer
 	m.hashCounter = &atomic.Uint64{}
 	m.scheduleHashRateLog()
 	// Start workers
 	m.Reset()
 	slog.Info(
-		fmt.Sprintf("starting %d workers", cfg.Miner.WorkerCount),
+		fmt.Sprintf(
+			"starting %d %s worker(s)",
+			workerCount,
+			backend.Name(),
+		),
 	)
-	for range cfg.Miner.WorkerCount {
+	for range workerCount {
 		miner := New(
 			&(m.workerWaitGroup),
 			m.resultChan,
 			m.doneChan,
 			blockData,
 			m.hashCounter,
+			backend,
 		)
 		m.workerWaitGroup.Add(1)
 		go miner.Start()

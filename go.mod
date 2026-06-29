@@ -11,7 +11,7 @@ require (
 	github.com/blinklabs-io/cardano-models v0.7.0
 	github.com/blinklabs-io/gouroboros v0.153.1
 	github.com/blinklabs-io/merkle-patricia-forestry v0.1.6
-	github.com/dgraph-io/badger/v4 v4.9.0
+	github.com/dgraph-io/badger/v4 v4.9.2
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/minio/sha256-simd v1.0.1
 	go.uber.org/automaxprocs v1.6.0
@@ -76,7 +76,6 @@ require (
 	go.opentelemetry.io/otel v1.41.0 // indirect
 	go.opentelemetry.io/otel/metric v1.41.0 // indirect
 	go.opentelemetry.io/otel/trace v1.41.0 // indirect
-	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/text v0.38.0 // indirect

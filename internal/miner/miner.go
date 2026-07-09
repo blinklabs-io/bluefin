@@ -27,7 +27,6 @@ import (
 	"github.com/blinklabs-io/bluefin/internal/wallet"
 	models "github.com/blinklabs-io/cardano-models"
 	"github.com/blinklabs-io/gouroboros/cbor"
-	"github.com/minio/sha256-simd"
 )
 
 const (
@@ -43,7 +42,7 @@ type Miner struct {
 	blockData   any
 	state       TargetState
 	hashCounter *atomic.Uint64
-	nonceCount  uint8
+	backend     Backend
 }
 
 type TargetState interface {
@@ -170,6 +169,7 @@ func New(
 	doneChan chan any,
 	blockData any,
 	hashCounter *atomic.Uint64,
+	backend Backend,
 ) *Miner {
 	return &Miner{
 		Config:      config.GetConfig(),
@@ -178,6 +178,7 @@ func New(
 		doneChan:    doneChan,
 		blockData:   blockData,
 		hashCounter: hashCounter,
+		backend:     backend,
 	}
 }
 
@@ -346,67 +347,18 @@ func randomNonce() [16]byte {
 }
 
 func (m *Miner) calculateHash() []byte {
-	var tmpLeadingZeros int64
-	var tmpDifficultyNumber int64
-	switch v := m.blockData.(type) {
-	case models.TunaV1State:
-		tmpLeadingZeros = v.LeadingZeros
-		tmpDifficultyNumber = v.DifficultyNumber
-	case models.TunaV2State:
-		tmpLeadingZeros = v.LeadingZeros
-		tmpDifficultyNumber = v.DifficultyNumber
-	default:
-		panic("unknown state model type")
+	target := m.getCurrentDifficulty()
+	if m.backend == nil {
+		// Fallback to a CPU backend so existing call sites and tests
+		// that construct a Miner directly continue to work.
+		m.backend = &cpuBackend{}
 	}
-	for {
-		// Check for shutdown
-		select {
-		case <-m.doneChan:
-			return nil
-		default:
-			break
-		}
-		stateBytes, err := m.state.MarshalCBOR()
-		if err != nil {
-			slog.Error(err.Error())
-			return nil
-		}
-
-		// Hash it once
-		hasher := sha256.New()
-		hasher.Write(stateBytes)
-		hash := hasher.Sum(nil)
-
-		// And hash it again
-		hasher2 := sha256.New()
-		hasher2.Write(hash)
-		hash2 := hasher2.Sum(nil)
-
-		// Increment hash counter
-		m.hashCounter.Add(1)
-
-		// Get the difficulty metrics for the hash
-		metrics := getDifficulty(hash2)
-
-		// Check the condition
-		if metrics.LeadingZeros > tmpLeadingZeros ||
-			(metrics.LeadingZeros == tmpLeadingZeros && metrics.DifficultyNumber < tmpDifficultyNumber) {
-			return hash2
-		}
-
-		// Generate a new random nonce when nonceCount rolls over, and increment bytes in existing nonce otherwise
-		if m.nonceCount == 0 {
-			m.state.SetNonce(randomNonce())
-		} else {
-			nonce := m.state.GetNonce()
-			// Increment each byte of the nonce
-			for j := range 16 {
-				nonce[j]++ //nolint:gosec
-			}
-			m.state.SetNonce(nonce)
-		}
-		m.nonceCount++
+	hash, err := m.backend.Search(m.state, target, m.doneChan, m.hashCounter)
+	if err != nil {
+		slog.Error(err.Error())
+		return nil
 	}
+	return hash
 }
 
 func (m *Miner) getCurrentDifficulty() DifficultyMetrics {

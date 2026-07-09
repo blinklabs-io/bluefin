@@ -72,6 +72,19 @@ type MinerConfig struct {
 	Message          string `yaml:"message"          envconfig:"MINER_MESSAGE"`
 	WorkerCount      int    `yaml:"workers"          envconfig:"WORKER_COUNT"`
 	HashRateInterval int    `yaml:"hashRateInterval" envconfig:"HASH_RATE_INTERVAL"`
+	// Backend selects the mining backend. Supported values are "cpu",
+	// "opencl" and "cuda". GPU backends are only available when the
+	// binary is built with the corresponding build tag (`opencl` or
+	// `cuda`); otherwise, requesting them will return an error at
+	// startup.
+	Backend string `yaml:"backend" envconfig:"MINER_BACKEND"`
+	// GpuDevice is the index (within the chosen GPU backend's device
+	// list) of the device to use. Defaults to 0 (first available).
+	GpuDevice int `yaml:"gpuDevice" envconfig:"MINER_GPU_DEVICE"`
+	// GpuBatchSize is the number of nonces dispatched to the GPU in a
+	// single kernel invocation. A value of 0 selects a sensible
+	// default for the chosen backend.
+	GpuBatchSize int `yaml:"gpuBatchSize" envconfig:"MINER_GPU_BATCH_SIZE"`
 }
 
 type MetricsConfig struct {
@@ -103,6 +116,9 @@ var globalConfig = &Config{
 	Miner: MinerConfig{
 		WorkerCount:      max(1, runtime.NumCPU()/2),
 		HashRateInterval: 60,
+		Backend:          "cpu",
+		GpuDevice:        0,
+		GpuBatchSize:     0,
 		Message: fmt.Sprintf(
 			"Bluefin %s by Blink Labs",
 			version.GetVersionString(),

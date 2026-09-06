@@ -112,8 +112,9 @@ You need a vendor OpenCL ICD installed for your GPU at runtime:
 * AMD: `mesa-opencl-icd` (open-source) or AMDGPU-PRO/ROCm OpenCL.
 * Intel: `intel-opencl-icd` / NEO.
 
-CUDA runtime libraries and an NVIDIA container runtime are required for the
-CUDA backend. Run a CUDA-enabled container with `--gpus all`.
+CUDA runtime libraries are required for the CUDA backend when running the
+binary directly. When using Docker, run a CUDA-enabled container with
+`--gpus all` and the NVIDIA Container Toolkit.
 
 You can verify what OpenCL devices are visible with `clinfo`.
 
@@ -138,8 +139,9 @@ If `MINER_BACKEND=opencl` is requested on a binary built **without** the
 rebuild with GPU support.
 
 If `MINER_BACKEND=cuda` is requested on a binary built without the `cuda`
-tag, bluefin exits with a clear error explaining how to rebuild with GPU
-support.
+tag, bluefin logs the configuration error and retries initialization after
+two minutes. Automatic backend selection falls back to the next available
+backend instead.
 
 ## WE WANT YOU!!!
 

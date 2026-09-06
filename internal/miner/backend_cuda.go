@@ -44,6 +44,8 @@ import (
 
 const defaultCUDABatchSize = 1 << 20
 
+const maxCUDABatchSize = int64(1<<31 - 1 - (256 - 1))
+
 func init() {
 	RegisterBackend("cuda", func() (Backend, error) {
 		return newCUDABackend()
@@ -61,6 +63,13 @@ func newCUDABackend() (*cudaBackend, error) {
 	batchSize := cfg.Miner.GpuBatchSize
 	if batchSize <= 0 {
 		batchSize = defaultCUDABatchSize
+	}
+	if int64(batchSize) > maxCUDABatchSize {
+		return nil, fmt.Errorf(
+			"cuda batch size %d exceeds maximum supported value %d",
+			batchSize,
+			maxCUDABatchSize,
+		)
 	}
 	var handle *C.bluefin_cuda_backend
 	if C.bluefin_cuda_create(C.int(cfg.Miner.GpuDevice), C.int(batchSize), &handle) != 0 {

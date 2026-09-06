@@ -20,18 +20,23 @@ RUN apt-get update \
 
 WORKDIR /code
 COPY . .
-ARG CUDA_ARCH=89
+ARG CUDA_ARCH=all-major
 RUN make build-gpu CUDA_ARCH=${CUDA_ARCH}
 
 FROM ${CUDA_RUNTIME_IMAGE} AS bluefin
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+        ca-certificates \
         ocl-icd-libopencl1 \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --system --uid 10001 --create-home bluefin \
+    && mkdir -p /data \
+    && chown bluefin:bluefin /data
 
 COPY --from=build /code/bluefin /bin/
 # Create data dir owned by container user and use it as default dir
 VOLUME /data
 WORKDIR /data
+USER bluefin
 ENTRYPOINT ["bluefin"]

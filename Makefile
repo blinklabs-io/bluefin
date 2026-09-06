@@ -15,8 +15,10 @@ GO_LDFLAGS=-ldflags "-s -w -X '$(GOMODULE)/internal/version.Version=$(shell git 
 
 .PHONY: build mod-tidy clean test build-opencl build-cuda build-gpu
 
-CUDA_ARCH ?= 89
+CUDA_ARCH ?= all-major
 CUDA_OBJECT=$(ROOT_DIR)/internal/miner/cuda_kernel.o
+CUDA_ARCH_OBJECT=$(ROOT_DIR)/internal/miner/cuda_kernel-$(CUDA_ARCH).o
+CUDA_ARCH_FLAG=$(if $(filter all all-major,$(CUDA_ARCH)),-arch=$(CUDA_ARCH),-arch=sm_$(CUDA_ARCH))
 
 # Alias for building program binary
 build: $(BINARIES)
@@ -26,7 +28,7 @@ mod-tidy:
 	go mod tidy
 
 clean:
-	rm -f $(BINARIES)
+	rm -f $(BINARIES) $(CUDA_OBJECT) $(ROOT_DIR)/internal/miner/cuda_kernel-*.o
 
 format: mod-tidy
 	go fmt ./...
@@ -62,12 +64,16 @@ build-opencl: mod-tidy $(GO_FILES)
 		-o bluefin \
 		./cmd/bluefin
 
-$(CUDA_OBJECT): internal/miner/cuda_kernel.cu
-	nvcc -O3 -Xcompiler -fPIC -arch=sm_$(CUDA_ARCH) -c $< -o $@
+$(CUDA_OBJECT): $(CUDA_ARCH_OBJECT)
+	ln -sf $(notdir $<) $@
+
+$(CUDA_ARCH_OBJECT): internal/miner/cuda_kernel.cu Makefile
+	nvcc -O3 -Xcompiler -fPIC $(CUDA_ARCH_FLAG) -c $< -o $@
 
 # Build with the CUDA GPU mining backend enabled. Requires nvcc, the CUDA
 # toolkit and runtime libraries at build time. CUDA_ARCH defaults to the
-# compute capability of the RTX A400 (8.9); override it for another GPU.
+# all supported NVIDIA compute capabilities; override it with a numeric
+# compute capability (for example, CUDA_ARCH=89) for a smaller binary.
 build-cuda: mod-tidy $(GO_FILES) $(CUDA_OBJECT)
 	CGO_ENABLED=1 go build \
 		-tags cuda \

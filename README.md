@@ -70,11 +70,11 @@ You can also run the code without building a binary, first
 go run ./cmd/bluefin
 ```
 
-## GPU mining (OpenCL)
+## GPU mining (OpenCL and CUDA)
 
-Bluefin can optionally mine on a GPU using OpenCL. The OpenCL backend
-is gated behind the `opencl` Go build tag so that the default,
-pure-Go, `CGO_ENABLED=0` build keeps working everywhere.
+Bluefin can optionally mine on a GPU using OpenCL or CUDA. The GPU
+backends are gated behind the `opencl` and `cuda` Go build tags so that
+the default, pure-Go, `CGO_ENABLED=0` build keeps working everywhere.
 
 ### Build requirements
 
@@ -95,6 +95,15 @@ This is equivalent to:
 CGO_ENABLED=1 go build -tags opencl -o bluefin ./cmd/bluefin
 ```
 
+For NVIDIA GPUs, build the CUDA backend with the CUDA toolkit and `nvcc`:
+
+```bash
+make build-cuda              # RTX A400 / compute capability 8.9
+make build-cuda CUDA_ARCH=86 # override for another GPU
+```
+
+The Docker image is built with both backends using `make build-gpu`.
+
 ### Runtime requirements
 
 You need a vendor OpenCL ICD installed for your GPU at runtime:
@@ -102,6 +111,9 @@ You need a vendor OpenCL ICD installed for your GPU at runtime:
 * NVIDIA: `nvidia-opencl-icd` (ships with the NVIDIA proprietary driver).
 * AMD: `mesa-opencl-icd` (open-source) or AMDGPU-PRO/ROCm OpenCL.
 * Intel: `intel-opencl-icd` / NEO.
+
+CUDA runtime libraries and an NVIDIA container runtime are required for the
+CUDA backend. Run a CUDA-enabled container with `--gpus all`.
 
 You can verify what OpenCL devices are visible with `clinfo`.
 
@@ -117,7 +129,7 @@ Other relevant env vars:
 
 | Variable | Description | Default |
 | --- | --- | --- |
-| `MINER_BACKEND` | Mining backend: `cpu` or `opencl`. | `cpu` |
+| `MINER_BACKEND` | Mining backend: `auto`, `cpu`, `opencl`, or `cuda`. `auto` probes CUDA, then OpenCL, then CPU. | `auto` |
 | `MINER_GPU_DEVICE` | Index of the GPU to use (0 = first). | `0` |
 | `MINER_GPU_BATCH_SIZE` | Nonces per kernel dispatch. `0` = sensible default. | `0` |
 
@@ -125,9 +137,9 @@ If `MINER_BACKEND=opencl` is requested on a binary built **without** the
 `opencl` tag, bluefin will exit with a clear error explaining how to
 rebuild with GPU support.
 
-> **Note:** A CUDA backend is planned as a follow-up; the GPU backend
-> framework was designed so that an additional backend can be slotted
-> in behind a `cuda` build tag without further refactoring.
+If `MINER_BACKEND=cuda` is requested on a binary built without the `cuda`
+tag, bluefin exits with a clear error explaining how to rebuild with GPU
+support.
 
 ## WE WANT YOU!!!
 

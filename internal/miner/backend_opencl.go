@@ -28,6 +28,10 @@ package miner
 #include <CL/cl.h>
 #endif
 
+#ifndef CL_PLATFORM_NOT_FOUND_KHR
+#define CL_PLATFORM_NOT_FOUND_KHR -1001
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 */
@@ -401,6 +405,12 @@ func setKernelArg(kernel C.cl_kernel, idx C.cl_uint, size uintptr, ptr unsafe.Po
 func pickOpenCLDevice(want int) (C.cl_device_id, C.cl_platform_id, string, error) {
 	var nPlatforms C.cl_uint
 	if status := C.clGetPlatformIDs(0, nil, &nPlatforms); status != C.CL_SUCCESS {
+		// The ICD loader returns this extension error when no vendor ICD is
+		// installed. Treat it as the same unavailable-platform condition as
+		// a successful query that reports zero platforms.
+		if status == C.CL_PLATFORM_NOT_FOUND_KHR {
+			return nil, nil, "", ErrNoOpenCLPlatform
+		}
 		return nil, nil, "", fmt.Errorf("clGetPlatformIDs failed: %d", int(status))
 	}
 	if nPlatforms == 0 {

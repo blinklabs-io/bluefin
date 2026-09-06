@@ -13,7 +13,10 @@ GOMODULE=$(shell grep ^module $(ROOT_DIR)/go.mod | awk '{ print $$2 }')
 # Set version strings based on git tag and current ref
 GO_LDFLAGS=-ldflags "-s -w -X '$(GOMODULE)/internal/version.Version=$(shell git describe --tags --exact-match 2>/dev/null)' -X '$(GOMODULE)/internal/version.CommitHash=$(shell git rev-parse --short HEAD)'"
 
-.PHONY: build mod-tidy clean test build-opencl
+.PHONY: build mod-tidy clean test build-opencl build-cuda build-gpu
+
+CUDA_ARCH ?= 89
+CUDA_OBJECT=$(ROOT_DIR)/internal/miner/cuda_kernel.o
 
 # Alias for building program binary
 build: $(BINARIES)
@@ -55,6 +58,27 @@ $(BINARIES): mod-tidy $(GO_FILES)
 build-opencl: mod-tidy $(GO_FILES)
 	CGO_ENABLED=1 go build \
 		-tags opencl \
+		$(GO_LDFLAGS) \
+		-o bluefin \
+		./cmd/bluefin
+
+$(CUDA_OBJECT): internal/miner/cuda_kernel.cu
+	nvcc -O3 -Xcompiler -fPIC -arch=sm_$(CUDA_ARCH) -c $< -o $@
+
+# Build with the CUDA GPU mining backend enabled. Requires nvcc, the CUDA
+# toolkit and runtime libraries at build time. CUDA_ARCH defaults to the
+# compute capability of the RTX A400 (8.9); override it for another GPU.
+build-cuda: mod-tidy $(GO_FILES) $(CUDA_OBJECT)
+	CGO_ENABLED=1 go build \
+		-tags cuda \
+		$(GO_LDFLAGS) \
+		-o bluefin \
+		./cmd/bluefin
+
+# Build both GPU backends for images that ship OpenCL and CUDA support.
+build-gpu: mod-tidy $(GO_FILES) $(CUDA_OBJECT)
+	CGO_ENABLED=1 go build \
+		-tags 'opencl cuda' \
 		$(GO_LDFLAGS) \
 		-o bluefin \
 		./cmd/bluefin

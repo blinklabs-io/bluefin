@@ -62,7 +62,7 @@ func (i *Indexer) Start() error {
 	profileCfg := config.GetProfile()
 	// Load saved block data
 	var lastBlockDataBytes cbor.RawMessage
-	if err := storage.GetStorage().GetBlockData(&(lastBlockDataBytes)); err != nil {
+	if err := storage.GetStorage().GetBlockData(&lastBlockDataBytes); err != nil {
 		return err
 	}
 	if profileCfg.UseTunaV1 {
@@ -375,7 +375,7 @@ func (i *Indexer) handleEventTransaction(evt event.Event) error {
 					)
 				}
 
-				if err := store.UpdateBlockData(&(i.lastBlockData)); err != nil {
+				if err := store.UpdateBlockData(&i.lastBlockData); err != nil {
 					return err
 				}
 

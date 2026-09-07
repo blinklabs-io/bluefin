@@ -17,6 +17,7 @@ package miner
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"sync/atomic"
 )
@@ -76,8 +77,8 @@ func RegisterBackend(name string, factory BackendFactory) {
 // backends return an error explaining how to enable them.
 func NewBackend(name string) (Backend, error) {
 	name = strings.ToLower(strings.TrimSpace(name))
-	if name == "" {
-		name = "cpu"
+	if name == "" || name == "auto" {
+		return newBestBackend()
 	}
 	factory, ok := registeredBackends[name]
 	if !ok {
@@ -97,11 +98,34 @@ func NewBackend(name string) (Backend, error) {
 	return factory()
 }
 
+// newBestBackend selects the fastest backend available in this build and on
+// the current host. GPU backends are tried in preference order; a missing
+// driver, device, or runtime falls through to the next backend.
+func newBestBackend() (Backend, error) {
+	var initErrors []string
+	for _, name := range []string{"cuda", "opencl", "cpu"} {
+		factory, ok := registeredBackends[name]
+		if !ok {
+			continue
+		}
+		backend, err := factory()
+		if err == nil {
+			return backend, nil
+		}
+		initErrors = append(initErrors, fmt.Sprintf("%s: %v", name, err))
+	}
+	if len(initErrors) == 0 {
+		return nil, errors.New("no mining backends are registered")
+	}
+	return nil, fmt.Errorf("failed to initialize any mining backend: %s", strings.Join(initErrors, "; "))
+}
+
 // AvailableBackends returns the names of all registered backends.
 func AvailableBackends() []string {
 	out := make([]string, 0, len(registeredBackends))
 	for name := range registeredBackends {
 		out = append(out, name)
 	}
+	sort.Strings(out)
 	return out
 }

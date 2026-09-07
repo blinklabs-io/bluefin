@@ -35,6 +35,17 @@ func TestCPUBackendRegistered(t *testing.T) {
 	}
 }
 
+func TestAutoBackendFallsBackToCPU(t *testing.T) {
+	b, err := NewBackend("auto")
+	if err != nil {
+		t.Fatalf("auto backend failed: %v", err)
+	}
+	defer b.Close()
+	if b.Name() != "cpu" {
+		t.Skipf("auto selected %s; GPU backend availability is host-dependent", b.Name())
+	}
+}
+
 // TestNewBackendUnknown verifies that requesting an unsupported backend
 // returns an actionable error.
 func TestNewBackendUnknown(t *testing.T) {

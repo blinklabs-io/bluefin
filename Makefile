@@ -13,7 +13,7 @@ GOMODULE=$(shell grep ^module $(ROOT_DIR)/go.mod | awk '{ print $$2 }')
 # Set version strings based on git tag and current ref
 GO_LDFLAGS=-ldflags "-s -w -X '$(GOMODULE)/internal/version.Version=$(shell git describe --tags --exact-match 2>/dev/null)' -X '$(GOMODULE)/internal/version.CommitHash=$(shell git rev-parse --short HEAD)'"
 
-.PHONY: build mod-tidy clean test build-opencl build-cuda build-gpu
+.PHONY: build mod-tidy clean test build-opencl build-cuda build-gpu cuda-object
 
 CUDA_ARCH ?= all-major
 CUDA_OBJECT=$(ROOT_DIR)/internal/miner/cuda_kernel.o
@@ -64,8 +64,10 @@ build-opencl: mod-tidy $(GO_FILES)
 		-o bluefin \
 		./cmd/bluefin
 
-$(CUDA_OBJECT): $(CUDA_ARCH_OBJECT)
-	ln -sf $(notdir $<) $@
+cuda-object:
+
+$(CUDA_OBJECT): $(CUDA_ARCH_OBJECT) cuda-object
+	ln -sf $(notdir $(CUDA_ARCH_OBJECT)) $@
 
 $(CUDA_ARCH_OBJECT): internal/miner/cuda_kernel.cu Makefile
 	nvcc -O3 -Xcompiler -fPIC $(CUDA_ARCH_FLAG) -c $< -o $@

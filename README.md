@@ -98,8 +98,8 @@ CGO_ENABLED=1 go build -tags opencl -o bluefin ./cmd/bluefin
 For NVIDIA GPUs, build the CUDA backend with the CUDA toolkit and `nvcc`:
 
 ```bash
-make build-cuda              # RTX A400 / compute capability 8.9
-make build-cuda CUDA_ARCH=86 # override for another GPU
+make build-cuda              # all supported NVIDIA compute capabilities
+make build-cuda CUDA_ARCH=86 # build only for compute capability 8.6
 ```
 
 The Docker image is built with both backends using `make build-gpu`.
@@ -135,8 +135,8 @@ Other relevant env vars:
 | `MINER_GPU_BATCH_SIZE` | Nonces per kernel dispatch. `0` = sensible default. | `0` |
 
 If `MINER_BACKEND=opencl` is requested on a binary built **without** the
-`opencl` tag, bluefin will exit with a clear error explaining how to
-rebuild with GPU support.
+`opencl` tag, bluefin logs a clear error explaining how to rebuild with GPU
+support and retries initialization after two minutes.
 
 If `MINER_BACKEND=cuda` is requested on a binary built without the `cuda`
 tag, bluefin logs the configuration error and retries initialization after

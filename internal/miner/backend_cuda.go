@@ -44,6 +44,7 @@ import (
 
 const defaultCUDABatchSize = 1 << 20
 
+// Leave room for THREADS_PER_BLOCK-1 in the CUDA launch block calculation.
 const maxCUDABatchSize = int64(1<<31 - 1 - (256 - 1))
 
 func init() {

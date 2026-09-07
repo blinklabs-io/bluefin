@@ -30,7 +30,9 @@ RUN apt-get update \
         ca-certificates \
         ocl-icd-libopencl1 \
     && rm -rf /var/lib/apt/lists/* \
-    && useradd --system --uid 10001 --create-home bluefin \
+    && if ! getent group video >/dev/null; then groupadd --system video; fi \
+    && if ! getent group render >/dev/null; then groupadd --system render; fi \
+    && useradd --system --uid 10001 --create-home --groups video,render bluefin \
     && mkdir -p /data \
     && chown bluefin:bluefin /data
 

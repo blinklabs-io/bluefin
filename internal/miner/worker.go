@@ -146,7 +146,7 @@ func (m *Manager) Start(blockData any) {
 	)
 	for range workerCount {
 		miner := New(
-			&(m.workerWaitGroup),
+			&m.workerWaitGroup,
 			m.resultChan,
 			m.doneChan,
 			blockData,

@@ -1,7 +1,7 @@
 ARG CUDA_IMAGE=nvidia/cuda:12.8.1-devel-ubuntu24.04
 ARG CUDA_RUNTIME_IMAGE=nvidia/cuda:12.8.1-runtime-ubuntu24.04
 
-FROM ghcr.io/blinklabs-io/go:1.26.3-1 AS go
+FROM ghcr.io/blinklabs-io/go:1.26.7-1 AS go
 
 FROM ${CUDA_IMAGE} AS build
 

@@ -69,7 +69,7 @@ func (t *TargetStateV1) GetNonce() [16]byte {
 }
 
 func (state *TargetStateV1) MarshalCBOR() ([]byte, error) {
-	tmp := cbor.NewConstructor(
+	tmp := cbor.NewConstructorEncoder(
 		0,
 		cbor.IndefLengthList{
 			state.Nonce,
@@ -135,7 +135,7 @@ func (state *TargetStateV2) MarshalCBOR() ([]byte, error) {
 			state.EpochTime,
 		}
 	}
-	tmp := cbor.NewConstructor(
+	tmp := cbor.NewConstructorEncoder(
 		0,
 		indefList,
 	)
@@ -202,7 +202,7 @@ func (m *Miner) Start() {
 	} else {
 		// Build miner credential
 		userPkh := wallet.PaymentKeyHash()
-		minerCredential := cbor.NewConstructor(
+		minerCredential := cbor.NewConstructorEncoder(
 			0,
 			cbor.IndefLengthList{
 				userPkh,

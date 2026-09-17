@@ -242,7 +242,7 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	} else {
 		// Build miner credential
 		userPkh := wallet.PaymentKeyHash()
-		minerCredential := cbor.NewConstructor(
+		minerCredential := cbor.NewConstructorEncoder(
 			0,
 			cbor.IndefLengthList{
 				userPkh,
@@ -278,7 +278,7 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 			Data: PlutusData.PlutusData{
 				PlutusDataType: PlutusData.PlutusBytes,
 				TagNr:          0,
-				Value: cbor.NewConstructor(
+				Value: cbor.NewConstructorEncoder(
 					0,
 					cbor.IndefLengthList{
 						nonce,
@@ -298,13 +298,13 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 			Data: PlutusData.PlutusData{
 				PlutusDataType: PlutusData.PlutusBytes,
 				TagNr:          0,
-				Value: cbor.NewConstructor(
+				Value: cbor.NewConstructorEncoder(
 					1,
 					cbor.IndefLengthList{
-						cbor.NewConstructor(
+						cbor.NewConstructorEncoder(
 							0,
 							cbor.IndefLengthList{
-								cbor.NewConstructor(
+								cbor.NewConstructorEncoder(
 									0,
 									cbor.IndefLengthList{
 										validatorOutRef.Input.TransactionId,

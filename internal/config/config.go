@@ -72,8 +72,8 @@ type MinerConfig struct {
 	Message          string `yaml:"message"          envconfig:"MINER_MESSAGE"`
 	WorkerCount      int    `yaml:"workers"          envconfig:"WORKER_COUNT"`
 	HashRateInterval int    `yaml:"hashRateInterval" envconfig:"HASH_RATE_INTERVAL"`
-	// Backend selects the mining backend. Supported values are "cpu",
-	// "opencl" and "cuda". GPU backends are only available when the
+	// Backend selects the mining backend. Supported values are "auto",
+	// "cpu", "opencl" and "cuda". GPU backends are only available when the
 	// binary is built with the corresponding build tag (`opencl` or
 	// `cuda`); otherwise, requesting them will return an error at
 	// startup.
@@ -116,7 +116,7 @@ var globalConfig = &Config{
 	Miner: MinerConfig{
 		WorkerCount:      max(1, runtime.NumCPU()/2),
 		HashRateInterval: 60,
-		Backend:          "cpu",
+		Backend:          "auto",
 		GpuDevice:        0,
 		GpuBatchSize:     0,
 		Message: fmt.Sprintf(

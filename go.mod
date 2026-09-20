@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/Salvionied/apollo v1.6.0
 	github.com/blinklabs-io/adder v0.44.0
-	github.com/blinklabs-io/bursa v0.16.0
+	github.com/blinklabs-io/bursa v0.17.0
 	github.com/blinklabs-io/cardano-models v0.7.2
 	github.com/blinklabs-io/gouroboros v0.204.0
 	github.com/blinklabs-io/merkle-patricia-forestry v0.1.7

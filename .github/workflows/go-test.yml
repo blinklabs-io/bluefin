@@ -1,0 +1,18 @@
+# Generated automatically by org-governance-bot. Do not edit manually.
+name: "go-test"
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+
+jobs:
+  orchestrate:
+    uses: blinklabs-io/actions/.github/workflows/reuseable-go-test.yml@main
+    with:
+      nilaway-include-pkgs: github.com/blinklabs-io/bluefin
+      run-golangci-lint: true
+      run-nilaway: true

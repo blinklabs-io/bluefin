@@ -13,8 +13,8 @@ github.com/bits-and-blooms/bitset v1.25.0 h1:0Ro0qF4abCkM6SqWPVj29sFhAbMPAZpaDD7
 github.com/bits-and-blooms/bitset v1.25.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/blinklabs-io/adder v0.46.0 h1:wa7d1ESXW/IvVdYNo8aZCOQfCFka0hkYfxJ+8t+QFbc=
 github.com/blinklabs-io/adder v0.46.0/go.mod h1:FtY6Zck1159oajXb1ZRDaENFZB8y/ZDGYw//IeyAZKc=
-github.com/blinklabs-io/bursa v0.19.0 h1:cK6nM8iHUkR1rySn3Hf0m4ptdzH25SlN4uz5JJbmmBY=
-github.com/blinklabs-io/bursa v0.19.0/go.mod h1:mNWniN6C3qR4Xs2TJJFlLmlCnZucSHqzfbsE0hXet+8=
+github.com/blinklabs-io/bursa v0.20.0 h1:dYV0kF6JF9LxCHk+nCLXkNsfvTisDwNyFJEWVIo3QTY=
+github.com/blinklabs-io/bursa v0.20.0/go.mod h1:ziqUE5aR4YnMQyMrBtVS+CBgMO3JGADigyAstb2Fzho=
 github.com/blinklabs-io/cardano-models v0.7.2 h1:5Cg/IpY2Bg/l3grBhfdxtgBXAUVJxBqGLDjhIinN61o=
 github.com/blinklabs-io/cardano-models v0.7.2/go.mod h1:/I+h+cLcruzj9LlWcYSs2k8+ThmvvEGlr9SHRnLzWpE=
 github.com/blinklabs-io/go-bip39 v0.2.0 h1:rHYih+JzqaFVuP+UfvByKTAdJPeYtlvZu49yUGrZUk8=

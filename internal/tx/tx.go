@@ -201,21 +201,17 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 			PayToContract(
 				contractAddress, &postDatum, int(validatorOutRef.Output.PostAlonzo.Amount.Am.Coin), true, apollo.NewUnit(validatorHash, "lord tuna", 1),
 			).
-			MintAssetsWithRedeemer(
+			MintAssetsWithRedeemerAndExUnits(
 				apollo.NewUnit(validatorHash, "TUNA", 5000000000),
-				Redeemer.Redeemer{
-					Tag:   Redeemer.MINT,
-					Index: 0,
-					// NOTE: these values are estimated
-					ExUnits: Redeemer.ExecutionUnits{
-						Mem:   80_000,
-						Steps: 30_000_000,
-					},
-					Data: PlutusData.PlutusData{
-						PlutusDataType: PlutusData.PlutusArray,
-						TagNr:          121,
-						Value:          PlutusData.PlutusIndefArray{},
-					},
+				PlutusData.PlutusData{
+					PlutusDataType: PlutusData.PlutusArray,
+					TagNr:          121,
+					Value:          PlutusData.PlutusIndefArray{},
+				},
+				// NOTE: these values are estimated
+				Redeemer.ExecutionUnits{
+					Mem:   80_000,
+					Steps: 30_000_000,
 				},
 			).
 			CollectFrom(
@@ -334,17 +330,20 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 				validatorOutRef,
 				minerRedeemer,
 			).
-			MintAssetsWithRedeemer(
+			MintAssetsWithRedeemerAndExUnits(
 				apollo.NewUnit(mintValidatorHash, "TUNA", 5000000000),
-				mintRedeemer,
+				mintRedeemer.Data,
+				mintRedeemer.ExUnits,
 			).
-			MintAssetsWithRedeemer(
+			MintAssetsWithRedeemerAndExUnits(
 				apollo.NewUnit(mintValidatorHash, "COUNTER"+string(newBlockNumberBytes), 1),
-				mintRedeemer,
+				mintRedeemer.Data,
+				mintRedeemer.ExUnits,
 			).
-			MintAssetsWithRedeemer(
+			MintAssetsWithRedeemerAndExUnits(
 				apollo.NewUnit(mintValidatorHash, "COUNTER"+string(oldBlockNumberBytes), -1),
-				mintRedeemer,
+				mintRedeemer.Data,
+				mintRedeemer.ExUnits,
 			).
 			AddRequiredSigner(
 				serialization.PubKeyHash(userPkh),
@@ -370,7 +369,7 @@ func createTx(blockData any, nonce [16]byte) ([]byte, error) {
 	// Disable ExUnits estimation, since it doesn't work with the backend we use
 	apollob = apollob.DisableExecutionUnitsEstimation()
 
-	tx, err := apollob.Complete()
+	tx, _, err := apollob.Complete()
 	if err != nil {
 		return nil, err
 	}

@@ -142,7 +142,10 @@ func newOpenCLBackend() (*openCLBackend, error) {
 	if status != C.CL_SUCCESS {
 		C.clReleaseCommandQueue(queue)
 		C.clReleaseContext(ctx)
-		return nil, fmt.Errorf("clCreateProgramWithSource failed: %d", int(status))
+		return nil, fmt.Errorf(
+			"clCreateProgramWithSource failed: %d",
+			int(status),
+		)
 	}
 
 	if status = C.clBuildProgram(program, 1, &device, nil, nil, nil); status != C.CL_SUCCESS {
@@ -333,7 +336,10 @@ func (b *openCLBackend) Search(
 			b.queue, resultBuf, C.CL_TRUE, 0, C.size_t(4),
 			unsafe.Pointer(&zero), 0, nil, nil,
 		); status != C.CL_SUCCESS {
-			return nil, fmt.Errorf("clEnqueueWriteBuffer(result) failed: %d", int(status))
+			return nil, fmt.Errorf(
+				"clEnqueueWriteBuffer(result) failed: %d",
+				int(status),
+			)
 		}
 
 		if err := setKernelArg(b.kernel, 3, unsafe.Sizeof(round), unsafe.Pointer(&round)); err != nil {
@@ -343,7 +349,10 @@ func (b *openCLBackend) Search(
 		if status = C.clEnqueueNDRangeKernel(
 			b.queue, b.kernel, 1, nil, &globalSize, nil, 0, nil, nil,
 		); status != C.CL_SUCCESS {
-			return nil, fmt.Errorf("clEnqueueNDRangeKernel failed: %d", int(status))
+			return nil, fmt.Errorf(
+				"clEnqueueNDRangeKernel failed: %d",
+				int(status),
+			)
 		}
 		if status = C.clFinish(b.queue); status != C.CL_SUCCESS {
 			return nil, fmt.Errorf("clFinish failed: %d", int(status))
@@ -355,7 +364,10 @@ func (b *openCLBackend) Search(
 			b.queue, resultBuf, C.CL_TRUE, 0, C.size_t(resultWords*4),
 			unsafe.Pointer(&resultHost[0]), 0, nil, nil,
 		); status != C.CL_SUCCESS {
-			return nil, fmt.Errorf("clEnqueueReadBuffer(result) failed: %d", int(status))
+			return nil, fmt.Errorf(
+				"clEnqueueReadBuffer(result) failed: %d",
+				int(status),
+			)
 		}
 
 		if resultHost[0] != 0 {
@@ -384,16 +396,28 @@ func (b *openCLBackend) Search(
 				b.queue, nonceBuf, C.CL_TRUE, 0, C.size_t(16),
 				unsafe.Pointer(&baseNonce[0]), 0, nil, nil,
 			); status != C.CL_SUCCESS {
-				return nil, fmt.Errorf("clEnqueueWriteBuffer(nonce) failed: %d", int(status))
+				return nil, fmt.Errorf(
+					"clEnqueueWriteBuffer(nonce) failed: %d",
+					int(status),
+				)
 			}
 		}
 	}
 }
 
-func setKernelArg(kernel C.cl_kernel, idx C.cl_uint, size uintptr, ptr unsafe.Pointer) error {
+func setKernelArg(
+	kernel C.cl_kernel,
+	idx C.cl_uint,
+	size uintptr,
+	ptr unsafe.Pointer,
+) error {
 	status := C.clSetKernelArg(kernel, idx, C.size_t(size), ptr)
 	if status != C.CL_SUCCESS {
-		return fmt.Errorf("clSetKernelArg(%d) failed: %d", int(idx), int(status))
+		return fmt.Errorf(
+			"clSetKernelArg(%d) failed: %d",
+			int(idx),
+			int(status),
+		)
 	}
 	return nil
 }
@@ -402,7 +426,9 @@ func setKernelArg(kernel C.cl_kernel, idx C.cl_uint, size uintptr, ptr unsafe.Po
 // the requested logical index (counting GPUs across platforms in order).
 // If no GPU is found, it falls back to any compute device. The selected
 // platform is returned alongside the device for context creation.
-func pickOpenCLDevice(want int) (C.cl_device_id, C.cl_platform_id, string, error) {
+func pickOpenCLDevice(
+	want int,
+) (C.cl_device_id, C.cl_platform_id, string, error) {
 	var nPlatforms C.cl_uint
 	if status := C.clGetPlatformIDs(0, nil, &nPlatforms); status != C.CL_SUCCESS {
 		// The ICD loader returns this extension error when no vendor ICD is
@@ -411,14 +437,20 @@ func pickOpenCLDevice(want int) (C.cl_device_id, C.cl_platform_id, string, error
 		if status == C.CL_PLATFORM_NOT_FOUND_KHR {
 			return nil, nil, "", ErrNoOpenCLPlatform
 		}
-		return nil, nil, "", fmt.Errorf("clGetPlatformIDs failed: %d", int(status))
+		return nil, nil, "", fmt.Errorf(
+			"clGetPlatformIDs failed: %d",
+			int(status),
+		)
 	}
 	if nPlatforms == 0 {
 		return nil, nil, "", ErrNoOpenCLPlatform
 	}
 	platforms := make([]C.cl_platform_id, nPlatforms)
 	if status := C.clGetPlatformIDs(nPlatforms, &platforms[0], nil); status != C.CL_SUCCESS {
-		return nil, nil, "", fmt.Errorf("clGetPlatformIDs failed: %d", int(status))
+		return nil, nil, "", fmt.Errorf(
+			"clGetPlatformIDs failed: %d",
+			int(status),
+		)
 	}
 
 	type devInfo struct {
@@ -440,7 +472,10 @@ func pickOpenCLDevice(want int) (C.cl_device_id, C.cl_platform_id, string, error
 				continue
 			}
 			for _, d := range devs {
-				*dst = append(*dst, devInfo{id: d, platform: p, name: getDeviceName(d)})
+				*dst = append(
+					*dst,
+					devInfo{id: d, platform: p, name: getDeviceName(d)},
+				)
 			}
 		}
 	}
@@ -465,7 +500,9 @@ func pickOpenCLDevice(want int) (C.cl_device_id, C.cl_platform_id, string, error
 			if _, err := strconv.Atoi(env); err == nil {
 				return nil, nil, "", fmt.Errorf(
 					"MINER_GPU_DEVICE=%d is out of range; %d device(s) available:\n%s",
-					want, len(pool), lines,
+					want,
+					len(pool),
+					lines,
 				)
 			}
 		}
@@ -477,11 +514,18 @@ func pickOpenCLDevice(want int) (C.cl_device_id, C.cl_platform_id, string, error
 
 func getDeviceName(d C.cl_device_id) string {
 	var size C.size_t
-	if C.clGetDeviceInfo(d, C.CL_DEVICE_NAME, 0, nil, &size) != C.CL_SUCCESS || size == 0 {
+	if C.clGetDeviceInfo(d, C.CL_DEVICE_NAME, 0, nil, &size) != C.CL_SUCCESS ||
+		size == 0 {
 		return "(unknown)"
 	}
 	buf := make([]byte, size)
-	if C.clGetDeviceInfo(d, C.CL_DEVICE_NAME, size, unsafe.Pointer(&buf[0]), nil) != C.CL_SUCCESS {
+	if C.clGetDeviceInfo(
+		d,
+		C.CL_DEVICE_NAME,
+		size,
+		unsafe.Pointer(&buf[0]),
+		nil,
+	) != C.CL_SUCCESS {
 		return "(unknown)"
 	}
 	// Trim trailing NUL.
@@ -500,7 +544,12 @@ func readBuildLog(program C.cl_program, device C.cl_device_id) string {
 	}
 	buf := make([]byte, size)
 	if C.clGetProgramBuildInfo(
-		program, device, C.CL_PROGRAM_BUILD_LOG, size, unsafe.Pointer(&buf[0]), nil,
+		program,
+		device,
+		C.CL_PROGRAM_BUILD_LOG,
+		size,
+		unsafe.Pointer(&buf[0]),
+		nil,
 	) != C.CL_SUCCESS {
 		return "(no build log)"
 	}

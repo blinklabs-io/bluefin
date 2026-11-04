@@ -77,14 +77,14 @@ type MinerConfig struct {
 	// binary is built with the corresponding build tag (`opencl` or
 	// `cuda`); otherwise, requesting them will return an error at
 	// startup.
-	Backend string `yaml:"backend" envconfig:"MINER_BACKEND"`
+	Backend string `yaml:"backend"          envconfig:"MINER_BACKEND"`
 	// GpuDevice is the index (within the chosen GPU backend's device
 	// list) of the device to use. Defaults to 0 (first available).
-	GpuDevice int `yaml:"gpuDevice" envconfig:"MINER_GPU_DEVICE"`
+	GpuDevice int `yaml:"gpuDevice"        envconfig:"MINER_GPU_DEVICE"`
 	// GpuBatchSize is the number of nonces dispatched to the GPU in a
 	// single kernel invocation. A value of 0 selects a sensible
 	// default for the chosen backend.
-	GpuBatchSize int `yaml:"gpuBatchSize" envconfig:"MINER_GPU_BATCH_SIZE"`
+	GpuBatchSize int `yaml:"gpuBatchSize"     envconfig:"MINER_GPU_BATCH_SIZE"`
 }
 
 type MetricsConfig struct {

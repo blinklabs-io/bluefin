@@ -117,7 +117,10 @@ func newBestBackend() (Backend, error) {
 	if len(initErrors) == 0 {
 		return nil, errors.New("no mining backends are registered")
 	}
-	return nil, fmt.Errorf("failed to initialize any mining backend: %s", strings.Join(initErrors, "; "))
+	return nil, fmt.Errorf(
+		"failed to initialize any mining backend: %s",
+		strings.Join(initErrors, "; "),
+	)
 }
 
 // AvailableBackends returns the names of all registered backends.

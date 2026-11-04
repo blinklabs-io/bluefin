@@ -42,7 +42,10 @@ func TestAutoBackendFallsBackToCPU(t *testing.T) {
 	}
 	defer b.Close()
 	if b.Name() != "cpu" {
-		t.Skipf("auto selected %s; GPU backend availability is host-dependent", b.Name())
+		t.Skipf(
+			"auto selected %s; GPU backend availability is host-dependent",
+			b.Name(),
+		)
 	}
 }
 

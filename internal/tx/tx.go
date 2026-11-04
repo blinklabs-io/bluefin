@@ -538,9 +538,10 @@ func submitTxApi(txRawBytes []byte) (string, error) {
 		req.Header.Add("project_id", cfg.Submit.BlockFrostProjectID)
 	}
 	client := &http.Client{Timeout: 5 * time.Minute}
+	//nolint:gosec // URL is validated at config load time
 	resp, err := client.Do(
 		req,
-	) //nolint:gosec // URL is validated at config load time
+	)
 	if err != nil {
 		return "", fmt.Errorf(
 			"failed to send request: %s: %w",

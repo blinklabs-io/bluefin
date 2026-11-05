@@ -73,11 +73,24 @@ func newCUDABackend() (*cudaBackend, error) {
 		)
 	}
 	var handle *C.bluefin_cuda_backend
-	if C.bluefin_cuda_create(C.int(cfg.Miner.GpuDevice), C.int(batchSize), &handle) != 0 {
-		return nil, fmt.Errorf("cuda backend initialization failed: %s", C.GoString(C.bluefin_cuda_last_error()))
+	if C.bluefin_cuda_create(
+		C.int(cfg.Miner.GpuDevice),
+		C.int(batchSize),
+		&handle,
+	) != 0 {
+		return nil, fmt.Errorf(
+			"cuda backend initialization failed: %s",
+			C.GoString(C.bluefin_cuda_last_error()),
+		)
 	}
 	b := &cudaBackend{handle: handle, batchSize: batchSize}
-	slog.Info(fmt.Sprintf("cuda backend initialized: device=%d batch_size=%d", cfg.Miner.GpuDevice, batchSize))
+	slog.Info(
+		fmt.Sprintf(
+			"cuda backend initialized: device=%d batch_size=%d",
+			cfg.Miner.GpuDevice,
+			batchSize,
+		),
+	)
 	return b, nil
 }
 
@@ -106,7 +119,11 @@ func (b *cudaBackend) Search(
 		return nil, fmt.Errorf("marshal state: %w", err)
 	}
 	if len(stateBytes) > maxStateLen {
-		return nil, fmt.Errorf("state length %d exceeds cuda kernel limit %d", len(stateBytes), maxStateLen)
+		return nil, fmt.Errorf(
+			"state length %d exceeds cuda kernel limit %d",
+			len(stateBytes),
+			maxStateLen,
+		)
 	}
 	if len(stateBytes) == 0 {
 		return nil, errors.New("cannot mine an empty state")
@@ -136,7 +153,10 @@ func (b *cudaBackend) Search(
 			(*C.uint8_t)(unsafe.Pointer(&hash[0])),
 		)
 		if found < 0 {
-			return nil, fmt.Errorf("cuda search failed: %s", C.GoString(C.bluefin_cuda_last_error()))
+			return nil, fmt.Errorf(
+				"cuda search failed: %s",
+				C.GoString(C.bluefin_cuda_last_error()),
+			)
 		}
 		hashCounter.Add(uint64(b.batchSize))
 		if found != 0 {

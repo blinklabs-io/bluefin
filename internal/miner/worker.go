@@ -67,7 +67,11 @@ func (m *Manager) Stop() {
 	if m.backend != nil {
 		if err := m.backend.Close(); err != nil {
 			slog.Warn(
-				fmt.Sprintf("error closing %s backend: %s", m.backend.Name(), err),
+				fmt.Sprintf(
+					"error closing %s backend: %s",
+					m.backend.Name(),
+					err,
+				),
 			)
 		}
 		m.backend = nil

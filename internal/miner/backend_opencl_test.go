@@ -40,7 +40,8 @@ func TestOpenCLBackendEndToEnd(t *testing.T) {
 		// platform/device available; any other backend init error
 		// (e.g. clCreateContext / build failures) should fail the
 		// test so we don't mask regressions.
-		if errors.Is(err, ErrNoOpenCLPlatform) || errors.Is(err, ErrNoOpenCLDevice) {
+		if errors.Is(err, ErrNoOpenCLPlatform) ||
+			errors.Is(err, ErrNoOpenCLDevice) {
 			t.Skipf("opencl backend unavailable: %v", err)
 		}
 		t.Fatalf("opencl backend init failed: %v", err)

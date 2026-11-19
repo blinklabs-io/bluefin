@@ -1,13 +1,13 @@
 module github.com/blinklabs-io/bluefin
 
-go 1.26.10
+go 1.26.11
 
 require (
 	github.com/Salvionied/apollo v1.8.2
 	github.com/blinklabs-io/adder v0.46.0
-	github.com/blinklabs-io/bursa v0.21.1
+	github.com/blinklabs-io/bursa v0.25.0
 	github.com/blinklabs-io/cardano-models v0.7.2
-	github.com/blinklabs-io/gouroboros v0.218.0
+	github.com/blinklabs-io/gouroboros v0.219.0
 	github.com/blinklabs-io/merkle-patricia-forestry v0.2.0
 	github.com/dgraph-io/badger/v4 v4.9.6
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -36,7 +36,7 @@ require (
 	github.com/aws/aws-sdk-go v1.55.8 // indirect
 	github.com/bits-and-blooms/bitset v1.25.0 // indirect
 	github.com/blinklabs-io/go-bip39 v0.2.1 // indirect
-	github.com/blinklabs-io/plutigo v0.11.4 // indirect
+	github.com/blinklabs-io/plutigo v0.12.1 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.5.1 // indirect
 	github.com/btcsuite/btcd/btcutil v1.2.0 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.2.0 // indirect
@@ -50,12 +50,12 @@ require (
 	github.com/dgraph-io/ristretto/v2 v2.2.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.15 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.16 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-playground/locales v0.14.1 // indirect
-	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.30.5 // indirect
+	github.com/go-playground/locales v0.14.2 // indirect
+	github.com/go-playground/universal-translator v0.18.2 // indirect
+	github.com/go-playground/validator/v10 v10.30.6 // indirect
 	github.com/google/flatbuffers v25.2.10+incompatible // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/jinzhu/copier v0.4.0 // indirect

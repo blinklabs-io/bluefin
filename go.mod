@@ -1,13 +1,13 @@
 module github.com/blinklabs-io/bluefin
 
-go 1.26.10
+go 1.26.11
 
 require (
 	github.com/Salvionied/apollo v1.8.2
 	github.com/blinklabs-io/adder v0.46.0
 	github.com/blinklabs-io/bursa v0.21.1
 	github.com/blinklabs-io/cardano-models v0.7.2
-	github.com/blinklabs-io/gouroboros v0.218.0
+	github.com/blinklabs-io/gouroboros v0.220.2
 	github.com/blinklabs-io/merkle-patricia-forestry v0.2.0
 	github.com/dgraph-io/badger/v4 v4.9.6
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -36,7 +36,7 @@ require (
 	github.com/aws/aws-sdk-go v1.55.8 // indirect
 	github.com/bits-and-blooms/bitset v1.25.0 // indirect
 	github.com/blinklabs-io/go-bip39 v0.2.1 // indirect
-	github.com/blinklabs-io/plutigo v0.11.4 // indirect
+	github.com/blinklabs-io/plutigo v0.12.1 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.5.1 // indirect
 	github.com/btcsuite/btcd/btcutil v1.2.0 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.2.0 // indirect
